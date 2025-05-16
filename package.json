@@ -66,6 +66,6 @@
     "typescript": "^5"
   },
   "overrides": {
-    "@opentelemetry/context-async-hooks": "npm:@opentelemetry/context-base@^1.18.1"
+    "@opentelemetry/context-async-hooks": "npm:@opentelemetry/context-base@^1.25.0"
   }
 }
