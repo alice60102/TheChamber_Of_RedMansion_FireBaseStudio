@@ -8,6 +8,7 @@ import { Sparkles, BookOpen, Zap } from "lucide-react";
 import { connectThemesToModernContexts } from '@/ai/flows/connect-themes-to-modern-contexts';
 import type { ConnectThemesToModernContextsInput, ConnectThemesToModernContextsOutput } from '@/ai/flows/connect-themes-to-modern-contexts';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from "@/components/ui/label"; // Added import
 
 const sampleChapterText = "賈府的奢華生活背後，隱藏著複雜的人際關係和權力鬥爭。寶玉對仕途經濟的厭惡，以及對純真愛情的追求，與當時社會主流價值觀形成對比。人物的悲歡離合，反映了世事的無常和命運的不可捉摸。";
 
