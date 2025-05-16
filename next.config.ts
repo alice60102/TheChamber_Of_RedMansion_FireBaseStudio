@@ -32,10 +32,11 @@ const nextConfig: NextConfig = {
         dns: false, // Tells Webpack to provide an empty module for dns on the client
       };
       // Explicitly alias the problematic module to its browser-safe counterpart for client builds
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@opentelemetry/context-async-hooks': '@opentelemetry/context-base',
-      };
+      // REMOVED: Relying on package.json "overrides" for this specific module.
+      // config.resolve.alias = {
+      //   ...config.resolve.alias,
+      //   '@opentelemetry/context-async-hooks': '@opentelemetry/context-base',
+      // };
     }
     return config;
   },
