@@ -9,7 +9,12 @@ export default {
   ],
   theme: {
   	extend: {
-  		colors: {
+  		fontFamily: {
+        // Ensure sans is set if Noto Serif SC is the main body font
+        // Or remove this if Noto Serif SC is globally applied via body tag
+        sans: ['"Noto Serif SC"', 'serif'], 
+      },
+      colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -90,5 +95,8 @@ export default {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require('@tailwindcss/typography'),
+  ],
 } satisfies Config;

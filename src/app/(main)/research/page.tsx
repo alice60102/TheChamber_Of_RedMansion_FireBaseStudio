@@ -1,0 +1,171 @@
+
+"use client";
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Library, Search, FileText, MessageSquare, Filter, Microscope, Share2 } from "lucide-react";
+import { generateSpecialTopicFramework } from '@/ai/flows/generate-special-topic-framework';
+import type { GenerateSpecialTopicFrameworkInput, GenerateSpecialTopicFrameworkOutput } from '@/ai/flows/generate-special-topic-framework';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+const researchTopics = [
+  "《紅樓夢》中的詩詞賞析",
+  "賈寶玉與林黛玉的愛情悲劇",
+  "清代社會風貌在《紅樓夢》中的反映",
+  "《紅樓夢》的敘事藝術與結構特點",
+  "王熙鳳的人物形象分析",
+  "《紅樓夢》中的哲學思想探討",
+];
+
+export default function ResearchPage() {
+  const [selectedTopic, setSelectedTopic] = useState<string>("");
+  const [customTopic, setCustomTopic] = useState<string>("");
+  const [studentReadingData, setStudentReadingData] = useState<string>("已閱讀前二十回，對詩詞及人物情感線索較感興趣。");
+  const [researchFramework, setResearchFramework] = useState<GenerateSpecialTopicFrameworkOutput | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleGenerateFramework = async () => {
+    const topicToUse = customTopic || selectedTopic;
+    if (!topicToUse) {
+      alert("請選擇或輸入一個研究主題。");
+      return;
+    }
+    setIsLoading(true);
+    setResearchFramework(null);
+    try {
+      const input: GenerateSpecialTopicFrameworkInput = {
+        readingData: studentReadingData,
+        selectedTopic: topicToUse,
+      };
+      const result = await generateSpecialTopicFramework(input);
+      setResearchFramework(result);
+    } catch (error) {
+      console.error("Error generating research framework:", error);
+      // Display error to user
+    }
+    setIsLoading(false);
+  };
+
+  const filteredTopics = researchTopics.filter(topic => 
+    topic.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      <Card className="shadow-xl">
+        <CardHeader>
+          <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
+            <Library className="h-7 w-7" />
+            研讀階段深度探究
+          </CardTitle>
+          <CardDescription>
+            選擇感興趣的專題方向，AI 將協助您搭建研究框架，提供相關資料與分析工具。
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-3 gap-6">
+          {/* Topic Selection */}
+          <div className="md:col-span-1 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">選擇研究主題</h3>
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                type="search" 
+                placeholder="搜索推薦主題..." 
+                className="pl-8 bg-background/50"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <ScrollArea className="h-60 border rounded-md">
+              <div className="p-2 space-y-1">
+                {filteredTopics.map((topic, index) => (
+                  <Button
+                    key={index}
+                    variant={selectedTopic === topic ? "default" : "ghost"}
+                    className={`w-full justify-start text-left h-auto py-1.5 px-2 ${selectedTopic === topic ? 'bg-primary text-primary-foreground' : 'text-foreground/80'}`}
+                    onClick={() => { setSelectedTopic(topic); setCustomTopic(""); }}
+                  >
+                    {topic}
+                  </Button>
+                ))}
+                {filteredTopics.length === 0 && <p className="text-sm text-muted-foreground p-2 text-center">未找到匹配主題。</p>}
+              </div>
+            </ScrollArea>
+            <div>
+              <Label htmlFor="customTopic">或自定義主題</Label>
+              <Input 
+                id="customTopic" 
+                placeholder="輸入您的研究主題" 
+                value={customTopic}
+                onChange={(e) => { setCustomTopic(e.target.value); setSelectedTopic(""); }}
+                className="bg-background/50"
+              />
+            </div>
+            <div>
+              <Label htmlFor="readingData">您的閱讀數據/背景 (簡述)</Label>
+              <Textarea 
+                id="readingData" 
+                value={studentReadingData} 
+                onChange={(e) => setStudentReadingData(e.target.value)}
+                className="bg-background/50"
+                rows={3}
+              />
+            </div>
+            <Button onClick={handleGenerateFramework} disabled={isLoading || (!selectedTopic && !customTopic)} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              {isLoading ? "框架生成中..." : "生成研究框架"}
+            </Button>
+          </div>
+
+          {/* Research Framework Display */}
+          <div className="md:col-span-2 space-y-4">
+            <h3 className="text-lg font-semibold text-foreground">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
+            {researchFramework ? (
+              <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20 prose prose-sm sm:prose-base dark:prose-invert max-w-none">
+                <h4 className="font-semibold text-primary">研究框架:</h4>
+                <div className="whitespace-pre-line text-foreground/90">{researchFramework.researchFramework}</div>
+                
+                <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
+                <div className="whitespace-pre-line text-foreground/90">{researchFramework.relatedMaterials}</div>
+
+                <h4 className="font-semibold text-primary mt-4">分析工具:</h4>
+                <div className="whitespace-pre-line text-foreground/90">{researchFramework.analysisTools}</div>
+              </ScrollArea>
+            ) : (
+              <div className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20 flex items-center justify-center">
+                <p className="text-sm text-muted-foreground text-center">
+                  {isLoading ? "正在為您構建研究框架..." : "選擇或輸入主題後，點擊按鈕生成研究框架。"}
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col items-start gap-2 md:flex-row md:justify-between">
+            <p className="text-xs text-muted-foreground">
+                AI 生成的框架為初步建議，您可以此為基礎進行調整和深化。
+            </p>
+            {researchFramework && (
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm"><FileText className="h-4 w-4 mr-2"/>導出為文檔</Button>
+                <Button variant="outline" size="sm"><Share2 className="h-4 w-4 mr-2"/>分享框架</Button>
+              </div>
+            )}
+        </CardFooter>
+      </Card>
+      
+      {/* Placeholder for other research tools */}
+      <Card className="shadow-xl">
+        <CardHeader>
+            <CardTitle className="font-artistic text-xl text-primary flex items-center gap-2"><Microscope className="h-6 w-6"/>其他研究工具</CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-2 gap-4">
+            <Button variant="outline" className="justify-start gap-2"><FileText className="h-4 w-4"/>敘事結構可視化 (待實現)</Button>
+            <Button variant="outline" className="justify-start gap-2"><MessageSquare className="h-4 w-4"/>多層次問題生成 (待實現)</Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
