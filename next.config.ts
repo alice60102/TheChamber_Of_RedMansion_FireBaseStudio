@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         async_hooks: false, // Tells Webpack to provide an empty module for async_hooks on the client
+        fs: false, // Tells Webpack to provide an empty module for fs on the client
       };
       // Explicitly alias the problematic module to its browser-safe counterpart for client builds
       config.resolve.alias = {
