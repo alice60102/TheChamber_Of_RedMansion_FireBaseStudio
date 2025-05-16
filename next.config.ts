@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
         ...config.resolve.fallback,
         async_hooks: false, // Tells Webpack to provide an empty module for async_hooks on the client
       };
+      // Explicitly alias the problematic module to its browser-safe counterpart for client builds
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@opentelemetry/context-async-hooks': '@opentelemetry/context-base',
+      };
     }
     return config;
   },
