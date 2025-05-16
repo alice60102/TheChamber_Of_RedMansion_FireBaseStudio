@@ -8,6 +8,7 @@ import { Drama, Info, Zap } from "lucide-react";
 import { generateCharacterRelationshipMap } from '@/ai/flows/interactive-character-relationship-map';
 import type { CharacterRelationshipMapInput, CharacterRelationshipMapOutput } from '@/ai/flows/interactive-character-relationship-map';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Label } from "@/components/ui/label"; // Added import
 
 // Placeholder for a graph visualization component
 const CharacterGraphPlaceholder = ({ data }: { data: string | null }) => {
