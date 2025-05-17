@@ -20,7 +20,7 @@ const LearningAnalysisInputSchema = z.object({
 export type LearningAnalysisInput = z.infer<typeof LearningAnalysisInputSchema>;
 
 const LearningAnalysisOutputSchema = z.object({
-  cognitiveHeatmap: z.string().describe('A description of a cognitive heatmap visualizing the student’s understanding of different content areas.'),
+  cognitiveHeatmap: z.string().describe('An analysis of the student\'s text comprehension for different content areas.'),
   comprehensionDeviations: z.string().describe('An analysis of potential comprehension deviations or misunderstandings based on the learning data.'),
   recommendations: z.string().describe('Recommendations for adjusting the difficulty and format of recommended content based on the analysis.'),
 });
@@ -37,7 +37,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI learning analyst providing insights to teachers about their students' learning progress.
 
   Analyze the following learning data for student ID {{{studentId}}} and generate:
-  1. A description of a cognitive heatmap visualizing the student’s understanding of different content areas. 
+  1. An analysis of the student's text comprehension for different content areas.
   2. An analysis of potential comprehension deviations or misunderstandings based on the learning data.
   3. Recommendations for adjusting the difficulty and format of recommended content based on the analysis.
 
@@ -55,8 +55,8 @@ const analyzeLearningDataFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output) {
-      console.error("AI flow 'analyzeLearningDataFlow' did not produce an output for input:", input);
+    if (!output || !output.cognitiveHeatmap || !output.comprehensionDeviations || !output.recommendations) {
+      console.error("AI flow 'analyzeLearningDataFlow' did not produce a complete output for input:", input);
       throw new Error('AI模型未能生成有效的學習分析數據。');
     }
     return output;
