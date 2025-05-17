@@ -89,11 +89,6 @@ export default function HomePage() {
                   description: "發掘經典主題與當代社會的共鳴，拓展思考維度。",
                 },
                 {
-                  icon: Target,
-                  title: "個性化目標",
-                  description: "AI 輔助生成學習目標，定制您的專屬學習路徑。",
-                },
-                {
                   icon: Library,
                   title: "深度專題研究",
                   description: "提供研究框架與工具，引導您進行深度文本探究。",
