@@ -37,20 +37,7 @@ export default function RegisterPage() {
             <Label htmlFor="password">密碼</Label>
             <Input id="password" type="password" className="bg-background/70"/>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">您的角色</Label>
-            <Select>
-              <SelectTrigger id="role" className="w-full bg-background/70">
-                <SelectValue placeholder="選擇您的角色" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="student">學生</SelectItem>
-                <SelectItem value="teacher">教師</SelectItem>
-                <SelectItem value="researcher">研究者</SelectItem>
-                <SelectItem value="enthusiast">愛好者</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          
           <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             創建帳戶
           </Button>
@@ -65,3 +52,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+
