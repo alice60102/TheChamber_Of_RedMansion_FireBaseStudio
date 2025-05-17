@@ -217,10 +217,9 @@ export default function ReadPage() {
       {/* AI Tools Sidebar */}
       <div className="lg:w-1/3">
         <Tabs defaultValue="context-analysis" className="h-full"> {/* Changed default to context-analysis */}
-          <TabsList className="grid w-full grid-cols-3 bg-muted/50">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50"> {/* Updated grid-cols-3 to grid-cols-2 */}
             <TabsTrigger value="context-analysis"><Drama className="h-4 w-4 mr-1 inline-block" />脈絡分析</TabsTrigger> {/* Merged Character and Word Analysis */}
             <TabsTrigger value="modern-relevance"><Sparkles className="h-4 w-4 mr-1 inline-block" />現代關聯</TabsTrigger>
-            {/* Removed the third tab or repurpose it if needed later */}
           </TabsList>
           
           <TabsContent value="context-analysis" className="mt-0">
@@ -279,28 +278,6 @@ export default function ReadPage() {
               </CardContent>
             </Card>
           </TabsContent>
-          {/* Old Word Analysis Tab Content (can be removed)
-          <TabsContent value="word-analysis" className="mt-0">
-            <Card className="shadow-lg h-[calc(100vh-var(--header-height,4rem)-6rem)]">
-              <CardHeader>
-                <CardTitle className="font-artistic text-lg">詞義解析</CardTitle>
-                <CardDescription>解析文中難詞、典故。</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={handleFetchWordAnalysis} disabled={isLoadingAi} className="w-full mb-4">
-                  {isLoadingAi ? "生成中..." : "解析詞義"}
-                </Button>
-                {wordAnalysis ? (
-                  <ScrollArea className="h-64 text-sm text-foreground/80 whitespace-pre-line">
-                    {wordAnalysis}
-                  </ScrollArea>
-                ) : (
-                  <p className="text-sm text-muted-foreground">點擊按鈕生成詞義解析。</p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          */}
         </Tabs>
       </div>
     </div>
