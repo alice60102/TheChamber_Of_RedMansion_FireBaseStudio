@@ -21,7 +21,7 @@ const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }
   return (
     <ScrollArea className="h-96 p-4 border rounded-md bg-muted/10 text-sm text-foreground/80 space-y-4">
       <div>
-        <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BookOpen className="h-4 w-4" />認知熱力圖描述:</h3>
+        <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BookOpen className="h-4 w-4" />文本掌握分析描述:</h3>
         <p className="whitespace-pre-line">{data.cognitiveHeatmap}</p>
       </div>
       <div>
@@ -75,7 +75,7 @@ export default function LearningAnalysisPage() {
             學生學習狀況分析
           </CardTitle>
           <CardDescription>
-            輸入學生的學習數據，AI 將分析並生成其學習狀況的相關見解，包括認知熱力圖、理解偏差和學習建議。
+            輸入學生的學習數據，AI 將分析並生成其學習狀況的相關見解，包括文本掌握分析描述、理解偏差和學習建議。
           </CardDescription>
         </CardHeader>
         <CardContent>
