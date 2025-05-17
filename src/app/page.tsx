@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, Edit3, Users, ArrowRight, Lightbulb, Target, Library } from 'lucide-react';
+import { BookOpen, Users, ArrowRight, Lightbulb, Library } from 'lucide-react';
 import Image from 'next/image';
 
 export default function HomePage() {
@@ -49,7 +49,7 @@ export default function HomePage() {
               智能引航，重煥<span className="text-black">紅樓</span>之夢
             </h1>
             <p className="mt-6 text-lg text-foreground/80 md:text-xl">
-              深入探索《紅樓夢》的宏大世界。借助 AI 賦能的互動工具、情境分析與寫作輔導，開啟您的智慧閱讀之旅。
+              深入探索《紅樓夢》的宏大世界。借助 AI 賦能的文本分析、學習狀況洞察與深度研究工具，開啟您的智慧閱讀之旅。
             </p>
             <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90" asChild>
@@ -76,12 +76,12 @@ export default function HomePage() {
                 {
                   icon: BookOpen,
                   title: "章回文本閱讀",
-                  description: "優雅呈現《紅樓夢》原文，支持沉浸式閱讀體驗。",
+                  description: "優雅呈現《紅樓夢》原文，支持沉浸式閱讀體驗，並可選取文字與AI互動提問。",
                 },
                 {
                   icon: Users,
                   title: "學習狀況分析",
-                  description: "AI 分析您的學習數據，生成個性化學習狀況報告。",
+                  description: "AI 分析您的學習數據，生成個性化學習狀況報告，助您掌握進度。",
                 },
                 {
                   icon: Lightbulb,
