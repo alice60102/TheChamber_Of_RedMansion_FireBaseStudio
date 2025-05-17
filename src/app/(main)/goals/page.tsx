@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Target, CheckCircle, Users, PlusCircle, ThumbsUp } from "lucide-react";
+import { Target, CheckCircle, Users, PlusCircle, ThumbsUp, AlertTriangle } from "lucide-react";
 import { personalizedGoalGeneration } from '@/ai/flows/personalized-goal-generation';
 import type { PersonalizedGoalGenerationInput, PersonalizedGoalGenerationOutput } from '@/ai/flows/personalized-goal-generation';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const SOLOLevels = ['Prestructural', 'Unistructural', 'Multistructural', 'Relational', 'Extended Abstract'];
 
@@ -29,10 +30,12 @@ export default function GoalsPage() {
   const [soloLevel, setSoloLevel] = useState<PersonalizedGoalGenerationInput['soloLevel']>('Multistructural');
   const [generatedGoals, setGeneratedGoals] = useState<TeachingGoal[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleGenerateGoals = async () => {
     setIsLoading(true);
     setGeneratedGoals(null);
+    setErrorMessage(null); // Clear previous errors
     try {
       const input: PersonalizedGoalGenerationInput = {
         userData,
@@ -43,7 +46,7 @@ export default function GoalsPage() {
       setGeneratedGoals(result.teachingGoals.map(g => ({ ...g, votes: 0 })));
     } catch (error) {
       console.error("Error generating goals:", error);
-      // Display error to user
+      setErrorMessage(error instanceof Error ? error.message : "生成目標時發生未知錯誤。請檢查服務器日誌或稍後再試。");
     }
     setIsLoading(false);
   };
@@ -110,6 +113,13 @@ export default function GoalsPage() {
           {/* Output Section */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">AI 生成目標建議</h3>
+            {errorMessage && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>錯誤</AlertTitle>
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
             {generatedGoals ? (
               <ScrollArea className="h-96 p-1 border rounded-md bg-muted/20">
                 <ul className="space-y-3 p-3">
@@ -127,11 +137,13 @@ export default function GoalsPage() {
                 </ul>
               </ScrollArea>
             ) : (
-              <p className="text-sm text-muted-foreground p-4 border rounded-md bg-muted/20 text-center">
-                {isLoading ? "正在為您精心 crafting 目標..." : "點擊按鈕以生成個性化教學目標。"}
-              </p>
+              !errorMessage && (
+                <p className="text-sm text-muted-foreground p-4 border rounded-md bg-muted/20 text-center">
+                  {isLoading ? "正在為您精心 crafting 目標..." : "點擊按鈕以生成個性化教學目標。"}
+                </p>
+              )
             )}
-            {generatedGoals && (
+            {generatedGoals && generatedGoals.length > 0 && (
                <Button className="w-full mt-4"><CheckCircle className="h-4 w-4 mr-2"/>確認並采納目標</Button>
             )}
           </div>

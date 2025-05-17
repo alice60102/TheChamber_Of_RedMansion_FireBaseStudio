@@ -25,18 +25,18 @@ const nextConfig: NextConfig = {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         async_hooks: false, // Tells Webpack to provide an empty module for async_hooks on the client
-        fs: false, // Tells Webpack to provide an empty module for fs on the client
-        tls: false, // Tells Webpack to provide an empty module for tls on the client
-        net: false, // Tells Webpack to provide an empty module for net on the client
-        http2: false, // Tells Webpack to provide an empty module for http2 on the client
-        dns: false, // Tells Webpack to provide an empty module for dns on the client
+        'node:async_hooks': false, // Handle 'node:' prefixed import
+        fs: false,
+        'node:fs': false,
+        tls: false,
+        'node:tls': false,
+        net: false,
+        'node:net': false,
+        http2: false,
+        'node:http2': false,
+        dns: false,
+        'node:dns': false,
       };
-      // Explicitly alias the problematic module to its browser-safe counterpart for client builds
-      // REMOVED: Relying on package.json "overrides" for this specific module.
-      // config.resolve.alias = {
-      //   ...config.resolve.alias,
-      //   '@opentelemetry/context-async-hooks': '@opentelemetry/context-base',
-      // };
     }
     return config;
   },
