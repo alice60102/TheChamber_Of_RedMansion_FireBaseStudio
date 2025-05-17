@@ -22,45 +22,36 @@ export default function DashboardPage() {
             <BookOpen className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-artistic">紅樓夢 - 第五回</div>
-            <p className="text-xs text-muted-foreground">
-              遊幻境指迷十二釵 飲仙醪曲演紅樓夢
-            </p>
-            <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2" asChild>
-              <Link href="/read">繼續閱讀 &rarr;</Link>
-            </Button>
+            <div>
+              <div className="text-2xl font-bold font-artistic">紅樓夢 - 第五回</div>
+              <p className="text-xs text-muted-foreground">
+                遊幻境指迷十二釵 飲仙醪曲演紅樓夢
+              </p>
+              <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2" asChild>
+                <Link href="/read">繼續閱讀 &rarr;</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-lg hover:shadow-primary/20 transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">寫作任務</CardTitle>
-            <Edit3 className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-artistic">寶黛初會分析</div>
-            <p className="text-xs text-muted-foreground">
-              截止日期：2024年8月15日
-            </p>
-            <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2" asChild>
-                <Link href="/write">開始寫作 &rarr;</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Removed Writing Task Card */}
 
         <Card className="shadow-lg hover:shadow-primary/20 transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">學習目標</CardTitle>
+            <CardTitle className="text-sm font-medium">學習目標 (示例)</CardTitle>
             <Target className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-artistic">完成前十章節</div>
-            <p className="text-xs text-muted-foreground">
-              已完成 40%
-            </p>
-             <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2" asChild>
-                <Link href="/goals">查看目標 &rarr;</Link>
-            </Button>
+            <div>
+              <div className="text-2xl font-bold font-artistic">完成前十章節</div>
+              <p className="text-xs text-muted-foreground">
+                已完成 40%
+              </p>
+               <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2" asChild>
+                  {/* Link to a relevant page or remove if goals page is also removed */}
+                  <Link href="#">查看目標 &rarr;</Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
