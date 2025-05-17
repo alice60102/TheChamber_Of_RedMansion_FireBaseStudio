@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Connects themes from Dream of the Red Chamber to modern contexts using AI.
@@ -30,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'connectThemesToModernContextsPrompt',
   input: {schema: ConnectThemesToModernContextsInputSchema},
   output: {schema: ConnectThemesToModernContextsOutputSchema},
-  prompt: `You are an expert in Chinese literature, specializing in *Dream of the Red Chamber*. Your task is to connect the themes present in the provided chapter text to contemporary contexts, providing insights that help modern students understand the novel's relevance to their lives.\n\nChapter Text: {{{chapterText}}}\n\nProvide insights that connect the themes of this chapter to modern contexts.`,
+  prompt: `You are an expert in Chinese literature, specializing in *Dream of the Red Chamber*. Your task is to connect the themes present in the provided chapter text to contemporary contexts, providing insights that help modern students understand the novel's relevance to their lives.\n\nChapter Text: {{{chapterText}}}\n\nProvide insights that connect the themes of this chapter to modern contexts. 請以繁體中文提供見解。`,
 });
 
 const connectThemesToModernContextsFlow = ai.defineFlow(

@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -52,6 +53,7 @@ const prompt = ai.definePrompt({
   Selected Topic: {{{selectedTopic}}}
 
   Here is the format you must follow, include ALL of the requested information. Use markdown formatting.
+  請以繁體中文提供所有信息。
 
   Research Framework: [The research framework for the selected topic.]
 

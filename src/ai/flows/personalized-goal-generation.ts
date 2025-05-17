@@ -1,3 +1,4 @@
+
 // use server'
 
 /**
@@ -58,7 +59,7 @@ SOLO Level: {{{soloLevel}}}
 
 Based on this information, generate 3-5 teaching goals that are specific, measurable, achievable, relevant, and time-bound (SMART).
 
-Format the output as a JSON array of teaching goals.`,
+Format the output as a JSON array of teaching goals. 請以繁體中文生成教學目標。`,
 });
 
 const personalizedGoalGenerationFlow = ai.defineFlow(

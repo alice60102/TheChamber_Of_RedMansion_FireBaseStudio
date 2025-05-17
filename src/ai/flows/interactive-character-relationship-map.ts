@@ -1,3 +1,4 @@
+
 // use server'
 'use server';
 /**
@@ -41,7 +42,7 @@ const characterRelationshipMapPrompt = ai.definePrompt({
   name: 'characterRelationshipMapPrompt',
   input: {schema: CharacterRelationshipMapInputSchema},
   output: {schema: CharacterRelationshipMapOutputSchema},
-  prompt: `Given the following text, extract and describe the relationships between the characters mentioned. The description should be structured in a way that can be easily parsed and rendered as an interactive graph, focusing on key connections and their nature (e.g., familial, romantic, adversarial). Be as comprehensive as possible. Be as verbose as possible.
+  prompt: `Given the following text, extract and describe the relationships between the characters mentioned. The description should be structured in a way that can be easily parsed and rendered as an interactive graph, focusing on key connections and their nature (e.g., familial, romantic, adversarial). Be as comprehensive as possible. Be as verbose as possible. 請以繁體中文描述。
 
 Text: {{{text}}}`,
 });

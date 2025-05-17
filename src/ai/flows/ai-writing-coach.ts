@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -41,7 +42,9 @@ You will receive a text and provide feedback on the following aspects:
 - Completeness Check: Analyze the completeness of the arguments in the text.
 - Expression Optimizations: Provide suggestions for optimizing the expression in the text.
 
-Text: {{{text}}}`,
+Text: {{{text}}}
+
+請以繁體中文回答。`,
 });
 
 const aiWritingCoachFlow = ai.defineFlow(

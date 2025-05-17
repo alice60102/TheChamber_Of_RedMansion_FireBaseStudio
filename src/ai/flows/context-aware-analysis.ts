@@ -1,3 +1,4 @@
+
 // use server'
 'use server';
 
@@ -46,6 +47,7 @@ const prompt = ai.definePrompt({
   Provide a word sense analysis for any difficult words or phrases in the current context.
   Also, generate a description of the character relationships that are relevant to the current text.
   Include a summary of the plot points or character interactions.
+  請以繁體中文提供分析和描述。
   `,
 });
 

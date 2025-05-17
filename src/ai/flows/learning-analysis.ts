@@ -1,3 +1,4 @@
+
 // src/ai/flows/learning-analysis.ts
 'use server';
 
@@ -41,6 +42,8 @@ const prompt = ai.definePrompt({
   3. Recommendations for adjusting the difficulty and format of recommended content based on the analysis.
 
   Learning Data: {{{learningData}}}
+  
+  請以繁體中文生成所有內容。
   `,
 });
 
