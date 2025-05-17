@@ -1,9 +1,9 @@
 
 'use server';
 /**
- * @fileOverview Explains a selected text snippet from "Dream of the Red Chamber" using AI.
+ * @fileOverview Explains a selected text snippet from "Dream of the Red Chamber" by answering a user's question using AI.
  *
- * - explainTextSelection - A function that provides an explanation for a selected text snippet.
+ * - explainTextSelection - A function that provides an explanation for a selected text snippet based on a user's question.
  * - ExplainTextSelectionInput - The input type for the explainTextSelection function.
  * - ExplainTextSelectionOutput - The return type for the explainTextSelection function.
  */
@@ -12,13 +12,14 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const ExplainTextSelectionInputSchema = z.object({
-  selectedText: z.string().describe('The text snippet selected by the user for explanation.'),
+  selectedText: z.string().describe('The text snippet selected by the user.'),
   chapterContext: z.string().describe('A snippet of the current chapter content to provide context to the selected text.'),
+  userQuestion: z.string().describe('The user\'s specific question about the selected text. 請以繁體中文提出問題。'),
 });
 export type ExplainTextSelectionInput = z.infer<typeof ExplainTextSelectionInputSchema>;
 
 const ExplainTextSelectionOutputSchema = z.object({
-  explanation: z.string().describe('The AI-generated explanation of the selected text snippet. 請以繁體中文提供解釋。'),
+  explanation: z.string().describe('The AI-generated answer to the user\'s question about the selected text snippet. 請以繁體中文提供解釋。'),
 });
 export type ExplainTextSelectionOutput = z.infer<typeof ExplainTextSelectionOutputSchema>;
 
@@ -32,8 +33,9 @@ const prompt = ai.definePrompt({
   name: 'explainTextSelectionPrompt',
   input: {schema: ExplainTextSelectionInputSchema},
   output: {schema: ExplainTextSelectionOutputSchema},
-  prompt: `你是《紅樓夢》的文學專家。使用者正在閱讀小說，並選取了一段文字希望得到解釋。
-當前章回的上下文片段如下：
+  prompt: `你是《紅樓夢》的文學專家。使用者正在閱讀小說，並選取了一段文字，同時針對這段文字提出了一個具體問題，希望得到解答。
+
+當前章回的上下文片段（協助理解背景）：
 ---
 {{{chapterContext}}}
 ---
@@ -41,8 +43,10 @@ const prompt = ai.definePrompt({
 使用者選取的文字是：
 "{{{selectedText}}}"
 
-請針對這段選取的文字，在《紅樓夢》的背景下提供簡明扼要的解釋，可能包括其字面意思、隱含意義、相關典故、人物關係或情節關聯等。
+使用者提出的問題是：
+"{{{userQuestion}}}"
 
+請針對使用者提出的「問題」，並緊密結合他們「選取的文字」以及「上下文」，在《紅樓夢》的整體背景下，提供簡明扼要、有針對性的回答。
 請以繁體中文提供解釋。`,
 });
 
@@ -61,3 +65,4 @@ const explainTextSelectionFlow = ai.defineFlow(
     return output;
   }
 );
+

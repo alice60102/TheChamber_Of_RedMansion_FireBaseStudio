@@ -4,15 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Drama, Sparkles, BookText, HelpCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Drama, Sparkles, BookText, HelpCircle, MessageSquare } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-// import { generateCharacterRelationshipMap } from '@/ai/flows/interactive-character-relationship-map'; // This flow was removed
 import { connectThemesToModernContexts } from '@/ai/flows/connect-themes-to-modern-contexts';
 import { analyzeContext } from '@/ai/flows/context-aware-analysis';
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 // Placeholder chapter data - in a real app, this would come from a database or API
 const chapters = [
@@ -21,60 +22,71 @@ const chapters = [
   { id: 3, title: "第三回 賈雨村夤緣復舊職 林黛玉拋父進京都", content: "（此處省略第三回內容...）林黛玉進賈府，處處小心，不肯輕易多說一句話，多行一步路。" },
 ];
 
+type InteractionState = 'asking' | 'answering' | 'answered' | 'error';
+
 export default function ReadPage() {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
-  const [characterMap, setCharacterMap] = useState<string | null>(null); // Retained for Context Analysis tab
+  const [characterMap, setCharacterMap] = useState<string | null>(null); 
   const [modernRelevance, setModernRelevance] = useState<string | null>(null);
   const [wordAnalysis, setWordAnalysis] = useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
 
   const [selectedText, setSelectedText] = useState<string>('');
   const [selectionPosition, setSelectionPosition] = useState<{ top: number; left: number } | null>(null);
+  
+  const [userQuestionInput, setUserQuestionInput] = useState<string>('');
   const [textExplanation, setTextExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [interactionState, setInteractionState] = useState<InteractionState>('asking');
+
 
   const contentRef = useRef<HTMLDivElement>(null);
-  const popoverButtonRef = useRef<HTMLButtonElement>(null);
 
   const currentChapter = chapters[currentChapterIndex];
 
   useEffect(() => {
-    // Reset AI content when chapter changes
     setCharacterMap(null);
     setModernRelevance(null);
     setWordAnalysis(null);
     setSelectedText('');
     setSelectionPosition(null);
     setTextExplanation(null);
+    setUserQuestionInput('');
+    setInteractionState('asking');
     setIsPopoverOpen(false);
   }, [currentChapterIndex]);
 
-  const handleMouseUp = (event: MouseEvent) => {
+  const handleMouseUp = () => {
     if (contentRef.current && contentRef.current.contains(event.target as Node)) {
       const selection = window.getSelection();
       const text = selection?.toString().trim() || '';
-      if (text) {
+      if (text && text.length > 1) { // Ensure some meaningful text is selected
         setSelectedText(text);
         const range = selection!.getRangeAt(0);
         const rect = range.getBoundingClientRect();
         
-        // Position relative to the contentRef or viewport
         const contentAreaRect = contentRef.current?.getBoundingClientRect();
         if (contentAreaRect) {
           setSelectionPosition({
-            top: rect.bottom - contentAreaRect.top + (contentRef.current?.scrollTop || 0) + 5, // Below selection
-            left: rect.left - contentAreaRect.left + (contentRef.current?.scrollLeft || 0) + rect.width / 2, // Middle of selection
+            top: rect.bottom - contentAreaRect.top + (contentRef.current?.scrollTop || 0) + 5,
+            left: rect.left - contentAreaRect.left + (contentRef.current?.scrollLeft || 0) + rect.width / 2,
           });
         } else {
            setSelectionPosition({ top: rect.bottom + window.scrollY + 5, left: rect.left + window.scrollX + rect.width / 2 });
         }
-        setTextExplanation(null); // Clear previous explanation
-        setIsPopoverOpen(false); // Ensure popover is ready to be triggered
+        // Reset for new interaction
+        setTextExplanation(null); 
+        setUserQuestionInput('');
+        setInteractionState('asking');
+        // setIsPopoverOpen(true); // Let the button click open it explicitly
+      } else if (!text && isPopoverOpen) {
+        // If no text is selected but popover was open, potentially close it or do nothing
+        // For now, let's allow popover to be closed manually or by clicking outside.
       } else {
         setSelectedText('');
         setSelectionPosition(null);
-        setIsPopoverOpen(false);
+        // setIsPopoverOpen(false); // Only close if no text selected and not already trying to open
       }
     }
   };
@@ -84,21 +96,21 @@ export default function ReadPage() {
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [currentChapter]);
+  }, [currentChapter, isPopoverOpen]); // Added isPopoverOpen to dependencies
 
 
-  const handleFetchCharacterMapFromContext = async () => { // Renamed to avoid confusion
+  const handleFetchCharacterMapFromContext = async () => { 
     if (!currentChapter) return;
     setIsLoadingAi(true);
-    setWordAnalysis(null); // Also clear word analysis as they come from the same flow
+    setWordAnalysis(null); 
+    setCharacterMap(null);
     try {
-      // Using analyzeContext for character map and word sense analysis
       const result = await analyzeContext({ text: currentChapter.content.substring(0, 1000), chapter: currentChapter.title });
       setCharacterMap(result.characterRelationships);
-      setWordAnalysis(result.wordSenseAnalysis); // Set word analysis here
+      setWordAnalysis(result.wordSenseAnalysis); 
     } catch (error) {
       console.error("Error fetching from analyzeContext:", error);
-      setCharacterMap("無法生成人物關係圖或詞義解析，請稍後再試。");
+      setCharacterMap("無法生成人物關係圖，請稍後再試。");
       setWordAnalysis("無法生成詞義解析，請稍後再試。");
     }
     setIsLoadingAi(false);
@@ -108,6 +120,7 @@ export default function ReadPage() {
   const handleFetchModernRelevance = async () => {
     if (!currentChapter) return;
     setIsLoadingAi(true);
+    setModernRelevance(null);
     try {
       const result = await connectThemesToModernContexts({ chapterText: currentChapter.content.substring(0, 1000) });
       setModernRelevance(result.modernContextInsights);
@@ -118,27 +131,36 @@ export default function ReadPage() {
     setIsLoadingAi(false);
   };
   
-  // This function is now for the "詞解" tab specifically if needed, or can be removed if analyzeContext covers it.
-  // For now, let's assume analyzeContext is primary for the "詞解" tab.
-  // const handleFetchWordAnalysis = async () => { /* ... */ };
 
-  const handleExplainSelectedText = async () => {
-    if (!selectedText || !currentChapter) return;
+  const handleUserSubmitQuestion = async () => {
+    if (!selectedText || !userQuestionInput.trim() || !currentChapter) return;
     setIsLoadingExplanation(true);
+    setInteractionState('answering');
     setTextExplanation(null);
     try {
       const input: ExplainTextSelectionInput = {
         selectedText,
-        chapterContext: currentChapter.content.substring(0, 500) // Provide some context
+        chapterContext: currentChapter.content.substring(0, 1000), // Provide more context
+        userQuestion: userQuestionInput,
       };
       const result = await explainTextSelection(input);
       setTextExplanation(result.explanation);
+      setInteractionState('answered');
     } catch (error) {
-      console.error("Error explaining selected text:", error);
-      setTextExplanation("抱歉，解釋此段文字時發生錯誤。");
+      console.error("Error explaining selected text with user question:", error);
+      setTextExplanation(error instanceof Error ? error.message : "抱歉，回答您的問題時發生錯誤。");
+      setInteractionState('error');
     }
     setIsLoadingExplanation(false);
-    setIsPopoverOpen(true); // Open popover after attempting to fetch
+  };
+
+  const openAskAIPopover = () => {
+    if (selectedText) {
+      setTextExplanation(null);
+      setUserQuestionInput('');
+      setInteractionState('asking');
+      setIsPopoverOpen(true);
+    }
   };
 
   const goToNextChapter = () => {
@@ -150,8 +172,7 @@ export default function ReadPage() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-var(--header-height,4rem)-2rem)] relative"> {/* Added relative for button positioning */}
-      {/* Main Content Area */}
+    <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-var(--header-height,4rem)-2rem)]">
       <div className="flex-grow lg:w-2/3">
         <Card className="h-full flex flex-col shadow-xl">
           <CardHeader>
@@ -165,8 +186,8 @@ export default function ReadPage() {
               </Button>
             </div>
           </CardHeader>
-          <ScrollArea className="flex-grow p-1 relative" id="chapter-content-scroll-area"> {/* Added relative */}
-            <div ref={contentRef}> {/* Added ref for mouseup */}
+          <ScrollArea className="flex-grow p-1 relative" id="chapter-content-scroll-area">
+            <div ref={contentRef}>
                 <CardContent 
                   className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-foreground/90" 
                   style={{ fontFamily: "'Noto Serif SC', serif" }}
@@ -177,53 +198,79 @@ export default function ReadPage() {
                     <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                       <PopoverTrigger asChild>
                         <Button
-                          ref={popoverButtonRef}
                           variant="outline"
                           size="sm"
-                          className="absolute bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg z-10"
+                          className="absolute bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg z-10 flex items-center"
                           style={{ top: `${selectionPosition.top}px`, left: `${selectionPosition.left}px`, transform: 'translateX(-50%)' }}
-                          onClick={handleExplainSelectedText}
+                          onClick={openAskAIPopover}
                         >
-                          <Sparkles className="h-4 w-4 mr-1" /> AI釋義
+                          <MessageSquare className="h-4 w-4 mr-1" /> 問AI
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent 
-                        className="w-80 bg-card text-card-foreground shadow-xl border-border"
+                        className="w-96 bg-card text-card-foreground shadow-xl border-border"
                         side="top" 
                         align="center"
-                        // Optional: To make popover follow scroll if button is inside scroll area
-                        // container={contentRef.current} // This might need `Popover` to support `portal={false}` or a different strategy
+                        onOpenAutoFocus={(e) => e.preventDefault()} // Prevents auto-focus on first element
                       >
-                        {isLoadingExplanation ? (
-                          <div className="p-4 text-center">解釋生成中...</div>
-                        ) : textExplanation ? (
-                          <ScrollArea className="h-auto max-h-60 p-1">
-                             <div className="text-sm p-2 whitespace-pre-line">{textExplanation}</div>
-                          </ScrollArea>
-                        ) : (
-                          <div className="p-4 text-center text-muted-foreground">點擊按鈕以生成解釋。</div>
-                        )}
+                        <div className="space-y-3 p-2">
+                          {interactionState === 'asking' && (
+                            <>
+                              <p className="text-sm text-muted-foreground">
+                                您選取的文字： "<strong className="text-primary">{selectedText.length > 50 ? selectedText.substring(0, 50) + '...' : selectedText}</strong>"
+                              </p>
+                              <Label htmlFor="userQuestion" className="text-base font-semibold">您的問題：</Label>
+                              <Textarea 
+                                id="userQuestion"
+                                value={userQuestionInput}
+                                onChange={(e) => setUserQuestionInput(e.target.value)}
+                                placeholder="請輸入您想問的問題..."
+                                className="min-h-[80px] text-sm bg-background/70"
+                                rows={3}
+                              />
+                              <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full">
+                                {isLoadingExplanation ? "傳送中..." : "送出問題"}
+                              </Button>
+                            </>
+                          )}
+                          {(interactionState === 'answering') && (
+                            <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
+                          )}
+                          {(interactionState === 'answered' || interactionState === 'error') && textExplanation && (
+                            <div>
+                              <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
+                              <ScrollArea className="h-auto max-h-60 p-1 border rounded-md bg-muted/10">
+                                 <div className="text-sm p-2 whitespace-pre-line text-foreground/80">{textExplanation}</div>
+                              </ScrollArea>
+                               <Button variant="ghost" onClick={() => setInteractionState('asking')} className="mt-2 text-sm">
+                                返回提問
+                               </Button>
+                            </div>
+                          )}
+                           {(interactionState === 'answered' || interactionState === 'error') && !textExplanation && (
+                             <div className="p-4 text-center text-muted-foreground">發生錯誤或沒有回答。</div>
+                           )}
+                        </div>
                       </PopoverContent>
                     </Popover>
                   )}
             </div>
           </ScrollArea>
-          <div className="p-4 border-t">
+           <div className="p-4 border-t">
             <Textarea placeholder="寫下您的筆記或感想..." className="bg-background/50"/>
           </div>
         </Card>
       </div>
 
-      {/* AI Tools Sidebar */}
       <div className="lg:w-1/3">
-        <Tabs defaultValue="context-analysis" className="h-full"> {/* Changed default to context-analysis */}
-          <TabsList className="grid w-full grid-cols-2 bg-muted/50"> {/* Updated grid-cols-3 to grid-cols-2 */}
-            <TabsTrigger value="context-analysis"><Drama className="h-4 w-4 mr-1 inline-block" />脈絡分析</TabsTrigger> {/* Merged Character and Word Analysis */}
+      <Tabs defaultValue="context-analysis" className="h-full">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+            <TabsTrigger value="context-analysis"><Drama className="h-4 w-4 mr-1 inline-block" />脈絡分析</TabsTrigger>
             <TabsTrigger value="modern-relevance"><Sparkles className="h-4 w-4 mr-1 inline-block" />現代關聯</TabsTrigger>
           </TabsList>
           
           <TabsContent value="context-analysis" className="mt-0">
-            <Card className="shadow-lg h-[calc(100vh-var(--header-height,4rem)-6rem)]">
+             <Card className="shadow-lg h-[calc(100vh-var(--header-height,4rem)-6rem)]">
               <CardHeader>
                 <CardTitle className="font-artistic text-lg">文本脈絡分析</CardTitle>
                 <CardDescription>探索本章節人物關係與詞義典故。</CardDescription>
@@ -233,23 +280,25 @@ export default function ReadPage() {
                   <Button onClick={handleFetchCharacterMapFromContext} disabled={isLoadingAi} className="w-full mb-4">
                     {isLoadingAi && !characterMap && !wordAnalysis ? "分析中..." : "生成脈絡分析"}
                   </Button>
-                  {characterMap || wordAnalysis ? (
-                    <ScrollArea className="h-64 text-sm text-foreground/80 whitespace-pre-line space-y-3">
+                  {(characterMap || wordAnalysis) && !isLoadingAi ? (
+                    <ScrollArea className="h-64 text-sm text-foreground/80 whitespace-pre-line space-y-3 p-2 border rounded-md bg-muted/10">
                       {characterMap && (
                         <div>
                           <h4 className="font-semibold text-primary mb-1">人物關係：</h4>
-                          {characterMap}
+                          <p>{characterMap}</p>
                         </div>
                       )}
                       {wordAnalysis && (
                         <div>
-                           <h4 className="font-semibold text-primary mb-1 mt-2">詞義解析：</h4>
-                          {wordAnalysis}
+                           <h4 className="font-semibold text-primary mb-1 mt-3">詞義解析：</h4>
+                          <p>{wordAnalysis}</p>
                         </div>
                       )}
                     </ScrollArea>
+                  ) : isLoadingAi ? (
+                     <p className="text-sm text-muted-foreground text-center p-4">AI 正在分析中，請稍候...</p>
                   ) : (
-                    <p className="text-sm text-muted-foreground text-center">點擊按鈕生成人物關係圖與詞義解析。</p>
+                    <p className="text-sm text-muted-foreground text-center p-4">點擊按鈕生成人物關係圖與詞義解析。</p>
                   )}
                 </div>
               </CardContent>
@@ -267,12 +316,14 @@ export default function ReadPage() {
                   <Button onClick={handleFetchModernRelevance} disabled={isLoadingAi} className="w-full mb-4">
                     {isLoadingAi && !modernRelevance ? "生成中..." : "生成現代關聯"}
                   </Button>
-                  {modernRelevance ? (
-                    <ScrollArea className="h-64 text-sm text-foreground/80 whitespace-pre-line">
-                      {modernRelevance}
+                  {modernRelevance && !isLoadingAi ? (
+                    <ScrollArea className="h-64 text-sm text-foreground/80 whitespace-pre-line p-2 border rounded-md bg-muted/10">
+                      <p>{modernRelevance}</p>
                     </ScrollArea>
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center">點擊按鈕生成現代關聯分析。</p>
+                  ) : isLoadingAi ? (
+                    <p className="text-sm text-muted-foreground text-center p-4">AI 正在生成中，請稍候...</p>
+                  ): (
+                    <p className="text-sm text-muted-foreground text-center p-4">點擊按鈕生成現代關聯分析。</p>
                   )}
                 </div>
               </CardContent>
@@ -283,3 +334,4 @@ export default function ReadPage() {
     </div>
   );
 }
+
