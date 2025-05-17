@@ -34,8 +34,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Removed Writing Task Card */}
-
         <Card className="shadow-lg hover:shadow-primary/20 transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">學習目標 (示例)</CardTitle>
@@ -47,10 +45,7 @@ export default function DashboardPage() {
               <p className="text-xs text-muted-foreground">
                 已完成 40%
               </p>
-               <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2" asChild>
-                  {/* Link to a relevant page or remove if goals page is also removed */}
-                  <Link href="#">查看目標 &rarr;</Link>
-              </Button>
+               {/* Removed Button Link Here */}
             </div>
           </CardContent>
         </Card>
@@ -68,7 +63,6 @@ export default function DashboardPage() {
               <span className="text-sm">完成了 "第四回" 測驗，得分 85%。</span>
               <span className="ml-auto text-xs text-muted-foreground">2 小時前</span>
             </li>
-            {/* Removed discussion forum item as per request */}
             <li className="flex items-center gap-3">
               <BarChart3 className="h-5 w-5 text-green-500" />
               <span className="text-sm">閱讀時長達到 5 小時。</span>
