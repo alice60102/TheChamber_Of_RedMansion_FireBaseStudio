@@ -3,7 +3,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
   Settings,
@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Brain,
   Library,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -36,6 +37,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
 
 interface NavItem {
   href: string;
@@ -53,6 +57,18 @@ const navItems: NavItem[] = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login'); // Redirect to login after logout
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Optionally show a toast notification for logout error
+    }
+  };
 
   return (
     <SidebarProvider defaultOpen>
@@ -85,31 +101,38 @@ export function AppShell({ children }: { children: ReactNode }) {
         </SidebarContent>
         <SidebarFooter className="p-4">
           <Separator className="my-2 bg-sidebar-border" />
-           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex h-auto w-full items-center justify-start gap-2 p-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" data-ai-hint="user avatar"/>
-                  <AvatarFallback>用戶</AvatarFallback>
-                </Avatar>
-                <div className="text-left">
-                  <p className="text-sm font-medium text-sidebar-foreground">用戶名</p>
-                  <p className="text-xs text-sidebar-foreground/70">student@example.com</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="top" align="start" className="w-56">
-              <DropdownMenuLabel>我的帳戶</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>設置</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => alert('登出功能待實現')}>
-                <span>登出</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+           {user ? (
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex h-auto w-full items-center justify-start gap-2 p-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL || "https://placehold.co/100x100.png"} alt="User Avatar" data-ai-hint="user avatar"/>
+                    <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || '用戶'}</AvatarFallback>
+                  </Avatar>
+                  <div className="text-left">
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">{user.displayName || '用戶'}</p>
+                    <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" align="start" className="w-56">
+                <DropdownMenuLabel>我的帳戶</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>設置 (待開發)</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>登出</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+           ) : (
+            <Button variant="ghost" className="w-full justify-start" asChild>
+              <Link href="/login">登入 / 註冊</Link>
+            </Button>
+           )}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>

@@ -1,13 +1,67 @@
 
+"use client";
+
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollText } from 'lucide-react';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+
+const registerSchema = z.object({
+  firstName: z.string().min(1, { message: "名字不能為空" }),
+  lastName: z.string().min(1, { message: "稱呼不能為空" }),
+  email: z.string().email({ message: "請輸入有效的電子郵件地址" }),
+  password: z.string().min(6, { message: "密碼長度至少為6位" }),
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+  });
+
+  const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+    setIsLoading(true);
+    setFirebaseError(null);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      // Optionally update profile with name
+      if (userCredential.user) {
+        await updateProfile(userCredential.user, {
+          displayName: `${data.firstName} ${data.lastName}`,
+        });
+      }
+      router.push('/dashboard'); // Redirect to dashboard on successful registration
+    } catch (error: any) {
+      // Handle Firebase errors
+      if (error.code === 'auth/email-already-in-use') {
+        setFirebaseError('此電子郵件地址已被註冊。');
+      } else if (error.code === 'auth/weak-password') {
+        setFirebaseError('密碼太弱，請使用更強的密碼。');
+      } else {
+        setFirebaseError('註冊失敗，請稍後再試。');
+      }
+      console.error("Registration error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-primary/10 to-background p-4">
       <Card className="w-full max-w-md shadow-2xl bg-card/90 backdrop-blur-lg">
@@ -18,30 +72,43 @@ export default function RegisterPage() {
           <CardTitle className="text-3xl font-artistic text-primary">加入紅樓慧讀</CardTitle>
           <CardDescription>創建您的帳戶，開啟智能閱讀新體驗</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="firstName">名字</Label>
-              <Input id="firstName" placeholder="姓氏" className="bg-background/70"/>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <CardContent className="space-y-4">
+            {firebaseError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>註冊錯誤</AlertTitle>
+                <AlertDescription>{firebaseError}</AlertDescription>
+              </Alert>
+            )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">名字</Label>
+                <Input id="firstName" placeholder="姓氏" {...register("firstName")} className={`bg-background/70 ${errors.firstName ? 'border-destructive' : ''}`} />
+                {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">稱呼</Label>
+                <Input id="lastName" placeholder="名字" {...register("lastName")} className={`bg-background/70 ${errors.lastName ? 'border-destructive' : ''}`} />
+                {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">稱呼</Label>
-              <Input id="lastName" placeholder="名字" className="bg-background/70"/>
+              <Label htmlFor="email">電子郵件</Label>
+              <Input id="email" type="email" placeholder="m@example.com" {...register("email")} className={`bg-background/70 ${errors.email ? 'border-destructive' : ''}`} />
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">電子郵件</Label>
-            <Input id="email" type="email" placeholder="m@example.com" className="bg-background/70"/>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">密碼</Label>
-            <Input id="password" type="password" className="bg-background/70"/>
-          </div>
-          
-          <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-            創建帳戶
-          </Button>
-        </CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="password">密碼</Label>
+              <Input id="password" type="password" {...register("password")} className={`bg-background/70 ${errors.password ? 'border-destructive' : ''}`} />
+              {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+            </div>
+            
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
+              {isLoading ? "創建中..." : "創建帳戶"}
+            </Button>
+          </CardContent>
+        </form>
         <CardFooter className="text-center text-sm">
           已經有帳戶了?{' '}
           <Link href="/login" className="text-accent underline hover:text-accent/80">
@@ -52,4 +119,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
