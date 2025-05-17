@@ -25,18 +25,18 @@ export default function LoginPage() {
           <div className="space-y-2">
             <div className="flex items-center">
               <Label htmlFor="password">密碼</Label>
-              <Link href="#" className="ml-auto inline-block text-sm text-accent underline hover:text-accent/80">
+              {/* <Link href="#" className="ml-auto inline-block text-sm text-accent underline hover:text-accent/80">
                 忘記密碼?
-              </Link>
+              </Link> */}
             </div>
             <Input id="password" type="password" className="bg-background/70"/>
           </div>
           <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
             登入
           </Button>
-          <Button variant="outline" className="w-full">
+          {/* <Button variant="outline" className="w-full">
             使用其他方式登入 (例如：Google)
-          </Button>
+          </Button> */}
         </CardContent>
         <CardFooter className="text-center text-sm">
           還沒有帳戶?{' '}
