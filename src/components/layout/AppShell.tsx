@@ -7,20 +7,11 @@ import { usePathname } from "next/navigation";
 import {
   BookOpen,
   Users,
-  Lightbulb,
-  Edit3,
-  Target,
-  Book,
-  Home,
   Settings,
   ScrollText,
-  GraduationCap,
-  LineChart,
-  Library,
-  Sparkles,
-  Drama,
   LayoutDashboard,
-  Brain, // Added Brain icon
+  Brain,
+  Library,
 } from "lucide-react";
 
 import {
@@ -57,15 +48,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "Dashboard" },
   { href: "/read", label: "章回閱讀", icon: BookOpen, tooltip: "Read Chapters" },
-  { href: "/characters", label: "知識圖譜", icon: Brain, tooltip: "Knowledge Graph" }, // Changed label and icon
-  // { href: "/modern-relevance", label: "現代關聯", icon: Sparkles, tooltip: "Modern Relevance" }, // Removed
-  { href: "/write", label: "寫作輔助", icon: Edit3, tooltip: "Writing Assistant" },
-  { href: "/goals", label: "學習目標", icon: Target, tooltip: "Learning Goals" },
+  { href: "/characters", label: "知識圖譜", icon: Brain, tooltip: "Knowledge Graph" },
   { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" },
-  // { href: "/community", label: "學習社區", icon: Users, tooltip: "Community" },
-  // { href: "/guided-reading", label: "導讀資源", icon: Book, tooltip: "Guided Reading" },
-  // { href: "/analytics", label: "學習分析", icon: LineChart, tooltip: "Analytics (Teacher)" },
-  // { href: "/portfolio", label: "學習成果", icon: GraduationCap, tooltip: "Portfolio (Student)" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -105,7 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex h-auto w-full items-center justify-start gap-2 p-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" data-ai-hint="user avatar" />
+                  <AvatarImage src="https://placehold.co/100x100.png" alt="User Avatar" data-ai-hint="user avatar"/>
                   <AvatarFallback>用戶</AvatarFallback>
                 </Avatar>
                 <div className="text-left">
