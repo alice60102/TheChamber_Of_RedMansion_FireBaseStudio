@@ -13,7 +13,7 @@ export default function HomePage() {
           <Link href="/" className="flex items-center space-x-2">
             {/* Replace with an actual logo if available */}
             {/* <ScrollText className="h-8 w-8 text-primary" /> */}
-            <span className="text-2xl font-artistic font-bold text-primary">紅樓慧讀</span>
+            <span className="text-2xl font-artistic font-bold text-black">紅樓慧讀</span>
           </Link>
           <nav className="flex items-center space-x-2">
             <Button variant="ghost" asChild>
@@ -80,8 +80,8 @@ export default function HomePage() {
                 },
                 {
                   icon: Users,
-                  title: "互動人物圖譜",
-                  description: "AI 生成人物關係圖，助您梳理複雜的人物網絡。",
+                  title: "學習狀況分析",
+                  description: "AI 分析您的學習數據，生成個性化學習狀況報告。",
                 },
                 {
                   icon: Edit3,
