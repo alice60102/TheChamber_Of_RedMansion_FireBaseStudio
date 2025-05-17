@@ -42,6 +42,11 @@ const connectThemesToModernContextsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      console.error("AI flow 'connectThemesToModernContextsFlow' did not produce an output for input:", input);
+      throw new Error('AI模型未能生成有效的現代關聯見解。');
+    }
+    return output;
   }
 );
+

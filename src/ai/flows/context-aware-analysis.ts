@@ -59,6 +59,11 @@ const analyzeContextFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output) {
+      console.error("AI flow 'analyzeContextFlow' did not produce an output for input:", input);
+      throw new Error('AI模型未能生成有效的文本脈絡分析。');
+    }
+    return output;
   }
 );
+
