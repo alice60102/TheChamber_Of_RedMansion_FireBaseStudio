@@ -48,7 +48,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "Dashboard" },
   { href: "/read", label: "章回閱讀", icon: BookOpen, tooltip: "Read Chapters" },
-  { href: "/characters", label: "知識圖譜", icon: Brain, tooltip: "Knowledge Graph" },
+  { href: "/characters", label: "學習狀況分析", icon: Brain, tooltip: "Learning Status Analysis" },
   { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" },
 ];
 
@@ -68,17 +68,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SidebarMenu>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.label}>
-                <Link href={item.href} legacyBehavior passHref>
-                  <SidebarMenuButton
+                <SidebarMenuButton
+                    asChild
                     className="w-full justify-start"
                     variant={pathname === item.href ? "default" : "ghost"}
                     isActive={pathname === item.href}
                     tooltip={item.tooltip}
                   >
-                    <item.icon className="h-5 w-5" />
-                    <span className="truncate">{item.label}</span>
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
                   </SidebarMenuButton>
-                </Link>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>

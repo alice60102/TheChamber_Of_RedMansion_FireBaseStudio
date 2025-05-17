@@ -37,7 +37,7 @@ const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }
   );
 };
 
-export default function KnowledgeGraphPage() {
+export default function LearningAnalysisPage() {
   const [studentId, setStudentId] = useState<string>("student123");
   const [learningDataInput, setLearningDataInput] = useState<string>("已完成《紅樓夢》前五回閱讀，對於人物出場順序和主要家族關係有初步了解。在課堂測驗中，關於賈寶玉早期經歷的題目得分較高，但對於甄士隱和賈雨村的象徵意義理解較模糊。筆記中多次提及對林黛玉初進賈府的場景感興趣。");
   const [analysisResult, setAnalysisResult] = useState<LearningAnalysisOutput | null>(null);
@@ -72,64 +72,66 @@ export default function KnowledgeGraphPage() {
         <CardHeader>
           <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
             <Brain className="h-7 w-7" />
-            學生知識圖譜分析
+            學生學習狀況分析
           </CardTitle>
           <CardDescription>
-            輸入學生的學習數據，AI 將分析並生成其個人知識圖譜的相關見解，包括認知熱力圖、理解偏差和學習建議。
+            輸入學生的學習數據，AI 將分析並生成其學習狀況的相關見解，包括認知熱力圖、理解偏差和學習建議。
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-6">
-          {/* Input Section */}
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="studentId" className="text-lg font-semibold text-foreground">學生ID</Label>
-              <Input
-                id="studentId"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                placeholder="例如：student123"
-                className="bg-background/50 text-base"
-              />
-            </div>
-            <div>
-              <Label htmlFor="learningDataInput" className="text-lg font-semibold text-foreground">學習數據</Label>
-              <Textarea
-                id="learningDataInput"
-                value={learningDataInput}
-                onChange={(e) => setLearningDataInput(e.target.value)}
-                placeholder="輸入學生的學習記錄，例如已讀章節、筆記摘要、測驗結果等..."
-                className="min-h-[150px] bg-background/50 text-base"
-                rows={8}
-              />
-            </div>
-            <Button onClick={handleAnalyzeData} disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-              <Zap className="h-4 w-4 mr-2"/> {isLoading ? "分析中..." : "生成知識圖譜分析"}
-            </Button>
-            <div className="flex items-start p-3 rounded-md bg-muted/50 border border-dashed border-accent/50 text-accent">
-              <Info className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
-              <p className="text-xs">
-                <strong>提示：</strong> 輸入的學習數據越詳細（如閱讀章節、時長、測驗分數、筆記等），分析結果越準確。
-              </p>
-            </div>
-          </div>
-
-          {/* Output/Graph Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">知識圖譜分析結果</h3>
-            {errorMessage && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>分析錯誤</AlertTitle>
-                <AlertDescription>{errorMessage}</AlertDescription>
-              </Alert>
-            )}
-            {isLoading && !errorMessage ? (
-              <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center text-muted-foreground">
-                AI 正在分析學習數據並構建知識圖譜見解，請稍候...
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Input Section */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="studentId" className="text-lg font-semibold text-foreground">學生ID</Label>
+                <Input
+                  id="studentId"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  placeholder="例如：student123"
+                  className="bg-background/50 text-base"
+                />
               </div>
-            ) : (
-              <AnalysisOutputDisplay data={analysisResult} />
-            )}
+              <div>
+                <Label htmlFor="learningDataInput" className="text-lg font-semibold text-foreground">學習數據</Label>
+                <Textarea
+                  id="learningDataInput"
+                  value={learningDataInput}
+                  onChange={(e) => setLearningDataInput(e.target.value)}
+                  placeholder="輸入學生的學習記錄，例如已讀章節、筆記摘要、測驗結果等..."
+                  className="min-h-[150px] bg-background/50 text-base"
+                  rows={8}
+                />
+              </div>
+              <Button onClick={handleAnalyzeData} disabled={isLoading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                <Zap className="h-4 w-4 mr-2"/> {isLoading ? "分析中..." : "生成學習狀況分析"}
+              </Button>
+              <div className="flex items-start p-3 rounded-md bg-muted/50 border border-dashed border-accent/50 text-accent">
+                <Info className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
+                <p className="text-xs">
+                  <strong>提示：</strong> 輸入的學習數據越詳細（如閱讀章節、時長、測驗分數、筆記等），分析結果越準確。
+                </p>
+              </div>
+            </div>
+
+            {/* Output/Graph Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">學習狀況分析結果</h3>
+              {errorMessage && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>分析錯誤</AlertTitle>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
+              {isLoading && !errorMessage ? (
+                <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center text-muted-foreground">
+                  AI 正在分析學習數據並構建學習狀況見解，請稍候...
+                </div>
+              ) : (
+                <AnalysisOutputDisplay data={analysisResult} />
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
