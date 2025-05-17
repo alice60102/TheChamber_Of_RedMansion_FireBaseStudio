@@ -14,12 +14,28 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 // Placeholder chapter data - in a real app, this would come from a database or API
 const chapters = [
-  { id: 1, title: "第一回 甄士隱夢幻識通靈 賈雨村風塵懷閨秀", content: "此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！當此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。\n\n此回中，甄士隱夢見一僧一道，談論石頭下凡歷劫之事。賈雨村寄居甄家，中秋與甄士隱賞月吟詩，後得甄家資助，上京赴考。甄士隱之女英蓮元宵燈節被拐，甄家隨後又遭火災，家道中落。甄士隱看破紅塵，隨跛足道人出家。" },
-  { id: 2, title: "第二回 賈夫人仙逝揚州城 冷子興演說榮國府", content: "（此處省略第二回內容...）賈寶玉和林黛玉初次見面，寶玉便說：「這個妹妹我曾見過的。」" },
-  { id: 3, title: "第三回 賈雨村夤緣復舊職 林黛玉拋父進京都", content: "（此處省略第三回內容...）林黛玉進賈府，處處小心，不肯輕易多說一句話，多行一步路。" },
+  { 
+    id: 1, 
+    title: "第一回 甄士隱夢幻識通靈 賈雨村風塵懷閨秀", 
+    summary: "本回主要講述了甄士隱夢遇一僧一道談論石頭下凡歷劫，以及賈雨村的落魄與發跡。甄士隱因女兒英蓮被拐、家遭火災而看破紅塵，隨跛足道人出家，點出了小說「真事隱去，假語存焉」的創作主旨和「夢幻」的基調。",
+    content: "此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！當此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。\n\n此回中，甄士隱夢見一僧一道，談論石頭下凡歷劫之事。賈雨村寄居甄家，中秋與甄士隱賞月吟詩，後得甄家資助，上京赴考。甄士隱之女英蓮元宵燈節被拐，甄家隨後又遭火災，家道中落。甄士隱看破紅塵，隨跛足道人出家。" 
+  },
+  { 
+    id: 2, 
+    title: "第二回 賈夫人仙逝揚州城 冷子興演說榮國府", 
+    summary: "林黛玉之母賈敏病故。賈雨村偶遇舊識冷子興，冷子興向賈雨村詳細介紹了京城榮國府和寧國府的複雜人物關係、顯赫家世以及當前的衰敗跡象，為後文主要人物登場和故事展開作了重要鋪墊。",
+    content: "（此處省略第二回內容...）賈寶玉和林黛玉初次見面，寶玉便說：「這個妹妹我曾見過的。」" 
+  },
+  { 
+    id: 3, 
+    title: "第三回 賈雨村夤緣復舊職 林黛玉拋父進京都", 
+    summary: "賈雨村通過鑽營關係，由林如海推薦，官復原職。林黛玉奉外祖母賈母之命，在其父林如海的安排下，離開揚州，進京入賈府。本回細緻描寫了黛玉初進賈府的所見所聞、謹慎言行以及與賈府眾人的初次會面，特別是與賈寶玉的相見。",
+    content: "（此處省略第三回內容...）林黛玉進賈府，處處小心，不肯輕易多說一句話，多行一步路。" 
+  },
 ];
 
 type InteractionState = 'asking' | 'answering' | 'answered' | 'error';
@@ -57,11 +73,11 @@ export default function ReadPage() {
     setIsPopoverOpen(false);
   }, [currentChapterIndex]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = (event: MouseEvent) => { // Added event type
     if (contentRef.current && contentRef.current.contains(event.target as Node)) {
       const selection = window.getSelection();
       const text = selection?.toString().trim() || '';
-      if (text && text.length > 1) { // Ensure some meaningful text is selected
+      if (text && text.length > 1) { 
         setSelectedText(text);
         const range = selection!.getRangeAt(0);
         const rect = range.getBoundingClientRect();
@@ -75,18 +91,14 @@ export default function ReadPage() {
         } else {
            setSelectionPosition({ top: rect.bottom + window.scrollY + 5, left: rect.left + window.scrollX + rect.width / 2 });
         }
-        // Reset for new interaction
         setTextExplanation(null); 
         setUserQuestionInput('');
         setInteractionState('asking');
-        // setIsPopoverOpen(true); // Let the button click open it explicitly
       } else if (!text && isPopoverOpen) {
-        // If no text is selected but popover was open, potentially close it or do nothing
-        // For now, let's allow popover to be closed manually or by clicking outside.
+        // Do nothing, let popover be closed manually or by clicking outside.
       } else {
         setSelectedText('');
         setSelectionPosition(null);
-        // setIsPopoverOpen(false); // Only close if no text selected and not already trying to open
       }
     }
   };
@@ -96,7 +108,7 @@ export default function ReadPage() {
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [currentChapter, isPopoverOpen]); // Added isPopoverOpen to dependencies
+  }, [currentChapter, isPopoverOpen]); 
 
 
   const handleFetchCharacterMapFromContext = async () => { 
@@ -140,7 +152,7 @@ export default function ReadPage() {
     try {
       const input: ExplainTextSelectionInput = {
         selectedText,
-        chapterContext: currentChapter.content.substring(0, 1000), // Provide more context
+        chapterContext: currentChapter.content.substring(0, 1000), 
         userQuestion: userQuestionInput,
       };
       const result = await explainTextSelection(input);
@@ -185,6 +197,16 @@ export default function ReadPage() {
                 下一回 <ChevronRight className="h-5 w-5" />
               </Button>
             </div>
+            <Accordion type="single" collapsible className="w-full mt-2">
+              <AccordionItem value="chapter-summary">
+                <AccordionTrigger className="text-sm text-muted-foreground hover:text-primary/90 data-[state=open]:text-primary py-2 px-1">
+                  <BookText className="h-4 w-4 mr-2" /> 本回提要概述
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-foreground/80 p-3 bg-muted/20 rounded-md border border-border/50">
+                  {currentChapter.summary}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </CardHeader>
           <ScrollArea className="flex-grow p-1 relative" id="chapter-content-scroll-area">
             <div ref={contentRef}>
@@ -211,7 +233,7 @@ export default function ReadPage() {
                         className="w-96 bg-card text-card-foreground shadow-xl border-border"
                         side="top" 
                         align="center"
-                        onOpenAutoFocus={(e) => e.preventDefault()} // Prevents auto-focus on first element
+                        onOpenAutoFocus={(e) => e.preventDefault()} 
                       >
                         <div className="space-y-3 p-2">
                           {interactionState === 'asking' && (
