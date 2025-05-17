@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Brain, Info, Zap, BookOpen, BarChartHorizontalBig, Lightbulb } from "lucide-react";
 import { analyzeLearningData } from '@/ai/flows/learning-analysis';
 import type { LearningAnalysisInput, LearningAnalysisOutput } from '@/ai/flows/learning-analysis';
@@ -38,15 +37,14 @@ const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }
 };
 
 export default function LearningAnalysisPage() {
-  const [studentId, setStudentId] = useState<string>("student123");
   const [learningDataInput, setLearningDataInput] = useState<string>("已完成《紅樓夢》前五回閱讀，對於人物出場順序和主要家族關係有初步了解。在課堂測驗中，關於賈寶玉早期經歷的題目得分較高，但對於甄士隱和賈雨村的象徵意義理解較模糊。筆記中多次提及對林黛玉初進賈府的場景感興趣。");
   const [analysisResult, setAnalysisResult] = useState<LearningAnalysisOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleAnalyzeData = async () => {
-    if (!studentId.trim() || !learningDataInput.trim()) {
-      setErrorMessage("請輸入學生ID和學習數據。");
+    if (!learningDataInput.trim()) {
+      setErrorMessage("請輸入學習數據。");
       return;
     }
     setIsLoading(true);
@@ -54,7 +52,6 @@ export default function LearningAnalysisPage() {
     setErrorMessage(null);
     try {
       const input: LearningAnalysisInput = { 
-        studentId,
         learningData: learningDataInput 
       };
       const result = await analyzeLearningData(input);
@@ -72,10 +69,10 @@ export default function LearningAnalysisPage() {
         <CardHeader>
           <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
             <Brain className="h-7 w-7" />
-            學生學習狀況分析
+            學習狀況分析
           </CardTitle>
           <CardDescription>
-            輸入學生的學習數據，AI 將分析並生成其學習狀況的相關見解，包括文本掌握分析描述、理解偏差和學習建議。
+            輸入學習數據，AI 將分析並生成相關的見解，包括文本掌握分析描述、理解偏差和學習建議。
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -83,22 +80,12 @@ export default function LearningAnalysisPage() {
             {/* Input Section */}
             <div className="space-y-4">
               <div>
-                <Label htmlFor="studentId" className="text-lg font-semibold text-foreground">學生ID</Label>
-                <Input
-                  id="studentId"
-                  value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
-                  placeholder="例如：student123"
-                  className="bg-background/50 text-base"
-                />
-              </div>
-              <div>
                 <Label htmlFor="learningDataInput" className="text-lg font-semibold text-foreground">學習數據</Label>
                 <Textarea
                   id="learningDataInput"
                   value={learningDataInput}
                   onChange={(e) => setLearningDataInput(e.target.value)}
-                  placeholder="輸入學生的學習記錄，例如已讀章節、筆記摘要、測驗結果等..."
+                  placeholder="輸入學習記錄，例如已讀章節、筆記摘要、測驗結果等..."
                   className="min-h-[150px] bg-background/50 text-base"
                   rows={8}
                 />
