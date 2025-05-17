@@ -46,7 +46,7 @@ export default function HomePage() {
           />
           <div className="container relative mx-auto px-6 text-center">
             <h1 className="text-4xl font-artistic font-bold text-foreground md:text-6xl leading-tight">
-              智能引航，重煥<span className="text-primary/80">紅樓</span>之夢
+              智能引航，重煥<span className="text-black">紅樓</span>之夢
             </h1>
             <p className="mt-6 text-lg text-foreground/80 md:text-xl">
               深入探索《紅樓夢》的宏大世界。借助 AI 賦能的互動工具、情境分析與寫作輔導，開啟您的智慧閱讀之旅。
