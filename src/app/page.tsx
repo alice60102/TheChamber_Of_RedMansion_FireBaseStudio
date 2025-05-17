@@ -84,11 +84,6 @@ export default function HomePage() {
                   description: "AI 分析您的學習數據，生成個性化學習狀況報告。",
                 },
                 {
-                  icon: Edit3,
-                  title: "智能寫作輔導",
-                  description: "從結構引導到表達優化，AI 教練全程陪伴您的寫作。",
-                },
-                {
                   icon: Lightbulb,
                   title: "情境連結現代",
                   description: "發掘經典主題與當代社會的共鳴，拓展思考維度。",
