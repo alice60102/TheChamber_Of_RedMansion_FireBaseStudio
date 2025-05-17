@@ -20,6 +20,7 @@ import {
   Sparkles,
   Drama,
   LayoutDashboard,
+  Brain, // Added Brain icon
 } from "lucide-react";
 
 import {
@@ -56,8 +57,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "Dashboard" },
   { href: "/read", label: "章回閱讀", icon: BookOpen, tooltip: "Read Chapters" },
-  { href: "/characters", label: "人物關係", icon: Drama, tooltip: "Characters Map" },
-  { href: "/modern-relevance", label: "現代關聯", icon: Sparkles, tooltip: "Modern Relevance" },
+  { href: "/characters", label: "知識圖譜", icon: Brain, tooltip: "Knowledge Graph" }, // Changed label and icon
+  // { href: "/modern-relevance", label: "現代關聯", icon: Sparkles, tooltip: "Modern Relevance" }, // Removed
   { href: "/write", label: "寫作輔助", icon: Edit3, tooltip: "Writing Assistant" },
   { href: "/goals", label: "學習目標", icon: Target, tooltip: "Learning Goals" },
   { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" },

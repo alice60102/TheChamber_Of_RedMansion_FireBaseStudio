@@ -23,9 +23,9 @@ const nextConfig: NextConfig = {
     if (!isServer) {
       // Prevent bundling of Node.js specific modules on the client
       config.resolve.fallback = {
-        ...config.resolve.fallback,
-        async_hooks: false, // Tells Webpack to provide an empty module for async_hooks on the client
-        'node:async_hooks': false, // Handle 'node:' prefixed import
+        ...(config.resolve.fallback || {}), // Ensure fallback object exists
+        async_hooks: false,
+        'node:async_hooks': false,
         fs: false,
         'node:fs': false,
         tls: false,

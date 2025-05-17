@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Edit3, Target, Activity, BarChart3, Users } from "lucide-react";
@@ -76,15 +77,16 @@ export default function DashboardPage() {
               <span className="text-sm">完成了 "第四回" 測驗，得分 85%。</span>
               <span className="ml-auto text-xs text-muted-foreground">2 小時前</span>
             </li>
-            <li className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-accent" />
-              <span className="text-sm">在 "人物關係" 討論區發表了評論。</span>
-              <span className="ml-auto text-xs text-muted-foreground">昨天</span>
-            </li>
+            {/* Removed discussion forum item as per request */}
             <li className="flex items-center gap-3">
               <BarChart3 className="h-5 w-5 text-green-500" />
               <span className="text-sm">閱讀時長達到 5 小時。</span>
               <span className="ml-auto text-xs text-muted-foreground">3 天前</span>
+            </li>
+             <li className="flex items-center gap-3">
+              <Edit3 className="h-5 w-5 text-accent" />
+              <span className="text-sm">提交了關於 "金陵十二釵判詞" 的初步筆記。</span>
+              <span className="ml-auto text-xs text-muted-foreground">4 天前</span>
             </li>
           </ul>
         </CardContent>
