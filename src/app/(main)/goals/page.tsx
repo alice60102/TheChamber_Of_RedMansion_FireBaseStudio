@@ -24,13 +24,13 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 60, timeSpent: 75 }, // comprehension: blue-ish (chart-2), timeSpent: gold (primary)
-  { chapter: "第2回", comprehension: 75, timeSpent: 60 },
-  { chapter: "第3回", comprehension: 55, timeSpent: 70 },
-  { chapter: "第4回", comprehension: 40, timeSpent: 80 },
-  { chapter: "第5回", comprehension: 80, timeSpent: 85 },
-  { chapter: "第6回", comprehension: 82, timeSpent: 90 },
-  { chapter: "第7回", comprehension: 90, timeSpent: 95 },
+  { chapter: "第1回", comprehension: 75, timeSpent: 60 }, // comprehension: chart-2 (blue-ish), timeSpent: primary (gold)
+  { chapter: "第2回", comprehension: 60, timeSpent: 75 },
+  { chapter: "第3回", comprehension: 70, timeSpent: 55 },
+  { chapter: "第4回", comprehension: 80, timeSpent: 40 },
+  { chapter: "第5回", comprehension: 85, timeSpent: 80 },
+  { chapter: "第6回", comprehension: 90, timeSpent: 82 },
+  { chapter: "第7回", comprehension: 95, timeSpent: 90 },
 ];
 
 // Sample data for simulated Cognitive Heatmap (Mastery by Topic)
@@ -313,7 +313,7 @@ export default function GoalsPage() {
           <CardDescription>對您的學習目標有疑問？或需要針對性指導？在此與AI互動。</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 p-4 rounded-md" style={{border: '1px solid hsl(var(--border))', backgroundImage: 'url(https://placehold.co/600x400.png?tint=FFF8E1,4A3B31)', backgroundSize: 'cover', backgroundPosition: 'center'}} data-ai-hint="old paper scroll">
+          <div className="space-y-3 p-4 rounded-md" style={{border: '1px solid hsl(var(--border))'}}>
             <Textarea 
               value={aiCompanionQuery}
               onChange={(e) => setAiCompanionQuery(e.target.value)}
@@ -427,3 +427,5 @@ export default function GoalsPage() {
   );
 }
 
+
+    
