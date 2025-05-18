@@ -5,7 +5,9 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Users, MessageSquare, PlusCircle, ThumbsUp, MessageCircle, Search, PencilLine } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea"; // Added Textarea import
+import { Users, MessageSquare, Search, ThumbsUp, MessageCircle } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth'; // Added useAuth import
 
 // Placeholder data for posts - in a real app, this would come from a backend
 const initialPosts = [
@@ -43,12 +45,88 @@ const initialPosts = [
 
 type Post = typeof initialPosts[0];
 
+const MAX_POST_LENGTH = 5000;
+
+function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void }) {
+  const { user } = useAuth();
+  const [postContent, setPostContent] = useState('');
+  const [characterCount, setCharacterCount] = useState(0);
+
+  const handleContentChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const content = event.target.value;
+    if (content.length <= MAX_POST_LENGTH) {
+      setPostContent(content);
+      setCharacterCount(content.length);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (postContent.trim()) {
+      onPostSubmit(postContent.trim());
+      setPostContent('');
+      setCharacterCount(0);
+    }
+  };
+
+  return (
+    <Card className="mb-6 shadow-lg bg-card/70">
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <i 
+            className="fa fa-user-circle text-primary mt-1" 
+            aria-hidden="true"
+            style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          ></i>
+          <div className="flex-grow">
+            <p className="font-semibold text-primary mb-1">{user?.displayName || '訪客'}</p>
+            <Textarea
+              placeholder="靈感稍縱即逝，趕緊記錄下來吧..."
+              value={postContent}
+              onChange={handleContentChange}
+              className="w-full min-h-[80px] bg-background/50 text-base mb-2"
+              rows={3}
+            />
+            <div className="flex justify-end items-center gap-4">
+              <span className="text-xs text-muted-foreground">
+                {characterCount} / {MAX_POST_LENGTH}
+              </span>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={!postContent.trim()}
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                發佈
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
 export default function CommunityPage() {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
   const [searchTerm, setSearchTerm] = useState('');
+  const { user } = useAuth(); // Get user for potential future use or display
 
-  // In a real app, you'd fetch posts, handle new post creation, likes, comments, etc.
-  // For now, this is a static display.
+  const handleNewPost = (content: string) => {
+    // Placeholder for actual post submission logic
+    console.log("New post content:", content);
+    const newPost: Post = {
+      id: (posts.length + 1).toString(),
+      author: user?.displayName || '匿名用戶', // Use logged-in user's name
+      timestamp: '剛剛',
+      title: content.substring(0, 20) + (content.length > 20 ? '...' : ''), // Simple title generation
+      content: content,
+      likes: 0,
+      comments: 0,
+      tags: ['新帖'],
+    };
+    setPosts([newPost, ...posts]); // Add new post to the beginning of the list
+  };
+
 
   const filteredPosts = posts.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,9 +149,7 @@ export default function CommunityPage() {
                 用戶交流、分享心得的園地。暢所欲言，共同探討《紅樓夢》的無窮魅力。
               </CardDescription>
             </div>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-              <PencilLine className="h-4 w-4 mr-2" /> 發表新主題
-            </Button>
+            {/* Removed the old "發表新主題" button */}
           </div>
         </CardHeader>
         <CardContent>
@@ -88,6 +164,10 @@ export default function CommunityPage() {
               />
             </div>
           </div>
+
+          {/* New Post Form */}
+          {user && <NewPostForm onPostSubmit={handleNewPost} />}
+
 
           {filteredPosts.length > 0 ? (
             <div className="space-y-6">
@@ -143,3 +223,5 @@ export default function CommunityPage() {
     </div>
   );
 }
+
+    
