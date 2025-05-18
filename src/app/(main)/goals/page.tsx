@@ -26,8 +26,8 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 60, timeSpent: 75 }, 
-  { chapter: "第2回", comprehension: 80, timeSpent: 60 },
+  { chapter: "第1回", comprehension: 80, timeSpent: 60 }, 
+  { chapter: "第2回", comprehension: 60, timeSpent: 75 },
   { chapter: "第3回", comprehension: 70, timeSpent: 55 },
   { chapter: "第4回", comprehension: 75, timeSpent: 40 },
   { chapter: "第5回", comprehension: 85, timeSpent: 80 },
@@ -356,7 +356,7 @@ export default function GoalsPage() {
               </div>
             )}
             {aiCompanionResponse && !isLoadingAiCompanion && (
-              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm prose prose-sm dark:prose-invert prose-headings:mt-2 prose-headings:mb-1 prose-headings:text-white prose-p:my-1 prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:list-none prose-ol:list-none prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm prose prose-sm dark:prose-invert prose-headings:m-0 prose-headings:mb-1 prose-headings:text-white prose-p:m-0 prose-p:mb-1 prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:list-none prose-ol:list-none prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                 <strong>AI學伴回覆：</strong> 
                 <ReactMarkdown>{aiCompanionResponse}</ReactMarkdown>
               </div>
