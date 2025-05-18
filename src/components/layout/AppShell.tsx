@@ -12,6 +12,7 @@ import {
   Brain,
   Library,
   LogOut,
+  Users, // Added Users icon
 } from "lucide-react";
 
 import {
@@ -28,8 +29,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-// Avatar components are no longer used for user display here
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +53,7 @@ const navItems: NavItem[] = [
   { href: "/read", label: "章回閱讀", icon: BookOpen, tooltip: "Read Chapters" },
   { href: "/characters", label: "學習狀況分析", icon: Brain, tooltip: "Learning Status Analysis" },
   { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" },
+  { href: "/community", label: "紅學社", icon: Users, tooltip: "Community Forum" }, // Added Community link
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
