@@ -76,7 +76,7 @@ export default function ReadPage() {
   const [currentNoteIsPublic, setCurrentNoteIsPublic] = useState(true);
   const [currentNoteSelectionRect, setCurrentNoteSelectionRect] = useState<{ top: number; left: number; width: number; height: number; } | null>(null);
   
-  const [activeNotePopover, setActiveNotePopover] = useState<string | null>(null); // ID of the note whose popover is open
+  const [activeNotePopover, setActiveNotePopover] = useState<string | null>(null); 
 
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const currentChapter = chapters[currentChapterIndex];
@@ -175,7 +175,7 @@ export default function ReadPage() {
       setUserQuestionInput('');
       setAiInteractionState('asking');
       setIsAIPopoverOpen(true);
-      setActiveNotePopover(null); // Close note popover if open
+      setActiveNotePopover(null); 
     }
   };
 
@@ -208,15 +208,12 @@ export default function ReadPage() {
       setCurrentNoteContent(existingNote ? existingNote.content : '');
       setCurrentNoteIsPublic(existingNote ? existingNote.isPublic : true);
   
-      const selectionRect = selectedTextInfo.range.getBoundingClientRect();
-      const containerRect = chapterContentRef.current.getBoundingClientRect();
-      const computedStyle = getComputedStyle(chapterContentRef.current);
-      const containerPaddingLeft = parseFloat(computedStyle.paddingLeft);
-      const containerPaddingTop = parseFloat(computedStyle.paddingTop);
+      const selectionRect = selectedTextInfo.range.getBoundingClientRect(); 
+      const containerRect = chapterContentRef.current.getBoundingClientRect(); 
       
       setCurrentNoteSelectionRect({
-        top: selectionRect.top - containerRect.top - containerPaddingTop + chapterContentRef.current.scrollTop,
-        left: selectionRect.left - containerRect.left - containerPaddingLeft + chapterContentRef.current.scrollLeft,
+        top: selectionRect.top - containerRect.top + chapterContentRef.current.scrollTop,
+        left: selectionRect.left - containerRect.left + chapterContentRef.current.scrollLeft,
         width: selectionRect.width,
         height: selectionRect.height,
       });
@@ -240,7 +237,7 @@ export default function ReadPage() {
       targetText: currentNoteTargetText,
       content: currentNoteContent,
       isPublic: currentNoteIsPublic,
-      rangeRect: currentNoteSelectionRect,
+      rangeRect: currentNoteSelectionRect, 
     };
     setNotes(prevNotes => {
       const filteredNotes = prevNotes.filter(
@@ -259,10 +256,10 @@ export default function ReadPage() {
   };
 
   const handleNoteHighlightClick = (noteId: string, event: ReactMouseEvent<HTMLDivElement>) => {
-    event.stopPropagation(); // Prevent mouseup from clearing selection
-    setSelectedTextInfo(null); // Clear any active text selection tools
-    setIsAIPopoverOpen(false); // Close AI popover
-    setActiveNotePopover(noteId === activeNotePopover ? null : noteId); // Toggle popover for this note
+    event.stopPropagation(); 
+    setSelectedTextInfo(null); 
+    setIsAIPopoverOpen(false); 
+    setActiveNotePopover(noteId === activeNotePopover ? null : noteId); 
   };
 
   const goToNextChapter = () => {
@@ -347,7 +344,7 @@ export default function ReadPage() {
                       align="center" 
                       className="w-80 z-20 bg-card text-card-foreground shadow-xl border-border" 
                       onOpenAutoFocus={e => e.preventDefault()}
-                      onCloseAutoFocus={e => e.preventDefault()} // Prevent refocusing issues
+                      onCloseAutoFocus={e => e.preventDefault()} 
                     >
                       <div className="space-y-2 p-2">
                         <h4 className="font-semibold text-primary mb-1 truncate">
