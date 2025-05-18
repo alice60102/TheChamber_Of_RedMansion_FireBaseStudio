@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, MessageSquare, Search, ThumbsUp, MessageCircle } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
-import { cn } from '@/lib/utils'; // Import cn utility
 
 // Placeholder data for posts - in a real app, this would come from a backend
 const initialPostsData = [
@@ -49,7 +48,6 @@ type Post = {
   likes: number;
   comments: number;
   tags: string[];
-  isExpanded?: boolean; // For toggling content expansion
 };
 
 const MAX_POST_LENGTH = 5000;
@@ -87,7 +85,7 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
           <div className="flex-grow">
             <p className="font-semibold text-primary mb-1">{user?.displayName || '訪客'}</p>
             <Textarea
-              placeholder="靈感稍縱即逝，趕緊記錄下來吧..."
+              placeholder="發文內容..."
               value={postContent}
               onChange={handleContentChange}
               className="w-full min-h-[80px] bg-background/50 text-base mb-2"
@@ -114,7 +112,7 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
 
 
 export default function CommunityPage() {
-  const [posts, setPosts] = useState<Post[]>(initialPostsData.map(p => ({ ...p, isExpanded: false })));
+  const [posts, setPosts] = useState<Post[]>(initialPostsData);
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAuth(); 
 
@@ -127,17 +125,8 @@ export default function CommunityPage() {
       likes: 0,
       comments: 0,
       tags: ['新帖'],
-      isExpanded: false,
     };
     setPosts([newPost, ...posts]);
-  };
-
-  const toggleExpandPost = (postId: string) => {
-    setPosts(prevPosts =>
-      prevPosts.map(p =>
-        p.id === postId ? { ...p, isExpanded: !p.isExpanded } : p
-      )
-    );
   };
 
   const filteredPosts = posts.filter(post => 
@@ -145,9 +134,6 @@ export default function CommunityPage() {
     post.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-
-  // Heuristic to determine if content is long enough to be clamped/expanded
-  const isContentLong = (content: string) => content.length > 150; // Adjust character count as needed
 
   return (
     <div className="space-y-6">
@@ -198,21 +184,9 @@ export default function CommunityPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <p className={cn(
-                        "text-foreground/80 leading-relaxed whitespace-pre-line",
-                        !post.isExpanded && "line-clamp-3"
-                      )}
-                    >
+                    <p className="text-foreground/80 leading-relaxed whitespace-pre-line line-clamp-3">
                       {post.content}
                     </p>
-                    {isContentLong(post.content) && (
-                      <button
-                        onClick={() => toggleExpandPost(post.id)}
-                        className="text-blue-500 hover:underline text-sm mt-2"
-                      >
-                        {post.isExpanded ? '收起' : '更多'}
-                      </button>
-                    )}
                     <div className="flex flex-wrap gap-2 mt-3">
                       {post.tags.map(tag => (
                         <span key={tag} className="text-xs bg-accent/20 text-accent-foreground py-0.5 px-2 rounded-full cursor-pointer hover:bg-accent/30">#{tag}</span>
@@ -246,3 +220,4 @@ export default function CommunityPage() {
     </div>
   );
 }
+
