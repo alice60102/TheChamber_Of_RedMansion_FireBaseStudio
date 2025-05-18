@@ -11,7 +11,7 @@ import { analyzeContext } from '@/ai/flows/context-aware-analysis';
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -43,10 +43,10 @@ type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
 interface UserNote {
   id: string;
   chapterId: number;
-  targetText: string; // The text snippet the note is about
+  targetText: string; 
   content: string;
   isPublic: boolean;
-  rangeRect: DOMRectReadOnly | null; // To store position for potential future rendering of underlines/highlights
+  rangeRect: DOMRectReadOnly | null; 
 }
 
 interface SelectedTextInfo {
@@ -62,7 +62,6 @@ export default function ReadPage() {
   const [wordAnalysis, setWordAnalysis] = useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
 
-  // State for AI popover
   const [selectedTextInfo, setSelectedTextInfo] = useState<SelectedTextInfo | null>(null);
   const [isAIPopoverOpen, setIsAIPopoverOpen] = useState(false);
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
@@ -70,7 +69,6 @@ export default function ReadPage() {
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
   const [aiInteractionState, setAiInteractionState] = useState<AIInteractionState>('asking');
 
-  // State for Notes
   const [notes, setNotes] = useState<UserNote[]>([]);
   const [showNoteSheet, setShowNoteSheet] = useState(false);
   const [currentNoteTargetText, setCurrentNoteTargetText] = useState<string>('');
@@ -78,13 +76,10 @@ export default function ReadPage() {
   const [currentNoteIsPublic, setCurrentNoteIsPublic] = useState(true);
   const [currentNoteSelectionRect, setCurrentNoteSelectionRect] = useState<DOMRectReadOnly | null>(null);
   
-  const [noteViewPopover, setNoteViewPopover] = useState<{ note: UserNote | null; position: { top: number; left: number; } | null, isOpen: boolean }>({ note: null, position: null, isOpen: false });
-
-  const contentRef = useRef<HTMLDivElement>(null);
+  const chapterContentRef = useRef<HTMLDivElement>(null); // Ref for the CardContent holding chapter text
   const currentChapter = chapters[currentChapterIndex];
 
   useEffect(() => {
-    // Reset states when chapter changes
     setCharacterMap(null);
     setModernRelevance(null);
     setWordAnalysis(null);
@@ -94,42 +89,43 @@ export default function ReadPage() {
     setUserQuestionInput('');
     setAiInteractionState('asking');
     setShowNoteSheet(false);
-    setNoteViewPopover({ note: null, position: null, isOpen: false });
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
-    if (contentRef.current && contentRef.current.contains(event.target as Node)) {
+    // Check if the click is on a note highlight; if so, do nothing here.
+    if ((event.target as HTMLElement)?.closest('[data-note-highlight="true"]')) {
+        return;
+    }
+    
+    if (chapterContentRef.current && chapterContentRef.current.contains(event.target as Node)) {
       const selection = window.getSelection();
       const text = selection?.toString().trim() || '';
       if (text && text.length > 1) {
         const range = selection!.getRangeAt(0);
         const rect = range.getBoundingClientRect();
-        const contentAreaRect = contentRef.current?.getBoundingClientRect();
+        
+        let top = rect.bottom + (chapterContentRef.current?.scrollTop || 0) + 5;
+        let left = rect.left + rect.width / 2 + (chapterContentRef.current?.scrollLeft || 0);
 
-        let top = rect.bottom + (contentRef.current?.scrollTop || 0) + 5;
-        let left = rect.left + rect.width / 2 + (contentRef.current?.scrollLeft || 0);
-
-        if (contentAreaRect) {
-            top = rect.bottom - contentAreaRect.top + (contentRef.current?.scrollTop || 0) + 5;
-            left = rect.left - contentAreaRect.left + (contentRef.current?.scrollLeft || 0) + rect.width / 2;
+        const chapterContentRect = chapterContentRef.current?.getBoundingClientRect();
+        if (chapterContentRect) {
+            top = rect.bottom - chapterContentRect.top + (chapterContentRef.current?.scrollTop || 0) + 5;
+            left = rect.left - chapterContentRect.left + (chapterContentRef.current?.scrollLeft || 0) + rect.width / 2;
         }
         
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAIPopoverOpen(false); // Close AI popover if open
-        setNoteViewPopover(prev => ({ ...prev, isOpen: false })); // Close note view popover
+        setIsAIPopoverOpen(false); 
       } else {
-        // If no text is selected, or if clicking outside a popover while it's open, clear selection
-        if (!isAIPopoverOpen && !showNoteSheet && !noteViewPopover.isOpen) {
+        if (!isAIPopoverOpen && !showNoteSheet) {
            setSelectedTextInfo(null);
         }
       }
     } else {
-       // Clicked outside content area, clear selection if no popovers are open
-       if (!isAIPopoverOpen && !showNoteSheet && !noteViewPopover.isOpen) {
+       if (!isAIPopoverOpen && !showNoteSheet) {
           setSelectedTextInfo(null);
        }
     }
-  }, [isAIPopoverOpen, showNoteSheet, noteViewPopover.isOpen]);
+  }, [isAIPopoverOpen, showNoteSheet]);
   
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
@@ -169,7 +165,6 @@ export default function ReadPage() {
     setIsLoadingAi(false);
   };
   
-  // AI Explanation Popover Logic
   const handleOpenAIPopover = () => {
     if (selectedTextInfo?.text) {
       setTextExplanation(null);
@@ -201,7 +196,6 @@ export default function ReadPage() {
     setIsLoadingExplanation(false);
   };
 
-  // Note Taking Logic
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text && selectedTextInfo.range) {
       setCurrentNoteTargetText(selectedTextInfo.text);
@@ -210,7 +204,8 @@ export default function ReadPage() {
       setCurrentNoteIsPublic(existingNote ? existingNote.isPublic : true);
       setCurrentNoteSelectionRect(selectedTextInfo.range.getBoundingClientRect());
       setShowNoteSheet(true);
-      setSelectedTextInfo(null); // Clear selection buttons after opening sheet
+      setSelectedTextInfo(null); 
+      setIsAIPopoverOpen(false);
     }
   };
 
@@ -227,7 +222,14 @@ export default function ReadPage() {
       isPublic: currentNoteIsPublic,
       rangeRect: currentNoteSelectionRect,
     };
-    setNotes(prevNotes => [...prevNotes, newNote]);
+    setNotes(prevNotes => {
+      // Remove existing note for the same targetText and chapterId if it exists to avoid duplicates
+      const filteredNotes = prevNotes.filter(
+        note => !(note.targetText === newNote.targetText && note.chapterId === newNote.chapterId)
+      );
+      return [...filteredNotes, newNote];
+    });
+
     if (currentNoteIsPublic) {
       console.log("筆記已設為公開，模擬發佈到紅學社:", newNote);
     }
@@ -236,23 +238,6 @@ export default function ReadPage() {
     setCurrentNoteContent('');
     setCurrentNoteSelectionRect(null);
   };
-
-  const getNotesForSelection = (text: string) => {
-    return notes.filter(note => note.targetText === text && note.chapterId === currentChapter.id);
-  };
-  
-  const existingNotesForSelection = selectedTextInfo?.text ? getNotesForSelection(selectedTextInfo.text) : [];
-
-  const handleOpenNoteViewPopover = (note: UserNote) => {
-    if (selectedTextInfo?.position) {
-        setNoteViewPopover({ 
-            note, 
-            position: { top: selectedTextInfo.position.top - 60, left: selectedTextInfo.position.left}, // Adjust position as needed
-            isOpen: true 
-        });
-    }
-  };
-
 
   const goToNextChapter = () => {
     setCurrentChapterIndex((prev) => Math.min(prev + 1, chapters.length - 1));
@@ -290,129 +275,138 @@ export default function ReadPage() {
             </Accordion>
           </CardHeader>
           <ScrollArea className="flex-grow p-1 relative" id="chapter-content-scroll-area">
-            <div ref={contentRef}>
-              <CardContent 
-                className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-foreground/90" 
-                style={{ fontFamily: "'Noto Serif SC', serif" }}
-              >
-                {currentChapter.content}
-              </CardContent>
+            <CardContent 
+              ref={chapterContentRef}
+              className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-foreground/90 relative" // Added position:relative
+              style={{ fontFamily: "'Noto Serif SC', serif" }}
+            >
+              {currentChapter.content}
 
-              {/* Buttons and Popovers for selected text */}
-              {selectedTextInfo?.text && selectedTextInfo.position && (
-                <div 
-                    className="absolute flex flex-col items-center" 
-                    style={{ 
-                        top: `${selectedTextInfo.position.top}px`, 
-                        left: `${selectedTextInfo.position.left}px`, 
-                        transform: 'translateX(-50%)',
-                        zIndex: 10, // Ensure buttons are on top
-                    }}
-                  >
-                    {/* Existing Notes Preview/Button */}
-                    {existingNotesForSelection.length > 0 && (
-                         <Popover open={noteViewPopover.isOpen && noteViewPopover.note === existingNotesForSelection[0]} onOpenChange={(isOpen) => setNoteViewPopover(prev => ({...prev, isOpen: isOpen && prev.note === existingNotesForSelection[0] }))}>
-                            <PopoverTrigger asChild>
-                                 <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="mb-1 bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 text-xs px-2 py-1 h-auto"
-                                    onClick={() => handleOpenNoteViewPopover(existingNotesForSelection[0])}
-                                >
-                                   <Eye className="h-3 w-3 mr-1"/> 查看筆記 ({existingNotesForSelection.length})
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent 
-                                className="w-80 bg-card text-card-foreground shadow-xl border-border"
-                                side="top" 
-                                align="center"
-                            >
-                                <ScrollArea className="max-h-48">
-                                <div className="p-2 space-y-1">
-                                    <h4 className="font-semibold text-sm text-primary">關聯筆記：</h4>
-                                    {existingNotesForSelection.map(note => (
-                                        <div key={note.id} className="text-xs border-b border-border/50 pb-1 mb-1">
-                                            <p className="whitespace-pre-line">{note.content.substring(0,100)}{note.content.length > 100 ? "..." : ""}</p>
-                                            <p className="text-muted-foreground text-[10px]">{note.isPublic ? "公開" : "私人"}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                                </ScrollArea>
-                            </PopoverContent>
-                        </Popover>
-                    )}
-                  
-                    {/* Action Buttons: Take Note and Ask AI */}
-                    <div className="flex gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="bg-amber-400/80 text-amber-900 hover:bg-amber-400 shadow-lg flex items-center"
-                            onClick={handleOpenNoteSheet}
-                            >
-                            <FilePenLine className="h-4 w-4 mr-1" /> 記筆記
-                        </Button>
-                        <Popover open={isAIPopoverOpen} onOpenChange={setIsAIPopoverOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                variant="outline"
-                                size="sm"
-                                className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
-                                onClick={handleOpenAIPopover}
-                                >
-                                <MessageSquare className="h-4 w-4 mr-1" /> 問AI
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent 
-                                className="w-96 bg-card text-card-foreground shadow-xl border-border"
-                                side="top" 
-                                align="center"
-                                onOpenAutoFocus={(e) => e.preventDefault()} 
-                            >
-                                <div className="space-y-3 p-2">
-                                {aiInteractionState === 'asking' && (
-                                    <>
-                                    <p className="text-sm text-muted-foreground">
-                                        您選取的文字： "<strong className="text-primary">{selectedTextInfo.text.length > 50 ? selectedTextInfo.text.substring(0, 50) + '...' : selectedTextInfo.text}</strong>"
-                                    </p>
-                                    <Label htmlFor="userQuestion" className="text-base font-semibold">您的問題：</Label>
-                                    <Textarea 
-                                        id="userQuestion"
-                                        value={userQuestionInput}
-                                        onChange={(e) => setUserQuestionInput(e.target.value)}
-                                        placeholder="請輸入您想問的問題..."
-                                        className="min-h-[80px] text-sm bg-background/70"
-                                        rows={3}
-                                    />
-                                    <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full">
-                                        {isLoadingExplanation ? "傳送中..." : "送出問題"}
-                                    </Button>
-                                    </>
-                                )}
-                                {(aiInteractionState === 'answering') && (
-                                    <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
-                                )}
-                                {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
-                                    <div>
-                                    <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
-                                    <ScrollArea className="h-auto max-h-60 p-1 border rounded-md bg-muted/10">
-                                        <div className="text-sm p-2 whitespace-pre-line text-foreground/80">{textExplanation}</div>
-                                    </ScrollArea>
-                                    <Button variant="ghost" onClick={() => setAiInteractionState('asking')} className="mt-2 text-sm">
-                                        返回提問
-                                    </Button>
-                                    </div>
-                                )}
-                                {(aiInteractionState === 'answered' || aiInteractionState === 'error') && !textExplanation && (
-                                    <div className="p-4 text-center text-muted-foreground">發生錯誤或沒有回答。</div>
-                                )}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                </div>
-              )}
-            </div>
+              {/* Render Note Highlights */}
+              {notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect && chapterContentRef.current).map(note => {
+                const containerRect = chapterContentRef.current!.getBoundingClientRect();
+                if (!note.rangeRect) return null;
+
+                const style: React.CSSProperties = {
+                  position: 'absolute',
+                  left: `${note.rangeRect.left - containerRect.left}px`,
+                  top: `${note.rangeRect.top - containerRect.top}px`,
+                  width: `${note.rangeRect.width}px`,
+                  height: `${note.rangeRect.height}px`,
+                  borderBottom: '1.5px dashed hsl(var(--primary)/0.7)',
+                  cursor: 'pointer',
+                  pointerEvents: 'all', 
+                  zIndex: 1, // Ensure highlights are clickable but below popovers
+                };
+
+                return (
+                  <Popover key={`highlight-${note.id}`}>
+                    <PopoverTrigger asChild>
+                      <div
+                        data-note-highlight="true" // Custom attribute to identify highlight
+                        title={`筆記: ${note.targetText.substring(0,20)}...`}
+                        style={style}
+                        onClick={(e) => {
+                          setSelectedTextInfo(null);
+                          setIsAIPopoverOpen(false);
+                          // Popover opens via PopoverTrigger
+                        }}
+                      />
+                    </PopoverTrigger>
+                    <PopoverContent side="top" align="center" className="w-80 z-20" onOpenAutoFocus={e => e.preventDefault()}>
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-primary mb-1 truncate">
+                          關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
+                        </h4>
+                        <ScrollArea className="max-h-40">
+                          <p className="text-sm whitespace-pre-line text-foreground/80">{note.content}</p>
+                        </ScrollArea>
+                        <p className="text-xs text-muted-foreground mt-1">{note.isPublic ? "公開筆記" : "私人筆記"}</p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                );
+              })}
+            </CardContent>
+
+            {/* Buttons for selected text */}
+            {selectedTextInfo?.text && selectedTextInfo.position && (
+              <div 
+                  className="absolute flex gap-2" 
+                  style={{ 
+                      top: `${selectedTextInfo.position.top}px`, 
+                      left: `${selectedTextInfo.position.left}px`, 
+                      transform: 'translateX(-50%)',
+                      zIndex: 10, 
+                  }}
+                >
+                  <Button
+                      variant="default" // Changed from outline
+                      size="sm"
+                      className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
+                      onClick={handleOpenNoteSheet}
+                      >
+                      <FilePenLine className="h-4 w-4 mr-1" /> 記筆記
+                  </Button>
+                  <Popover open={isAIPopoverOpen} onOpenChange={setIsAIPopoverOpen}>
+                      <PopoverTrigger asChild>
+                          <Button
+                          variant="default" // Using default for a solid look
+                          size="sm"
+                          className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
+                          onClick={handleOpenAIPopover}
+                          >
+                          <MessageSquare className="h-4 w-4 mr-1" /> 問AI
+                          </Button>
+                      </PopoverTrigger>
+                      <PopoverContent 
+                          className="w-96 bg-card text-card-foreground shadow-xl border-border z-20"
+                          side="top" 
+                          align="center"
+                          onOpenAutoFocus={(e) => e.preventDefault()} 
+                      >
+                          <div className="space-y-3 p-2">
+                          {aiInteractionState === 'asking' && (
+                              <>
+                              <p className="text-sm text-muted-foreground">
+                                  您選取的文字： "<strong className="text-primary">{selectedTextInfo.text.length > 50 ? selectedTextInfo.text.substring(0, 50) + '...' : selectedTextInfo.text}</strong>"
+                              </p>
+                              <Label htmlFor="userQuestion" className="text-base font-semibold">您的問題：</Label>
+                              <Textarea 
+                                  id="userQuestion"
+                                  value={userQuestionInput}
+                                  onChange={(e) => setUserQuestionInput(e.target.value)}
+                                  placeholder="請輸入您想問的問題..."
+                                  className="min-h-[80px] text-sm bg-background/70"
+                                  rows={3}
+                              />
+                              <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full">
+                                  {isLoadingExplanation ? "傳送中..." : "送出問題"}
+                              </Button>
+                              </>
+                          )}
+                          {(aiInteractionState === 'answering') && (
+                              <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
+                          )}
+                          {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
+                              <div>
+                              <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
+                              <ScrollArea className="h-auto max-h-60 p-1 border rounded-md bg-muted/10">
+                                  <div className="text-sm p-2 whitespace-pre-line text-foreground/80">{textExplanation}</div>
+                              </ScrollArea>
+                              <Button variant="ghost" onClick={() => setAiInteractionState('asking')} className="mt-2 text-sm">
+                                  返回提問
+                              </Button>
+                              </div>
+                          )}
+                          {(aiInteractionState === 'answered' || aiInteractionState === 'error') && !textExplanation && (
+                              <div className="p-4 text-center text-muted-foreground">發生錯誤或沒有回答。</div>
+                          )}
+                          </div>
+                      </PopoverContent>
+                  </Popover>
+              </div>
+            )}
           </ScrollArea>
         </Card>
       </div>
@@ -541,5 +535,4 @@ export default function ReadPage() {
     </div>
   );
 }
-
     
