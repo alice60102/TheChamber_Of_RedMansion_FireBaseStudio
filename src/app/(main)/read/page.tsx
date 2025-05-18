@@ -76,6 +76,8 @@ export default function ReadPage() {
   const [currentNoteIsPublic, setCurrentNoteIsPublic] = useState(true);
   const [currentNoteSelectionRect, setCurrentNoteSelectionRect] = useState<{ top: number; left: number; width: number; height: number; } | null>(null);
   
+  const [activeNotePopover, setActiveNotePopover] = useState<string | null>(null); // ID of the note whose popover is open
+
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const currentChapter = chapters[currentChapterIndex];
 
@@ -88,6 +90,7 @@ export default function ReadPage() {
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
+    setActiveNotePopover(null);
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
@@ -115,17 +118,18 @@ export default function ReadPage() {
         
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
         setIsAIPopoverOpen(false); 
+        setActiveNotePopover(null);
       } else {
-        if (!isAIPopoverOpen && !showNoteSheet) {
+        if (!isAIPopoverOpen && !showNoteSheet && !activeNotePopover) {
            setSelectedTextInfo(null);
         }
       }
     } else {
-       if (!isAIPopoverOpen && !showNoteSheet) {
+       if (!isAIPopoverOpen && !showNoteSheet && !activeNotePopover) {
           setSelectedTextInfo(null);
        }
     }
-  }, [isAIPopoverOpen, showNoteSheet]);
+  }, [isAIPopoverOpen, showNoteSheet, activeNotePopover]);
   
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
@@ -171,6 +175,7 @@ export default function ReadPage() {
       setUserQuestionInput('');
       setAiInteractionState('asking');
       setIsAIPopoverOpen(true);
+      setActiveNotePopover(null); // Close note popover if open
     }
   };
 
@@ -205,10 +210,13 @@ export default function ReadPage() {
   
       const selectionRect = selectedTextInfo.range.getBoundingClientRect();
       const containerRect = chapterContentRef.current.getBoundingClientRect();
-  
+      const computedStyle = getComputedStyle(chapterContentRef.current);
+      const containerPaddingLeft = parseFloat(computedStyle.paddingLeft);
+      const containerPaddingTop = parseFloat(computedStyle.paddingTop);
+      
       setCurrentNoteSelectionRect({
-        top: selectionRect.top - containerRect.top + chapterContentRef.current.scrollTop,
-        left: selectionRect.left - containerRect.left + chapterContentRef.current.scrollLeft,
+        top: selectionRect.top - containerRect.top - containerPaddingTop + chapterContentRef.current.scrollTop,
+        left: selectionRect.left - containerRect.left - containerPaddingLeft + chapterContentRef.current.scrollLeft,
         width: selectionRect.width,
         height: selectionRect.height,
       });
@@ -216,6 +224,7 @@ export default function ReadPage() {
       setShowNoteSheet(true);
       setSelectedTextInfo(null); 
       setIsAIPopoverOpen(false);
+      setActiveNotePopover(null);
     }
   };
 
@@ -247,6 +256,13 @@ export default function ReadPage() {
     setCurrentNoteTargetText('');
     setCurrentNoteContent('');
     setCurrentNoteSelectionRect(null);
+  };
+
+  const handleNoteHighlightClick = (noteId: string, event: ReactMouseEvent<HTMLDivElement>) => {
+    event.stopPropagation(); // Prevent mouseup from clearing selection
+    setSelectedTextInfo(null); // Clear any active text selection tools
+    setIsAIPopoverOpen(false); // Close AI popover
+    setActiveNotePopover(noteId === activeNotePopover ? null : noteId); // Toggle popover for this note
   };
 
   const goToNextChapter = () => {
@@ -295,7 +311,6 @@ export default function ReadPage() {
               {chapterContentRef.current && notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect).map(note => {
                 if (!note.rangeRect || !chapterContentRef.current) return null;
                 
-                // Adjust for current scroll position of the chapter content area
                 const currentScrollTop = chapterContentRef.current.scrollTop;
                 const currentScrollLeft = chapterContentRef.current.scrollLeft;
 
@@ -312,20 +327,28 @@ export default function ReadPage() {
                 };
 
                 return (
-                  <Popover key={`highlight-${note.id}`}>
+                  <Popover 
+                    key={`highlight-popover-${note.id}`} 
+                    open={activeNotePopover === note.id} 
+                    onOpenChange={(isOpen) => {
+                      if (!isOpen) setActiveNotePopover(null);
+                    }}
+                  >
                     <PopoverTrigger asChild>
                       <div
                         data-note-highlight="true"
                         title={`筆記: ${note.targetText.substring(0,20)}...`}
                         style={style}
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          setSelectedTextInfo(null);
-                          setIsAIPopoverOpen(false);
-                        }}
+                        onClick={(e) => handleNoteHighlightClick(note.id, e)}
                       />
                     </PopoverTrigger>
-                    <PopoverContent side="top" align="center" className="w-80 z-20 bg-card text-card-foreground shadow-xl border-border" onOpenAutoFocus={e => e.preventDefault()}>
+                    <PopoverContent 
+                      side="top" 
+                      align="center" 
+                      className="w-80 z-20 bg-card text-card-foreground shadow-xl border-border" 
+                      onOpenAutoFocus={e => e.preventDefault()}
+                      onCloseAutoFocus={e => e.preventDefault()} // Prevent refocusing issues
+                    >
                       <div className="space-y-2 p-2">
                         <h4 className="font-semibold text-primary mb-1 truncate">
                           關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
@@ -333,7 +356,12 @@ export default function ReadPage() {
                         <ScrollArea className="max-h-40">
                           <p className="text-sm whitespace-pre-line text-foreground/80">{note.content}</p>
                         </ScrollArea>
-                        <p className="text-xs text-muted-foreground mt-1">{note.isPublic ? "公開筆記" : "私人筆記"}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {note.isPublic ? 
+                            <span className="flex items-center gap-1"><Globe className="h-3 w-3 text-green-500" />公開筆記</span> : 
+                            <span className="flex items-center gap-1"><Lock className="h-3 w-3 text-red-500" />私人筆記</span>
+                          }
+                        </p>
                       </div>
                     </PopoverContent>
                   </Popover>
