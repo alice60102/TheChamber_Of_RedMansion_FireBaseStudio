@@ -127,7 +127,7 @@ export default function ResearchPage() {
               <h3 className="text-lg font-semibold text-foreground">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
               {researchFramework ? (
                 <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20">
-                  <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
+                  <div className="prose prose-sm sm:prose-base dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
                     <h4 className="font-semibold text-primary">研究框架:</h4>
                     <ReactMarkdown>{researchFramework.researchFramework}</ReactMarkdown>
                     

@@ -292,8 +292,8 @@ export default function ReadPage() {
                 <AccordionTrigger className="text-sm text-muted-foreground hover:text-primary/90 data-[state=open]:text-primary py-2 px-1">
                   <BookText className="h-4 w-4 mr-2" /> 本回提要概述
                 </AccordionTrigger>
-                <AccordionContent className="text-sm text-foreground/80 p-3 bg-muted/20 rounded-md border border-border/50">
-                  <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line">
+                <AccordionContent className="text-sm p-3 bg-muted/20 rounded-md border border-border/50">
+                  <div className="prose prose-sm sm:prose-base dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                     <ReactMarkdown>{currentChapter.summary}</ReactMarkdown>
                   </div>
                 </AccordionContent>
@@ -303,7 +303,7 @@ export default function ReadPage() {
           <ScrollArea className="flex-grow p-1 relative" id="chapter-content-scroll-area">
             <CardContent 
               ref={chapterContentRef}
-              className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-foreground/90 relative"
+              className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-white relative"
               style={{ fontFamily: "'Noto Serif SC', serif", position: 'relative' }}
             >
               {currentChapter.content}
@@ -350,7 +350,7 @@ export default function ReadPage() {
                       onCloseAutoFocus={e => e.preventDefault()} 
                     >
                       <ScrollArea className="max-h-60">
-                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert max-w-none text-foreground/80">
+                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
                           <h4 className="font-semibold text-primary mb-1 truncate">
                             關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
                           </h4>
@@ -433,7 +433,7 @@ export default function ReadPage() {
                             <div>
                               <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
                               <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
-                                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line p-2 text-foreground/80">
+                                <div className="prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line p-2 text-white">
                                   <ReactMarkdown>{textExplanation}</ReactMarkdown>
                                 </div>
                               </ScrollArea>
@@ -477,7 +477,7 @@ export default function ReadPage() {
                       {characterMap && (
                         <div>
                           <h4 className="font-semibold text-primary mb-1">人物關係：</h4>
-                          <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                          <div className="prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                             <ReactMarkdown>{characterMap}</ReactMarkdown>
                           </div>
                         </div>
@@ -485,7 +485,7 @@ export default function ReadPage() {
                       {wordAnalysis && (
                         <div className="mt-3">
                            <h4 className="font-semibold text-primary mb-1">詞義解析：</h4>
-                           <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                           <div className="prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                             <ReactMarkdown>{wordAnalysis}</ReactMarkdown>
                           </div>
                         </div>
@@ -514,7 +514,7 @@ export default function ReadPage() {
                   </Button>
                   {modernRelevance && !isLoadingAi ? (
                     <ScrollArea className="h-64 p-2 border rounded-md bg-muted/10">
-                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                      <div className="prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                         <ReactMarkdown>{modernRelevance}</ReactMarkdown>
                       </div>
                     </ScrollArea>

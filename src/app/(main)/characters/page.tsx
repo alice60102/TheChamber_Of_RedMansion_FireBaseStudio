@@ -22,19 +22,19 @@ const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }
     <ScrollArea className="h-96 p-4 border rounded-md bg-muted/10 text-sm space-y-4">
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BookOpen className="h-4 w-4" />文本掌握分析描述:</h3>
-        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
+        <div className="prose prose-sm sm:prose-base dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
           <ReactMarkdown>{data.cognitiveHeatmap}</ReactMarkdown>
         </div>
       </div>
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4" />理解偏差分析:</h3>
-        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
+        <div className="prose prose-sm sm:prose-base dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
           <ReactMarkdown>{data.comprehensionDeviations}</ReactMarkdown>
         </div>
       </div>
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><Lightbulb className="h-4 w-4" />學習建議:</h3>
-        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
+        <div className="prose prose-sm sm:prose-base dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
           <ReactMarkdown>{data.recommendations}</ReactMarkdown>
         </div>
       </div>

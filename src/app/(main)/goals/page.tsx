@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -144,7 +145,7 @@ export default function GoalsPage() {
       {goals.map(goal => (
         <Card key={goal.id} className={`p-3 shadow-sm ${goal.isAchieved ? 'bg-green-500/10 border-green-500/50' : 'bg-card/80'}`}>
           <div className="flex justify-between items-center">
-            <div className={`flex-grow text-sm prose prose-sm dark:prose-invert max-w-none whitespace-pre-line ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>
+            <div className={`flex-grow text-sm prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-white'}`}>
               <ReactMarkdown>{goal.text}</ReactMarkdown>
             </div>
             <div className="flex items-center gap-1 shrink-0 ml-2">
@@ -294,9 +295,9 @@ export default function GoalsPage() {
                       <AccordionContent className="bg-card/50 p-0">
                         <ul className="list-none p-3 space-y-1.5">
                           {(goalsArray as string[]).map((goal, index) => (
-                            <li key={index} className="text-xs text-foreground/80 flex items-start">
+                            <li key={index} className="text-xs text-white flex items-start">
                                <Lightbulb className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-accent/70 shrink-0" />
-                               <div className="prose prose-xs dark:prose-invert max-w-none whitespace-pre-line">
+                               <div className="prose prose-xs dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                                 <ReactMarkdown>{goal}</ReactMarkdown>
                                </div>
                             </li>
@@ -330,7 +331,7 @@ export default function GoalsPage() {
               {isLoadingAiCompanion ? "發送中..." : "提問AI學伴"}
             </Button>
             {aiCompanionResponse && (
-              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm whitespace-pre-line prose prose-sm dark:prose-invert max-w-none text-foreground/80">
+              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm whitespace-pre-line prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
                 <strong>AI學伴回覆：</strong> 
                 <ReactMarkdown>{aiCompanionResponse}</ReactMarkdown>
               </div>
@@ -380,7 +381,7 @@ export default function GoalsPage() {
                 </ResponsiveContainer>
               </div>
               {learningAnalysis?.cognitiveHeatmap && 
-                <div className="text-xs mt-2 text-foreground/80 p-2 bg-muted/20 rounded border border-border/30 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line">
+                <div className="text-xs mt-2 p-2 bg-muted/20 rounded border border-border/30 prose prose-xs dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                   <ReactMarkdown>{learningAnalysis.cognitiveHeatmap}</ReactMarkdown>
                 </div>
               }
@@ -417,16 +418,16 @@ export default function GoalsPage() {
               <ScrollArea className="h-40 text-sm space-y-2 pr-2">
                 {learningAnalysis.comprehensionDeviations && (
                   <div>
-                    <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
-                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none text-foreground/80">
+                    <h5 className="font-semibold text-white flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
+                    <div className="pl-5 prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
                       <ReactMarkdown>{learningAnalysis.comprehensionDeviations}</ReactMarkdown>
                     </div>
                   </div>
                 )}
                 {learningAnalysis.recommendations && (
                   <div className="mt-2">
-                    <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
-                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none text-foreground/80">
+                    <h5 className="font-semibold text-white flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
+                    <div className="pl-5 prose prose-sm dark:prose-invert prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
                       <ReactMarkdown>{learningAnalysis.recommendations}</ReactMarkdown>
                     </div>
                   </div>
