@@ -134,7 +134,7 @@ export default function GoalsPage() {
     setAiCompanionResponse(`AI正在思考關於「${aiCompanionQuery}」的回答... (此功能待實現更複雜的AI對話流程)`);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500)); 
-    // Placeholder response. Replace with actual AI call if `explainTextSelection` or a similar flow is suitable.
+    // Placeholder response. Replace with actual AI call if \`explainTextSelection\` or a similar flow is suitable.
     // For now, using a generic response.
     setAiCompanionResponse(`針對「${aiCompanionQuery}」：AI建議您參考相關章節的研讀筆記，並嘗試將此問題與您設定的學習目標關聯起來。例如，如果您的目標是理解主要人物性格，可以思考這個問題如何幫助您深化對某人物的認識。(此為佔位回應，實際AI互動功能需進一步實現)`);
     setIsLoadingAiCompanion(false);
@@ -295,9 +295,8 @@ export default function GoalsPage() {
                       <AccordionContent className="bg-card/50 p-0">
                         <ul className="list-none p-3 space-y-1.5">
                           {(goalsArray as string[]).map((goal, index) => (
-                            <li key={index} className="text-xs text-white flex items-start">
-                               <Lightbulb className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-accent/70 shrink-0" />
-                               <div className="prose prose-xs dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+                            <li key={index} className="text-xs text-white">
+                               <div className="prose prose-xs dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:list-none prose-ol:list-none prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                                 <ReactMarkdown>{goal}</ReactMarkdown>
                                </div>
                             </li>
