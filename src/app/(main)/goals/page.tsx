@@ -26,8 +26,8 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 60, timeSpent: 75 }, 
-  { chapter: "第2回", comprehension: 80, timeSpent: 60 },
+  { chapter: "第1回", comprehension: 80, timeSpent: 60 }, 
+  { chapter: "第2回", comprehension: 60, timeSpent: 75 },
   { chapter: "第3回", comprehension: 70, timeSpent: 55 },
   { chapter: "第4回", comprehension: 75, timeSpent: 40 },
   { chapter: "第5回", comprehension: 85, timeSpent: 80 },
@@ -444,23 +444,25 @@ export default function GoalsPage() {
               </div>
               <Card className="mt-4 bg-card/50 p-4" style={{border: '1px solid hsl(var(--border))'}}>
                 <CardTitle className="text-lg font-artistic text-primary mb-2">AI 個性化學習建議</CardTitle>
-                <ScrollArea className="h-40 text-sm space-y-2 pr-2">
-                  {learningAnalysis.comprehensionDeviations && (
-                    <div>
-                      <h5 className="font-semibold text-white flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
-                      <div className="pl-5 text-sm whitespace-pre-line text-white">
-                        {learningAnalysis.comprehensionDeviations}
+                <ScrollArea className="h-40 pr-2">
+                  <div className="text-sm space-y-2"> 
+                    {learningAnalysis.comprehensionDeviations && (
+                      <div>
+                        <h5 className="font-semibold text-white flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
+                        <div className="pl-5 text-sm whitespace-pre-line text-white">
+                          {learningAnalysis.comprehensionDeviations}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {learningAnalysis.recommendations && (
-                    <div className="mt-2">
-                      <h5 className="font-semibold text-white flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
-                      <div className="pl-5 text-sm whitespace-pre-line text-white">
-                        {learningAnalysis.recommendations}
+                    )}
+                    {learningAnalysis.recommendations && (
+                      <div className="mt-2">
+                        <h5 className="font-semibold text-white flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
+                        <div className="pl-5 text-sm whitespace-pre-line text-white">
+                          {learningAnalysis.recommendations}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </ScrollArea>
                 <p className="text-xs text-muted-foreground mt-3 text-center">(此處未來可融入學習倦怠預警、適應性路徑調整等更多AI分析結果)</p>
               </Card>
