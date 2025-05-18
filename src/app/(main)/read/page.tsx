@@ -46,7 +46,8 @@ interface UserNote {
   targetText: string; 
   content: string;
   isPublic: boolean;
-  rangeRect: DOMRectReadOnly | null; 
+  // Store rect relative to the scrollable content's origin
+  rangeRect: { top: number; left: number; width: number; height: number; } | null; 
 }
 
 interface SelectedTextInfo {
@@ -74,7 +75,8 @@ export default function ReadPage() {
   const [currentNoteTargetText, setCurrentNoteTargetText] = useState<string>('');
   const [currentNoteContent, setCurrentNoteContent] = useState('');
   const [currentNoteIsPublic, setCurrentNoteIsPublic] = useState(true);
-  const [currentNoteSelectionRect, setCurrentNoteSelectionRect] = useState<DOMRectReadOnly | null>(null);
+  // Stores the viewport-relative DOMRect of the selection when the note sheet is opened
+  const [currentNoteSelectionViewportRect, setCurrentNoteSelectionViewportRect] = useState<DOMRectReadOnly | null>(null); 
   
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const currentChapter = chapters[currentChapterIndex];
@@ -88,16 +90,16 @@ export default function ReadPage() {
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
-    // Don't reset showNoteSheet here, as it might be open for a reason
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
-    if ((event.target as HTMLElement)?.closest('[data-selection-action-button="true"]') || 
-        (event.target as HTMLElement)?.closest('[data-note-highlight="true"]')) {
+    const targetElement = event.target as HTMLElement;
+    if (targetElement?.closest('[data-selection-action-button="true"]') || 
+        targetElement?.closest('[data-note-highlight="true"]')) {
       return;
     }
     
-    if (chapterContentRef.current && chapterContentRef.current.contains(event.target as Node)) {
+    if (chapterContentRef.current && chapterContentRef.current.contains(targetElement)) {
       const selection = window.getSelection();
       const text = selection?.toString().trim() || '';
       if (text && text.length > 1) {
@@ -202,7 +204,7 @@ export default function ReadPage() {
       const existingNote = notes.find(n => n.targetText === selectedTextInfo.text && n.chapterId === currentChapter.id);
       setCurrentNoteContent(existingNote ? existingNote.content : '');
       setCurrentNoteIsPublic(existingNote ? existingNote.isPublic : true);
-      setCurrentNoteSelectionRect(selectedTextInfo.range.getBoundingClientRect());
+      setCurrentNoteSelectionViewportRect(selectedTextInfo.range.getBoundingClientRect()); // Store viewport-relative rect
       setShowNoteSheet(true);
       setSelectedTextInfo(null); 
       setIsAIPopoverOpen(false);
@@ -210,17 +212,29 @@ export default function ReadPage() {
   };
 
   const handleSaveNote = () => {
-    if (!currentNoteTargetText.trim() || !currentNoteContent.trim()) {
-        alert("筆記內容不能為空！");
+    if (!currentNoteTargetText.trim() || !currentNoteContent.trim() || !chapterContentRef.current || !currentNoteSelectionViewportRect) {
+        alert("筆記內容不能為空或選區信息丟失！");
         return;
     }
+
+    const containerViewportRect = chapterContentRef.current.getBoundingClientRect();
+    const scrollTopAtCapture = chapterContentRef.current.scrollTop;
+    const scrollLeftAtCapture = chapterContentRef.current.scrollLeft;
+
+    const rectForStorageInNote = {
+        top: currentNoteSelectionViewportRect.top - containerViewportRect.top + scrollTopAtCapture,
+        left: currentNoteSelectionViewportRect.left - containerViewportRect.left + scrollLeftAtCapture,
+        width: currentNoteSelectionViewportRect.width,
+        height: currentNoteSelectionViewportRect.height,
+    };
+
     const newNote: UserNote = {
       id: Date.now().toString(),
       chapterId: currentChapter.id,
       targetText: currentNoteTargetText,
       content: currentNoteContent,
       isPublic: currentNoteIsPublic,
-      rangeRect: currentNoteSelectionRect,
+      rangeRect: rectForStorageInNote,
     };
     setNotes(prevNotes => {
       const filteredNotes = prevNotes.filter(
@@ -235,7 +249,7 @@ export default function ReadPage() {
     setShowNoteSheet(false);
     setCurrentNoteTargetText('');
     setCurrentNoteContent('');
-    setCurrentNoteSelectionRect(null);
+    setCurrentNoteSelectionViewportRect(null);
   };
 
   const goToNextChapter = () => {
@@ -281,14 +295,15 @@ export default function ReadPage() {
             >
               {currentChapter.content}
 
-              {notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect && chapterContentRef.current).map(note => {
-                const containerRect = chapterContentRef.current!.getBoundingClientRect();
+              {chapterContentRef.current && notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect).map(note => {
                 if (!note.rangeRect) return null;
+                const currentScrollTop = chapterContentRef.current!.scrollTop;
+                const currentScrollLeft = chapterContentRef.current!.scrollLeft;
 
                 const style: React.CSSProperties = {
                   position: 'absolute',
-                  left: `${note.rangeRect.left - containerRect.left + chapterContentRef.current!.scrollLeft}px`,
-                  top: `${note.rangeRect.top - containerRect.top + chapterContentRef.current!.scrollTop}px`,
+                  left: `${note.rangeRect.left - currentScrollLeft}px`,
+                  top: `${note.rangeRect.top - currentScrollTop}px`,
                   width: `${note.rangeRect.width}px`,
                   height: `${note.rangeRect.height}px`,
                   borderBottom: '1.5px dashed hsl(var(--primary)/0.7)',
@@ -305,13 +320,15 @@ export default function ReadPage() {
                         title={`筆記: ${note.targetText.substring(0,20)}...`}
                         style={style}
                         onClick={(e) => {
+                          // Prevent re-triggering text selection logic when clicking a highlight
+                          e.stopPropagation(); 
                           setSelectedTextInfo(null);
                           setIsAIPopoverOpen(false);
                         }}
                       />
                     </PopoverTrigger>
-                    <PopoverContent side="top" align="center" className="w-80 z-20" onOpenAutoFocus={e => e.preventDefault()}>
-                      <div className="space-y-2">
+                    <PopoverContent side="top" align="center" className="w-80 z-20 bg-card text-card-foreground shadow-xl border-border" onOpenAutoFocus={e => e.preventDefault()}>
+                      <div className="space-y-2 p-2">
                         <h4 className="font-semibold text-primary mb-1 truncate">
                           關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
                         </h4>
@@ -337,7 +354,7 @@ export default function ReadPage() {
                   }}
                 >
                   <Button
-                      variant="default"
+                      variant="default" // Changed from "outline" for solid background
                       size="sm"
                       className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
                       onClick={handleOpenNoteSheet}
