@@ -21,10 +21,10 @@ const ContextAnalysisInputSchema = z.object({
 export type ContextAnalysisInput = z.infer<typeof ContextAnalysisInputSchema>;
 
 const ContextAnalysisOutputSchema = z.object({
-  wordSenseAnalysis: z.string().describe('Analysis of difficult words or phrases in the current context. 請使用 Markdown 格式化您的回答。'),
+  wordSenseAnalysis: z.string().describe('Analysis of difficult words or phrases in the current context. 請使用 Markdown 格式化您的回答，例如使用標題（例如：## 標題）、列表（例如：- 項目）、粗體（例如：**重要文字**）、斜體（例如：*強調文字*）等。'),
   characterRelationships: z
     .string()
-    .describe('An interactive graph or description of character relationships relevant to the current text. 請使用 Markdown 格式化您的回答。'),
+    .describe('An interactive graph or description of character relationships relevant to the current text. 請使用 Markdown 格式化您的回答，例如使用標題（例如：## 標題）、列表（例如：- 項目）、粗體（例如：**重要文字**）、斜體（例如：*強調文字*）等。'),
 });
 
 export type ContextAnalysisOutput = z.infer<typeof ContextAnalysisOutputSchema>;
@@ -47,7 +47,7 @@ const prompt = ai.definePrompt({
   Provide a word sense analysis for any difficult words or phrases in the current context.
   Also, generate a description of the character relationships that are relevant to the current text.
   Include a summary of the plot points or character interactions.
-  請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。請以繁體中文提供分析和描述。
+  請使用 Markdown 格式化您的回答，例如使用標題（例如：## 標題）、列表（例如：- 項目）、粗體（例如：**重要文字**）、斜體（例如：*強調文字*）等。請以繁體中文提供分析和描述。
   `,
 });
 

@@ -19,7 +19,7 @@ const ExplainTextSelectionInputSchema = z.object({
 export type ExplainTextSelectionInput = z.infer<typeof ExplainTextSelectionInputSchema>;
 
 const ExplainTextSelectionOutputSchema = z.object({
-  explanation: z.string().describe('The AI-generated answer to the user\'s question about the selected text snippet. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。請以繁體中文提供解釋。'),
+  explanation: z.string().describe('The AI-generated answer to the user\'s question about the selected text snippet. 請以 Markdown 格式提供解釋，確保使用如標題（例如：## 我的標題）、列表（例如：- 項目一）、粗體（例如：**重要文字**）和斜體（例如：*強調*）等元素來組織內容。'),
 });
 export type ExplainTextSelectionOutput = z.infer<typeof ExplainTextSelectionOutputSchema>;
 
@@ -47,7 +47,7 @@ const prompt = ai.definePrompt({
 "{{{userQuestion}}}"
 
 請針對使用者提出的「問題」，並緊密結合他們「選取的文字」以及「上下文」，在《紅樓夢》的整體背景下，提供簡明扼要、有針對性的回答。
-請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。請以繁體中文提供解釋。`,
+請以 Markdown 格式提供解釋，確保使用如標題（例如：## 我的標題）、列表（例如：- 項目一）、粗體（例如：**重要文字**）和斜體（例如：*強調*）等元素來組織內容。請以繁體中文提供解釋。`,
 });
 
 const explainTextSelectionFlow = ai.defineFlow(

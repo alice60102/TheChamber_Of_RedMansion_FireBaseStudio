@@ -26,9 +26,9 @@ export type GenerateSpecialTopicFrameworkInput = z.infer<
 >;
 
 const GenerateSpecialTopicFrameworkOutputSchema = z.object({
-  researchFramework: z.string().describe('The generated research framework. 請使用 Markdown 格式化此內容。'),
-  relatedMaterials: z.string().describe('The related materials for the topic. 請使用 Markdown 格式化此內容。'),
-  analysisTools: z.string().describe('The analysis tools for the research. 請使用 Markdown 格式化此內容。'),
+  researchFramework: z.string().describe('The generated research framework. 請使用 Markdown 格式化此內容，例如使用標題、列表、粗體等。'),
+  relatedMaterials: z.string().describe('The related materials for the topic. 請使用 Markdown 格式化此內容，例如使用標題、列表、粗體等。'),
+  analysisTools: z.string().describe('The analysis tools for the research. 請使用 Markdown 格式化此內容，例如使用標題、列表、粗體等。'),
 });
 
 export type GenerateSpecialTopicFrameworkOutput = z.infer<
@@ -53,7 +53,7 @@ const prompt = ai.definePrompt({
   Selected Topic: {{{selectedTopic}}}
 
   Here is the format you must follow, include ALL of the requested information. 
-  Please use Markdown formatting for the content of 'Research Framework', 'Related Materials', and 'Analysis Tools'.
+  Please use Markdown formatting for the content of 'Research Framework', 'Related Materials', and 'Analysis Tools' (e.g., using headings like ##, lists with -, bold with **, italics with *).
   請以繁體中文提供所有信息。
 
   Research Framework: [The research framework for the selected topic. Use Markdown.]

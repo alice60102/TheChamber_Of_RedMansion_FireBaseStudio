@@ -19,9 +19,9 @@ const LearningAnalysisInputSchema = z.object({
 export type LearningAnalysisInput = z.infer<typeof LearningAnalysisInputSchema>;
 
 const LearningAnalysisOutputSchema = z.object({
-  cognitiveHeatmap: z.string().describe('An analysis of text comprehension for different content areas. 請使用 Markdown 格式化您的回答。'),
-  comprehensionDeviations: z.string().describe('An analysis of potential comprehension deviations or misunderstandings based on the learning data. 請使用 Markdown 格式化您的回答。'),
-  recommendations: z.string().describe('Recommendations for adjusting the difficulty and format of recommended content based on the analysis. 請使用 Markdown 格式化您的回答。'),
+  cognitiveHeatmap: z.string().describe('An analysis of text comprehension for different content areas. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。'),
+  comprehensionDeviations: z.string().describe('An analysis of potential comprehension deviations or misunderstandings based on the learning data. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。'),
+  recommendations: z.string().describe('Recommendations for adjusting the difficulty and format of recommended content based on the analysis. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。'),
 });
 export type LearningAnalysisOutput = z.infer<typeof LearningAnalysisOutputSchema>;
 
@@ -36,13 +36,13 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI learning analyst providing insights about learning progress.
 
   Analyze the following learning data and generate:
-  1. An analysis of text comprehension for different content areas.
+  1. An analysis of text comprehension for different content areas (this is the 'cognitiveHeatmap' output field).
   2. An analysis of potential comprehension deviations or misunderstandings based on the learning data.
   3. Recommendations for adjusting the difficulty and format of recommended content based on the analysis.
 
   Learning Data: {{{learningData}}}
   
-  請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。請以繁體中文生成所有內容。
+  請使用 Markdown 格式化您的回答（例如使用標題如 ## 標題, 列表如 - 項目, 粗體如 **文字**, 斜體如 *文字* 等）來組織內容。請以繁體中文生成所有內容。
   `,
 });
 

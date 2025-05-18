@@ -17,7 +17,7 @@ const ConnectThemesToModernContextsInputSchema = z.object({
 export type ConnectThemesToModernContextsInput = z.infer<typeof ConnectThemesToModernContextsInputSchema>;
 
 const ConnectThemesToModernContextsOutputSchema = z.object({
-  modernContextInsights: z.string().describe('Insights connecting themes of the chapter to modern contexts. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。'),
+  modernContextInsights: z.string().describe('Insights connecting themes of the chapter to modern contexts. 請使用 Markdown 格式化您的回答，例如使用標題（例如：## 標題）、列表（例如：- 項目）、粗體（例如：**重要文字**）、斜體（例如：*強調文字*）等。'),
 });
 export type ConnectThemesToModernContextsOutput = z.infer<typeof ConnectThemesToModernContextsOutputSchema>;
 
@@ -31,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'connectThemesToModernContextsPrompt',
   input: {schema: ConnectThemesToModernContextsInputSchema},
   output: {schema: ConnectThemesToModernContextsOutputSchema},
-  prompt: `You are an expert in Chinese literature, specializing in *Dream of the Red Chamber*. Your task is to connect the themes present in the provided chapter text to contemporary contexts, providing insights that help modern students understand the novel's relevance to their lives.\n\nChapter Text: {{{chapterText}}}\n\nProvide insights that connect the themes of this chapter to modern contexts. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。請以繁體中文提供見解。`,
+  prompt: `You are an expert in Chinese literature, specializing in *Dream of the Red Chamber*. Your task is to connect the themes present in the provided chapter text to contemporary contexts, providing insights that help modern students understand the novel's relevance to their lives.\n\nChapter Text: {{{chapterText}}}\n\nProvide insights that connect the themes of this chapter to modern contexts. 請使用 Markdown 格式化您的回答，例如使用標題（例如：## 標題）、列表（例如：- 項目）、粗體（例如：**重要文字**）、斜體（例如：*強調文字*）等。請以繁體中文提供見解。`,
 });
 
 const connectThemesToModernContextsFlow = ai.defineFlow(

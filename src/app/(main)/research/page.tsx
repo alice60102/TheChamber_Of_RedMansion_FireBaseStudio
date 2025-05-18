@@ -66,95 +66,99 @@ export default function ResearchPage() {
             選擇感興趣的專題方向，AI 將協助您搭建研究框架，提供相關資料與分析工具。
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-3 gap-6">
-          {/* Topic Selection */}
-          <div className="md:col-span-1 space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">選擇研究主題</h3>
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input 
-                type="search" 
-                placeholder="搜索推薦主題..." 
-                className="pl-8 bg-background/50"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <ScrollArea className="h-60 border rounded-md">
-              <div className="p-2 space-y-1">
-                {filteredTopics.map((topic, index) => (
-                  <Button
-                    key={index}
-                    variant={selectedTopic === topic ? "default" : "ghost"}
-                    className={`w-full justify-start text-left h-auto py-1.5 px-2 ${selectedTopic === topic ? 'bg-primary text-primary-foreground' : 'text-foreground/80'}`}
-                    onClick={() => { setSelectedTopic(topic); setCustomTopic(""); }}
-                  >
-                    {topic}
-                  </Button>
-                ))}
-                {filteredTopics.length === 0 && <p className="text-sm text-muted-foreground p-2 text-center">未找到匹配主題。</p>}
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Topic Selection */}
+            <div className="md:col-span-1 space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">選擇研究主題</h3>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="search" 
+                  placeholder="搜索推薦主題..." 
+                  className="pl-8 bg-background/50"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            </ScrollArea>
-            <div>
-              <Label htmlFor="customTopic">或自定義主題</Label>
-              <Input 
-                id="customTopic" 
-                placeholder="輸入您的研究主題" 
-                value={customTopic}
-                onChange={(e) => { setCustomTopic(e.target.value); setSelectedTopic(""); }}
-                className="bg-background/50"
-              />
-            </div>
-            <div>
-              <Label htmlFor="readingData">您的閱讀數據/背景 (簡述)</Label>
-              <Textarea 
-                id="readingData" 
-                value={studentReadingData} 
-                onChange={(e) => setStudentReadingData(e.target.value)}
-                className="bg-background/50"
-                rows={3}
-              />
-            </div>
-            <Button onClick={handleGenerateFramework} disabled={isLoading || (!selectedTopic && !customTopic)} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
-              {isLoading ? "框架生成中..." : "生成研究框架"}
-            </Button>
-          </div>
-
-          {/* Research Framework Display */}
-          <div className="md:col-span-2 space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
-            {researchFramework ? (
-              <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20">
-                <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line">
-                  <h4 className="font-semibold text-primary">研究框架:</h4>
-                  <div className="text-foreground/90">{researchFramework.researchFramework}</div>
-                  
-                  <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
-                  <div className="text-foreground/90">{researchFramework.relatedMaterials}</div>
-
-                  <h4 className="font-semibold text-primary mt-4">分析工具:</h4>
-                  <div className="text-foreground/90">{researchFramework.analysisTools}</div>
+              <ScrollArea className="h-60 border rounded-md">
+                <div className="p-2 space-y-1">
+                  {filteredTopics.map((topic, index) => (
+                    <Button
+                      key={index}
+                      variant={selectedTopic === topic ? "default" : "ghost"}
+                      className={`w-full justify-start text-left h-auto py-1.5 px-2 ${selectedTopic === topic ? 'bg-primary text-primary-foreground' : 'text-foreground/80'}`}
+                      onClick={() => { setSelectedTopic(topic); setCustomTopic(""); }}
+                    >
+                      {topic}
+                    </Button>
+                  ))}
+                  {filteredTopics.length === 0 && <p className="text-sm text-muted-foreground p-2 text-center">未找到匹配主題。</p>}
                 </div>
               </ScrollArea>
-            ) : (
-              <div className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20 flex items-center justify-center">
-                <p className="text-sm text-muted-foreground text-center">
-                  {isLoading ? "正在為您構建研究框架..." : "選擇或輸入主題後，點擊按鈕生成研究框架。"}
-                </p>
+              <div>
+                <Label htmlFor="customTopic">或自定義主題</Label>
+                <Input 
+                  id="customTopic" 
+                  placeholder="輸入您的研究主題" 
+                  value={customTopic}
+                  onChange={(e) => { setCustomTopic(e.target.value); setSelectedTopic(""); }}
+                  className="bg-background/50"
+                />
               </div>
-            )}
+              <div>
+                <Label htmlFor="readingData">您的閱讀數據/背景 (簡述)</Label>
+                <Textarea 
+                  id="readingData" 
+                  value={studentReadingData} 
+                  onChange={(e) => setStudentReadingData(e.target.value)}
+                  className="bg-background/50"
+                  rows={3}
+                />
+              </div>
+              <Button onClick={handleGenerateFramework} disabled={isLoading || (!selectedTopic && !customTopic)} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                {isLoading ? "框架生成中..." : "生成研究框架"}
+              </Button>
+            </div>
+
+            {/* Research Framework Display */}
+            <div className="md:col-span-2 space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
+              {researchFramework ? (
+                <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20">
+                  <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line">
+                    <h4 className="font-semibold text-primary">研究框架:</h4>
+                    <div className="text-foreground/90">{researchFramework.researchFramework}</div>
+                    
+                    <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
+                    <div className="text-foreground/90">{researchFramework.relatedMaterials}</div>
+
+                    <h4 className="font-semibold text-primary mt-4">分析工具:</h4>
+                    <div className="text-foreground/90">{researchFramework.analysisTools}</div>
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20 flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground text-center">
+                    {isLoading ? "正在為您構建研究框架..." : "選擇或輸入主題後，點擊按鈕生成研究框架。"}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col items-start gap-2 md:flex-row md:justify-between">
-            <p className="text-xs text-muted-foreground">
-                AI 生成的框架為初步建議，您可以此為基礎進行調整和深化。
-            </p>
-            {researchFramework && (
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm"><FileText className="h-4 w-4 mr-2"/>導出為文檔</Button>
-                <Button variant="outline" size="sm"><Share2 className="h-4 w-4 mr-2"/>分享框架</Button>
-              </div>
-            )}
+        <CardFooter>
+          <div className="flex flex-col items-start gap-2 md:flex-row md:justify-between w-full">
+              <p className="text-xs text-muted-foreground">
+                  AI 生成的框架為初步建議，您可以此為基礎進行調整和深化。
+              </p>
+              {researchFramework && (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm"><FileText className="h-4 w-4 mr-2"/>導出為文檔</Button>
+                  <Button variant="outline" size="sm"><Share2 className="h-4 w-4 mr-2"/>分享框架</Button>
+                </div>
+              )}
+          </div>
         </CardFooter>
       </Card>
       
@@ -163,9 +167,11 @@ export default function ResearchPage() {
         <CardHeader>
             <CardTitle className="font-artistic text-xl text-primary flex items-center gap-2"><Microscope className="h-6 w-6"/>其他研究工具</CardTitle>
         </CardHeader>
-        <CardContent className="grid md:grid-cols-2 gap-4">
-            <Button variant="outline" className="justify-start gap-2"><FileText className="h-4 w-4"/>敘事結構可視化 (待實現)</Button>
-            <Button variant="outline" className="justify-start gap-2"><MessageSquare className="h-4 w-4"/>多層次問題生成 (待實現)</Button>
+        <CardContent>
+          <div className="grid md:grid-cols-2 gap-4">
+              <Button variant="outline" className="justify-start gap-2"><FileText className="h-4 w-4"/>敘事結構可視化 (待實現)</Button>
+              <Button variant="outline" className="justify-start gap-2"><MessageSquare className="h-4 w-4"/>多層次問題生成 (待實現)</Button>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -17,10 +17,10 @@ const GenerateGoalSuggestionsInputSchema = z.object({
 export type GenerateGoalSuggestionsInput = z.infer<typeof GenerateGoalSuggestionsInputSchema>;
 
 const GoalSuggestionsSchema = z.object({
-  singlePointGoals: z.array(z.string()).describe('單點結構目標建議 (例如：認識基本人物關係、識別特定情節)。每個目標建議請使用 Markdown 格式化。'),
-  multiPointGoals: z.array(z.string()).describe('多點結構目標建議 (例如：比較多個概念，如不同人物的性格特點、不同事件的相似之處)。每個目標建議請使用 Markdown 格式化。'),
-  relationalGoals: z.array(z.string()).describe('關聯結構目標建議 (例如：分析因果關係，如人物命運與其性格、社會環境的聯繫)。每個目標建議請使用 Markdown 格式化。'),
-  extendedAbstractGoals: z.array(z.string()).describe('抽象拓展目標建議 (例如：實現理論遷移，如將書中的哲學思想、藝術手法應用於現代情境分析或個人感悟)。每個目標建議請使用 Markdown 格式化。'),
+  singlePointGoals: z.array(z.string()).describe('單點結構目標建議 (例如：認識基本人物關係、識別特定情節)。每個目標建議請使用 Markdown 格式化，例如使用列表、粗體等。'),
+  multiPointGoals: z.array(z.string()).describe('多點結構目標建議 (例如：比較多個概念，如不同人物的性格特點、不同事件的相似之處)。每個目標建議請使用 Markdown 格式化，例如使用列表、粗體等。'),
+  relationalGoals: z.array(z.string()).describe('關聯結構目標建議 (例如：分析因果關係，如人物命運與其性格、社會環境的聯繫)。每個目標建議請使用 Markdown 格式化，例如使用列表、粗體等。'),
+  extendedAbstractGoals: z.array(z.string()).describe('抽象拓展目標建議 (例如：實現理論遷移，如將書中的哲學思想、藝術手法應用於現代情境分析或個人感悟)。每個目標建議請使用 Markdown 格式化，例如使用列表、粗體等。'),
 });
 export type GenerateGoalSuggestionsOutput = z.infer<typeof GoalSuggestionsSchema>;
 
