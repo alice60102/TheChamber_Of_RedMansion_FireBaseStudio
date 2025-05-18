@@ -24,10 +24,10 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 75, timeSpent: 60 }, // comprehension: chart-2 (blue-ish), timeSpent: primary (gold)
+  { chapter: "第1回", comprehension: 80, timeSpent: 60 }, 
   { chapter: "第2回", comprehension: 60, timeSpent: 75 },
   { chapter: "第3回", comprehension: 70, timeSpent: 55 },
-  { chapter: "第4回", comprehension: 80, timeSpent: 40 },
+  { chapter: "第4回", comprehension: 75, timeSpent: 40 },
   { chapter: "第5回", comprehension: 85, timeSpent: 80 },
   { chapter: "第6回", comprehension: 90, timeSpent: 82 },
   { chapter: "第7回", comprehension: 95, timeSpent: 90 },
@@ -218,6 +218,7 @@ export default function GoalsPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-artistic text-xl text-foreground/90">設定與追蹤您的學習目標</CardTitle>
+          <CardDescription className="text-xs text-muted-foreground pt-1">提示：AI建議的目標可作為參考，您可以選擇性地將它們添加到「我的目標」中進行追蹤。</CardDescription>
         </CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
@@ -302,9 +303,6 @@ export default function GoalsPage() {
             )}
           </div>
         </CardContent>
-         <CardFooter>
-            <p className="text-xs text-muted-foreground">提示：AI建議的目標可作為參考，您可以選擇性地將它們添加到「我的目標」中進行追蹤。</p>
-        </CardFooter>
       </Card>
 
       <Card className="shadow-lg">
@@ -426,6 +424,5 @@ export default function GoalsPage() {
     </div>
   );
 }
-
 
     
