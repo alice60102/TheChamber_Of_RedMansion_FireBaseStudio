@@ -131,8 +131,11 @@ export default function GoalsPage() {
     if (!aiCompanionQuery.trim()) return;
     setIsLoadingAiCompanion(true);
     setAiCompanionResponse(`AI正在思考關於「${aiCompanionQuery}」的回答... (此功能待實現更複雜的AI對話流程)`);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setAiCompanionResponse(`針對「${aiCompanionQuery}」：AI建議您參考相關章節的研讀筆記，並嘗試將此問題與您設定的學習目標關聯起來。例如，如果您的目標是理解主要人物性格，可以思考這個問題如何幫助您深化對某人物的認識。(此為佔位回應)`);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500)); 
+    // Placeholder response. Replace with actual AI call if `explainTextSelection` or a similar flow is suitable.
+    // For now, using a generic response.
+    setAiCompanionResponse(`針對「${aiCompanionQuery}」：AI建議您參考相關章節的研讀筆記，並嘗試將此問題與您設定的學習目標關聯起來。例如，如果您的目標是理解主要人物性格，可以思考這個問題如何幫助您深化對某人物的認識。(此為佔位回應，實際AI互動功能需進一步實現)`);
     setIsLoadingAiCompanion(false);
   };
 
@@ -141,7 +144,7 @@ export default function GoalsPage() {
       {goals.map(goal => (
         <Card key={goal.id} className={`p-3 shadow-sm ${goal.isAchieved ? 'bg-green-500/10 border-green-500/50' : 'bg-card/80'}`}>
           <div className="flex justify-between items-center">
-            <p className={`flex-grow text-sm ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>{goal.text}</p>
+            <div className={`flex-grow text-sm prose prose-sm dark:prose-invert max-w-none whitespace-pre-line ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>{goal.text}</div>
             <div className="flex items-center gap-1 shrink-0 ml-2">
               {isActiveList ? (
                 <Button variant="ghost" size="sm" onClick={() => handleToggleGoalStatus(goal.id)} className="h-7 px-2 text-xs text-green-600 hover:bg-green-500/10">
@@ -290,8 +293,8 @@ export default function GoalsPage() {
                         <ul className="list-none p-3 space-y-1.5">
                           {(goalsArray as string[]).map((goal, index) => (
                             <li key={index} className="text-xs text-foreground/80 flex items-start">
-                              <Lightbulb className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-accent/70 shrink-0" />
-                              <span>{goal}</span>
+                               <Lightbulb className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-accent/70 shrink-0" />
+                               <div className="prose prose-xs dark:prose-invert max-w-none whitespace-pre-line">{goal}</div>
                             </li>
                           ))}
                         </ul>
@@ -323,7 +326,7 @@ export default function GoalsPage() {
               {isLoadingAiCompanion ? "發送中..." : "提問AI學伴"}
             </Button>
             {aiCompanionResponse && (
-              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm text-foreground/80 whitespace-pre-line">
+              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm whitespace-pre-line prose prose-sm dark:prose-invert max-w-none text-foreground/80">
                 <strong>AI學伴回覆：</strong> {aiCompanionResponse}
               </div>
             )}
@@ -371,7 +374,11 @@ export default function GoalsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              {learningAnalysis?.cognitiveHeatmap && <p className="text-xs mt-2 text-foreground/80 p-2 bg-muted/20 rounded border border-border/30">{learningAnalysis.cognitiveHeatmap}</p>}
+              {learningAnalysis?.cognitiveHeatmap && 
+                <div className="text-xs mt-2 text-foreground/80 p-2 bg-muted/20 rounded border border-border/30 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line">
+                  {learningAnalysis.cognitiveHeatmap}
+                </div>
+              }
             </div>
             <div>
               <h4 className="font-semibold mb-2 text-primary">每日閱讀進度 (模擬)</h4>
@@ -402,17 +409,21 @@ export default function GoalsPage() {
           {learningAnalysis && (
             <Card className="mt-4 bg-card/50 p-4" style={{border: '1px solid hsl(var(--border))'}}>
               <CardTitle className="text-lg font-artistic text-primary mb-2">AI 個性化學習建議</CardTitle>
-              <ScrollArea className="h-40 text-sm text-foreground/80 space-y-2 pr-2">
+              <ScrollArea className="h-40 text-sm space-y-2 pr-2">
                 {learningAnalysis.comprehensionDeviations && (
                   <div>
                     <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
-                    <p className="pl-5">{learningAnalysis.comprehensionDeviations}</p>
+                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                      {learningAnalysis.comprehensionDeviations}
+                    </div>
                   </div>
                 )}
                 {learningAnalysis.recommendations && (
                   <div className="mt-2">
                     <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
-                    <p className="pl-5">{learningAnalysis.recommendations}</p>
+                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                      {learningAnalysis.recommendations}
+                    </div>
                   </div>
                 )}
               </ScrollArea>
@@ -424,5 +435,3 @@ export default function GoalsPage() {
     </div>
   );
 }
-
-    

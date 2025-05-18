@@ -18,18 +18,24 @@ const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }
     return <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center text-muted-foreground">請生成分析結果以在此處查看。</div>;
   }
   return (
-    <ScrollArea className="h-96 p-4 border rounded-md bg-muted/10 text-sm text-foreground/80 space-y-4">
+    <ScrollArea className="h-96 p-4 border rounded-md bg-muted/10 text-sm space-y-4">
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BookOpen className="h-4 w-4" />文本掌握分析描述:</h3>
-        <p className="whitespace-pre-line">{data.cognitiveHeatmap}</p>
+        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+          {data.cognitiveHeatmap}
+        </div>
       </div>
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4" />理解偏差分析:</h3>
-        <p className="whitespace-pre-line">{data.comprehensionDeviations}</p>
+        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+          {data.comprehensionDeviations}
+        </div>
       </div>
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><Lightbulb className="h-4 w-4" />學習建議:</h3>
-        <p className="whitespace-pre-line">{data.recommendations}</p>
+        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+          {data.recommendations}
+        </div>
       </div>
     </ScrollArea>
   );

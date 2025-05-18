@@ -124,15 +124,17 @@ export default function ResearchPage() {
           <div className="md:col-span-2 space-y-4">
             <h3 className="text-lg font-semibold text-foreground">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
             {researchFramework ? (
-              <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20 prose prose-sm sm:prose-base dark:prose-invert max-w-none">
-                <h4 className="font-semibold text-primary">研究框架:</h4>
-                <div className="whitespace-pre-line text-foreground/90">{researchFramework.researchFramework}</div>
-                
-                <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
-                <div className="whitespace-pre-line text-foreground/90">{researchFramework.relatedMaterials}</div>
+              <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20">
+                <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line">
+                  <h4 className="font-semibold text-primary">研究框架:</h4>
+                  <div className="text-foreground/90">{researchFramework.researchFramework}</div>
+                  
+                  <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
+                  <div className="text-foreground/90">{researchFramework.relatedMaterials}</div>
 
-                <h4 className="font-semibold text-primary mt-4">分析工具:</h4>
-                <div className="whitespace-pre-line text-foreground/90">{researchFramework.analysisTools}</div>
+                  <h4 className="font-semibold text-primary mt-4">分析工具:</h4>
+                  <div className="text-foreground/90">{researchFramework.analysisTools}</div>
+                </div>
               </ScrollArea>
             ) : (
               <div className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20 flex items-center justify-center">

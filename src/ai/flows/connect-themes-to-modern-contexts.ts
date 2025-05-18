@@ -17,7 +17,7 @@ const ConnectThemesToModernContextsInputSchema = z.object({
 export type ConnectThemesToModernContextsInput = z.infer<typeof ConnectThemesToModernContextsInputSchema>;
 
 const ConnectThemesToModernContextsOutputSchema = z.object({
-  modernContextInsights: z.string().describe('Insights connecting themes of the chapter to modern contexts.'),
+  modernContextInsights: z.string().describe('Insights connecting themes of the chapter to modern contexts. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。'),
 });
 export type ConnectThemesToModernContextsOutput = z.infer<typeof ConnectThemesToModernContextsOutputSchema>;
 
@@ -31,7 +31,7 @@ const prompt = ai.definePrompt({
   name: 'connectThemesToModernContextsPrompt',
   input: {schema: ConnectThemesToModernContextsInputSchema},
   output: {schema: ConnectThemesToModernContextsOutputSchema},
-  prompt: `You are an expert in Chinese literature, specializing in *Dream of the Red Chamber*. Your task is to connect the themes present in the provided chapter text to contemporary contexts, providing insights that help modern students understand the novel's relevance to their lives.\n\nChapter Text: {{{chapterText}}}\n\nProvide insights that connect the themes of this chapter to modern contexts. 請以繁體中文提供見解。`,
+  prompt: `You are an expert in Chinese literature, specializing in *Dream of the Red Chamber*. Your task is to connect the themes present in the provided chapter text to contemporary contexts, providing insights that help modern students understand the novel's relevance to their lives.\n\nChapter Text: {{{chapterText}}}\n\nProvide insights that connect the themes of this chapter to modern contexts. 請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。請以繁體中文提供見解。`,
 });
 
 const connectThemesToModernContextsFlow = ai.defineFlow(
@@ -42,11 +42,10 @@ const connectThemesToModernContextsFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output) {
+    if (!output || !output.modernContextInsights) {
       console.error("AI flow 'connectThemesToModernContextsFlow' did not produce an output for input:", input);
       throw new Error('AI模型未能生成有效的現代關聯見解。');
     }
     return output;
   }
 );
-

@@ -203,13 +203,13 @@ export default function ReadPage() {
 
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text && selectedTextInfo.range && chapterContentRef.current) {
+      const selectionRect = selectedTextInfo.range.getBoundingClientRect();
+      const containerRect = chapterContentRef.current.getBoundingClientRect();
+      
       setCurrentNoteTargetText(selectedTextInfo.text);
       const existingNote = notes.find(n => n.targetText === selectedTextInfo.text && n.chapterId === currentChapter.id);
       setCurrentNoteContent(existingNote ? existingNote.content : '');
       setCurrentNoteIsPublic(existingNote ? existingNote.isPublic : true);
-  
-      const selectionRect = selectedTextInfo.range.getBoundingClientRect(); 
-      const containerRect = chapterContentRef.current.getBoundingClientRect(); 
       
       setCurrentNoteSelectionRect({
         top: selectionRect.top - containerRect.top + chapterContentRef.current.scrollTop,
@@ -292,7 +292,9 @@ export default function ReadPage() {
                   <BookText className="h-4 w-4 mr-2" /> 本回提要概述
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-foreground/80 p-3 bg-muted/20 rounded-md border border-border/50">
-                  {currentChapter.summary}
+                  <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line">
+                    {currentChapter.summary}
+                  </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -346,20 +348,20 @@ export default function ReadPage() {
                       onOpenAutoFocus={e => e.preventDefault()}
                       onCloseAutoFocus={e => e.preventDefault()} 
                     >
-                      <div className="space-y-2 p-2">
-                        <h4 className="font-semibold text-primary mb-1 truncate">
-                          關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
-                        </h4>
-                        <ScrollArea className="max-h-40">
-                          <p className="text-sm whitespace-pre-line text-foreground/80">{note.content}</p>
-                        </ScrollArea>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {note.isPublic ? 
-                            <span className="flex items-center gap-1"><Globe className="h-3 w-3 text-green-500" />公開筆記</span> : 
-                            <span className="flex items-center gap-1"><Lock className="h-3 w-3 text-red-500" />私人筆記</span>
-                          }
-                        </p>
-                      </div>
+                      <ScrollArea className="max-h-60">
+                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line">
+                          <h4 className="font-semibold text-primary mb-1 truncate">
+                            關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
+                          </h4>
+                          <p className="text-sm text-foreground/80">{note.content}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {note.isPublic ? 
+                              <span className="flex items-center gap-1"><Globe className="h-3 w-3 text-green-500" />公開筆記</span> : 
+                              <span className="flex items-center gap-1"><Lock className="h-3 w-3 text-red-500" />私人筆記</span>
+                            }
+                          </p>
+                        </div>
+                      </ScrollArea>
                     </PopoverContent>
                   </Popover>
                 );
@@ -427,15 +429,17 @@ export default function ReadPage() {
                               <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
                           )}
                           {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
-                              <div>
+                            <div>
                               <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
                               <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
-                                  <div className="text-sm p-2 whitespace-pre-line text-foreground/80">{textExplanation}</div>
+                                <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line p-2 text-foreground/80">
+                                  {textExplanation}
+                                </div>
                               </ScrollArea>
                               <Button variant="ghost" onClick={() => setAiInteractionState('asking')} className="mt-2 text-sm">
-                                  返回提問
+                                返回提問
                               </Button>
-                              </div>
+                            </div>
                           )}
                           {(aiInteractionState === 'answered' || aiInteractionState === 'error') && !textExplanation && (
                               <div className="p-4 text-center text-muted-foreground">發生錯誤或沒有回答。</div>
@@ -468,17 +472,21 @@ export default function ReadPage() {
                     {isLoadingAi && !characterMap && !wordAnalysis ? "分析中..." : "生成脈絡分析"}
                   </Button>
                   {(characterMap || wordAnalysis) && !isLoadingAi ? (
-                    <ScrollArea className="h-64 text-sm text-foreground/80 whitespace-pre-line space-y-3 p-2 border rounded-md bg-muted/10">
+                    <ScrollArea className="h-64 p-2 border rounded-md bg-muted/10">
                       {characterMap && (
                         <div>
                           <h4 className="font-semibold text-primary mb-1">人物關係：</h4>
-                          <p>{characterMap}</p>
+                          <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                            {characterMap}
+                          </div>
                         </div>
                       )}
                       {wordAnalysis && (
-                        <div>
-                           <h4 className="font-semibold text-primary mb-1 mt-3">詞義解析：</h4>
-                          <p>{wordAnalysis}</p>
+                        <div className="mt-3">
+                           <h4 className="font-semibold text-primary mb-1">詞義解析：</h4>
+                           <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                            {wordAnalysis}
+                          </div>
                         </div>
                       )}
                     </ScrollArea>
@@ -504,8 +512,10 @@ export default function ReadPage() {
                     {isLoadingAi && !modernRelevance ? "生成中..." : "生成現代關聯"}
                   </Button>
                   {modernRelevance && !isLoadingAi ? (
-                    <ScrollArea className="h-64 text-sm text-foreground/80 whitespace-pre-line p-2 border rounded-md bg-muted/10">
-                      <p>{modernRelevance}</p>
+                    <ScrollArea className="h-64 p-2 border rounded-md bg-muted/10">
+                      <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                        {modernRelevance}
+                      </div>
                     </ScrollArea>
                   ) : isLoadingAi ? (
                     <p className="text-sm text-muted-foreground text-center p-4">AI 正在生成中，請稍候...</p>
@@ -571,6 +581,3 @@ export default function ReadPage() {
     </div>
   );
 }
-    
-
-    

@@ -21,10 +21,10 @@ const ContextAnalysisInputSchema = z.object({
 export type ContextAnalysisInput = z.infer<typeof ContextAnalysisInputSchema>;
 
 const ContextAnalysisOutputSchema = z.object({
-  wordSenseAnalysis: z.string().describe('Analysis of difficult words or phrases in the current context.'),
+  wordSenseAnalysis: z.string().describe('Analysis of difficult words or phrases in the current context. 請使用 Markdown 格式化您的回答。'),
   characterRelationships: z
     .string()
-    .describe('An interactive graph or description of character relationships relevant to the current text.'),
+    .describe('An interactive graph or description of character relationships relevant to the current text. 請使用 Markdown 格式化您的回答。'),
 });
 
 export type ContextAnalysisOutput = z.infer<typeof ContextAnalysisOutputSchema>;
@@ -47,7 +47,7 @@ const prompt = ai.definePrompt({
   Provide a word sense analysis for any difficult words or phrases in the current context.
   Also, generate a description of the character relationships that are relevant to the current text.
   Include a summary of the plot points or character interactions.
-  請以繁體中文提供分析和描述。
+  請使用 Markdown 格式化您的回答，例如使用標題、列表、粗體、斜體等。請以繁體中文提供分析和描述。
   `,
 });
 
@@ -59,11 +59,10 @@ const analyzeContextFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output) {
+    if (!output || !output.wordSenseAnalysis || !output.characterRelationships) {
       console.error("AI flow 'analyzeContextFlow' did not produce an output for input:", input);
       throw new Error('AI模型未能生成有效的文本脈絡分析。');
     }
     return output;
   }
 );
-

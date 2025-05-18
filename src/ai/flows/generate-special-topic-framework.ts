@@ -26,9 +26,9 @@ export type GenerateSpecialTopicFrameworkInput = z.infer<
 >;
 
 const GenerateSpecialTopicFrameworkOutputSchema = z.object({
-  researchFramework: z.string().describe('The generated research framework.'),
-  relatedMaterials: z.string().describe('The related materials for the topic.'),
-  analysisTools: z.string().describe('The analysis tools for the research.'),
+  researchFramework: z.string().describe('The generated research framework. 請使用 Markdown 格式化此內容。'),
+  relatedMaterials: z.string().describe('The related materials for the topic. 請使用 Markdown 格式化此內容。'),
+  analysisTools: z.string().describe('The analysis tools for the research. 請使用 Markdown 格式化此內容。'),
 });
 
 export type GenerateSpecialTopicFrameworkOutput = z.infer<
@@ -52,14 +52,15 @@ const prompt = ai.definePrompt({
   Reading Data: {{{readingData}}}
   Selected Topic: {{{selectedTopic}}}
 
-  Here is the format you must follow, include ALL of the requested information. Use markdown formatting.
+  Here is the format you must follow, include ALL of the requested information. 
+  Please use Markdown formatting for the content of 'Research Framework', 'Related Materials', and 'Analysis Tools'.
   請以繁體中文提供所有信息。
 
-  Research Framework: [The research framework for the selected topic.]
+  Research Framework: [The research framework for the selected topic. Use Markdown.]
 
-  Related Materials: [The related materials for the selected topic.]
+  Related Materials: [The related materials for the selected topic. Use Markdown.]
 
-  Analysis Tools: [The analysis tools for the research.]`,
+  Analysis Tools: [The analysis tools for the research. Use Markdown.]`,
 });
 
 const generateSpecialTopicFrameworkFlow = ai.defineFlow(
@@ -70,11 +71,10 @@ const generateSpecialTopicFrameworkFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    if (!output) {
+    if (!output || !output.researchFramework || !output.relatedMaterials || !output.analysisTools) {
       console.error("AI flow 'generateSpecialTopicFrameworkFlow' did not produce an output for input:", input);
       throw new Error('AI模型未能生成有效的專題研究框架。');
     }
     return output;
   }
 );
-
