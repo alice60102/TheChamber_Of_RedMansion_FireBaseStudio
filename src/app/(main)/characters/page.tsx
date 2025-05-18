@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Brain, Info, Zap, BookOpen, BarChartHorizontalBig, Lightbulb } from "lucide-react";
+import { Brain, Info, Zap, BookOpen, BarChartHorizontalBig, Lightbulb, Share2 } from "lucide-react";
 import { analyzeLearningData } from '@/ai/flows/learning-analysis';
 import type { LearningAnalysisInput, LearningAnalysisOutput } from '@/ai/flows/learning-analysis';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -68,7 +68,7 @@ export default function LearningAnalysisPage() {
       <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
-            <BookOpen className="h-7 w-7" /> {/* Or another suitable icon like Share2 for graph */}
+            <BookOpen className="h-7 w-7" />
             個人學習知識圖譜
           </CardTitle>
           <CardDescription>
@@ -76,16 +76,19 @@ export default function LearningAnalysisPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading && !analysisResult ? (
+          {isLoading ? (
             <div className="h-48 p-4 border rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground">
               知識圖譜生成中...
             </div>
-          ) : analysisResult?.cognitiveHeatmap ? (
-            <ScrollArea className="h-48 p-4 border rounded-md bg-muted/10">
-              <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-                {analysisResult.cognitiveHeatmap}
-              </div>
-            </ScrollArea>
+          ) : analysisResult ? (
+            <div 
+              className="h-48 p-4 border rounded-md bg-muted/20 flex flex-col items-center justify-center text-muted-foreground text-center"
+              data-ai-hint="knowledge graph"
+            >
+              <Share2 className="h-16 w-16 text-primary/50 mb-3" />
+              <p className="font-semibold text-foreground/90">個人知識圖譜 (模擬展示)</p>
+              <p className="text-xs mt-1">此區域將展示您的學習脈絡視覺化圖譜。</p>
+            </div>
           ) : (
             <div className="h-48 p-4 border rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground">
               請先輸入學習數據並點擊下方的「生成學習狀況分析」按鈕以查看您的知識圖譜。
@@ -140,7 +143,7 @@ export default function LearningAnalysisPage() {
                   <AlertDescription>{errorMessage}</AlertDescription>
                 </Alert>
               )}
-              {isLoading && !errorMessage && !analysisResult ? ( // Adjusted loading condition
+              {isLoading && !errorMessage && !analysisResult ? ( 
                 <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center text-muted-foreground">
                   AI 正在分析學習數據並構建學習狀況見解，請稍候...
                 </div>
