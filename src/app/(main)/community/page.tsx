@@ -5,18 +5,18 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea"; // Added Textarea import
+import { Textarea } from "@/components/ui/textarea";
 import { Users, MessageSquare, Search, ThumbsUp, MessageCircle } from "lucide-react";
-import { useAuth } from '@/hooks/useAuth'; // Added useAuth import
+import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils'; // Import cn utility
 
 // Placeholder data for posts - in a real app, this would come from a backend
-const initialPosts = [
+const initialPostsData = [
   {
     id: '1',
     author: '寶玉哥哥',
     timestamp: '2小時前',
-    title: '關於金陵十二釵判詞的個人淺見',
-    content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡...',
+    content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡... 判詞云：「霽月難逢，彩雲易散。心比天高，身為下賤。風流靈巧招人怨。壽夭多因毀謗生，多情公子空牽念。」此處暗示晴雯命運。又云：「枉自溫柔和順，空雲似桂如蘭。堪羨優伶有福，誰知公子無緣。」此為襲人。',
     likes: 15,
     comments: 4,
     tags: ['判詞解析', '人物探討'],
@@ -25,8 +25,7 @@ const initialPosts = [
     id: '2',
     author: '瀟湘妃子',
     timestamp: '5小時前',
-    title: '葬花詞中的意境與情感',
-    content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？',
+    content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？「試看春殘花漸落，便是紅顏老死時。一朝春盡紅顏老，花落人亡兩不知！」全詩淒婉動人，道盡了黛玉的多愁善感和悲劇命運。',
     likes: 28,
     comments: 9,
     tags: ['詩詞賞析', '黛玉'],
@@ -35,15 +34,23 @@ const initialPosts = [
     id: '3',
     author: '村夫賈雨村',
     timestamp: '1天前',
-    title: '論《紅樓夢》對清代社會風貌的反映',
-    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微...',
+    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。',
     likes: 12,
     comments: 2,
     tags: ['社會背景', '歷史研究'],
   },
 ];
 
-type Post = typeof initialPosts[0];
+type Post = {
+  id: string;
+  author: string;
+  timestamp: string;
+  content: string;
+  likes: number;
+  comments: number;
+  tags: string[];
+  isExpanded?: boolean; // For toggling content expansion
+};
 
 const MAX_POST_LENGTH = 5000;
 
@@ -107,33 +114,40 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
 
 
 export default function CommunityPage() {
-  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [posts, setPosts] = useState<Post[]>(initialPostsData.map(p => ({ ...p, isExpanded: false })));
   const [searchTerm, setSearchTerm] = useState('');
-  const { user } = useAuth(); // Get user for potential future use or display
+  const { user } = useAuth(); 
 
   const handleNewPost = (content: string) => {
-    // Placeholder for actual post submission logic
-    console.log("New post content:", content);
     const newPost: Post = {
       id: (posts.length + 1).toString(),
-      author: user?.displayName || '匿名用戶', // Use logged-in user's name
+      author: user?.displayName || '匿名用戶',
       timestamp: '剛剛',
-      title: content.substring(0, 20) + (content.length > 20 ? '...' : ''), // Simple title generation
       content: content,
       likes: 0,
       comments: 0,
       tags: ['新帖'],
+      isExpanded: false,
     };
-    setPosts([newPost, ...posts]); // Add new post to the beginning of the list
+    setPosts([newPost, ...posts]);
   };
 
+  const toggleExpandPost = (postId: string) => {
+    setPosts(prevPosts =>
+      prevPosts.map(p =>
+        p.id === postId ? { ...p, isExpanded: !p.isExpanded } : p
+      )
+    );
+  };
 
   const filteredPosts = posts.filter(post => 
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
     post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Heuristic to determine if content is long enough to be clamped/expanded
+  const isContentLong = (content: string) => content.length > 150; // Adjust character count as needed
 
   return (
     <div className="space-y-6">
@@ -149,7 +163,6 @@ export default function CommunityPage() {
                 用戶交流、分享心得的園地。暢所欲言，共同探討《紅樓夢》的無窮魅力。
               </CardDescription>
             </div>
-            {/* Removed the old "發表新主題" button */}
           </div>
         </CardHeader>
         <CardContent>
@@ -157,7 +170,7 @@ export default function CommunityPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input 
-                placeholder="搜索帖子標題、內容、作者或標籤..." 
+                placeholder="搜索帖子內容、作者或標籤..." 
                 className="pl-10 bg-background/50 text-base"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -165,15 +178,13 @@ export default function CommunityPage() {
             </div>
           </div>
 
-          {/* New Post Form */}
           {user && <NewPostForm onPostSubmit={handleNewPost} />}
-
 
           {filteredPosts.length > 0 ? (
             <div className="space-y-6">
               {filteredPosts.map((post) => (
                 <Card key={post.id} className="shadow-lg overflow-hidden bg-card/70 hover:shadow-primary/10 transition-shadow">
-                  <CardHeader>
+                  <CardHeader className="pb-3">
                     <div className="flex items-center gap-3 mb-2">
                       <i 
                         className="fa fa-user-circle text-primary" 
@@ -185,17 +196,30 @@ export default function CommunityPage() {
                         <p className="text-xs text-muted-foreground">{post.timestamp}</p>
                       </div>
                     </div>
-                    <CardTitle className="font-artistic text-xl hover:text-accent cursor-pointer">{post.title}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-foreground/80 leading-relaxed line-clamp-3 mb-3">{post.content}</p>
-                    <div className="flex flex-wrap gap-2">
+                  <CardContent className="pt-0">
+                    <p className={cn(
+                        "text-foreground/80 leading-relaxed whitespace-pre-line",
+                        !post.isExpanded && "line-clamp-3"
+                      )}
+                    >
+                      {post.content}
+                    </p>
+                    {isContentLong(post.content) && (
+                      <button
+                        onClick={() => toggleExpandPost(post.id)}
+                        className="text-blue-500 hover:underline text-sm mt-2"
+                      >
+                        {post.isExpanded ? '收起' : '更多'}
+                      </button>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-3">
                       {post.tags.map(tag => (
                         <span key={tag} className="text-xs bg-accent/20 text-accent-foreground py-0.5 px-2 rounded-full cursor-pointer hover:bg-accent/30">#{tag}</span>
                       ))}
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-between items-center pt-4 border-t border-border/50">
+                  <CardFooter className="flex justify-start items-center pt-4 border-t border-border/50">
                     <div className="flex gap-4 text-muted-foreground">
                       <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-primary">
                         <ThumbsUp className="h-4 w-4" /> {post.likes}
@@ -204,7 +228,6 @@ export default function CommunityPage() {
                         <MessageCircle className="h-4 w-4" /> {post.comments}
                       </Button>
                     </div>
-                    <Button variant="outline" size="sm" className="hover:bg-accent/10 hover:text-accent hover:border-accent">閱讀全文</Button>
                   </CardFooter>
                 </Card>
               ))}
@@ -223,5 +246,3 @@ export default function CommunityPage() {
     </div>
   );
 }
-
-    
