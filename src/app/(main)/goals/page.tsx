@@ -15,6 +15,8 @@ import { generateGoalSuggestions, type GenerateGoalSuggestionsInput, type Genera
 import { analyzeLearningData, type LearningAnalysisInput, type LearningAnalysisOutput } from '@/ai/flows/learning-analysis';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { CardBody, CardHeader as ChartCardHeader, CardTitle as ChartCardTitle } from '@/components/ui/chart'; // Assuming chart components exist
 
 interface UserGoal {
   id: string;
@@ -22,6 +24,18 @@ interface UserGoal {
   progress: number; // 0-100
   isAchieved: boolean;
 }
+
+// Sample data for the learning curve chart
+const learningCurveData = [
+  { chapter: "第1回", comprehension: 30, timeSpent: 60 },
+  { chapter: "第2回", comprehension: 45, timeSpent: 75 },
+  { chapter: "第3回", comprehension: 50, timeSpent: 70 },
+  { chapter: "第4回", comprehension: 65, timeSpent: 80 },
+  { chapter: "第5回", comprehension: 70, timeSpent: 85 },
+  { chapter: "第6回", comprehension: 72, timeSpent: 90 },
+  { chapter: "第7回", comprehension: 80, timeSpent: 95 },
+];
+
 
 export default function GoalsPage() {
   const [userLearningSummary, setUserLearningSummary] = useState<string>("目前已初步閱讀《紅樓夢》前五回，對主要人物如賈寶玉、林黛玉、薛寶釵有基本印象。對小說開篇的甄士隱故事線較為模糊。");
@@ -150,15 +164,41 @@ export default function GoalsPage() {
         </CardHeader>
       </Card>
 
-      {/* Learning Progress Display Area - Placeholder */}
+      {/* Learning Progress Display Area - Simulated Chart */}
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="font-artistic text-xl text-foreground/90">學習進度總覽</CardTitle>
-          <CardDescription>您的學習曲線將在此以山水畫卷風格呈現。</CardDescription>
+          <CardTitle className="font-artistic text-xl text-foreground/90">學習進度總覽 (模擬學習曲線)</CardTitle>
+          <CardDescription>您的學習曲線將在此以圖表風格呈現。</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="aspect-[16/7] w-full bg-muted/30 rounded-md flex items-center justify-center">
-            <Image src="https://placehold.co/800x350.png?text=學習進程畫卷+(示意)" alt="學習進程畫卷示意圖" width={800} height={350} className="rounded-md object-cover" data-ai-hint="chinese landscape scroll" />
+          <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={learningCurveData}
+                margin={{
+                  top: 5,
+                  right: 20,
+                  left: -20, // Adjust to make Y-axis labels visible
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
+                <XAxis dataKey="chapter" stroke="hsl(var(--foreground)/0.7)" fontSize={12} />
+                <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={12} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--background))',
+                    borderColor: 'hsl(var(--border))',
+                    color: 'hsl(var(--foreground))',
+                    borderRadius: 'var(--radius)',
+                  }}
+                  labelStyle={{ color: 'hsl(var(--primary))' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '12px', color: 'hsl(var(--foreground)/0.8)' }} />
+                <Line type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
+                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--accent))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--accent))', r:3 }}/>
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
@@ -199,11 +239,11 @@ export default function GoalsPage() {
             )}
           </div>
 
-          {/* AI Goal Suggestions */}
+          {/* AI Goal Suggestions - Based on "SOLO" theory  */}
           <div className="space-y-4 p-4 rounded-md bg-primary/5 border border-primary/20">
-            <h3 className="font-semibold text-primary">AI 目標建議 (基於SOLO理論)</h3>
+            <h3 className="font-semibold text-primary">AI 目標建議</h3>
             <div>
-              <Label htmlFor="learningSummary" className="text-sm text-foreground/80">您的當前學習概況 (簡述)</Label>
+              <Label htmlFor="learningSummary" className="text-sm text-foreground/80">您的當前學習概況 (簡述) 正式系統會由AI自主判斷，不須用戶輸入</Label>
               <Textarea 
                 id="learningSummary"
                 value={userLearningSummary}
@@ -342,3 +382,4 @@ export default function GoalsPage() {
     </div>
   );
 }
+
