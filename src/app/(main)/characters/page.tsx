@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-
+import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph'; // Added import
 
 const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }) => {
   if (!data) {
@@ -68,32 +68,17 @@ export default function LearningAnalysisPage() {
       <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
-            <BookOpen className="h-7 w-7" />
-            個人學習知識圖譜
+            <BookOpen className="h-7 w-7" /> {/* Consider a more specific icon like Share2 or Brain later */}
+            個人學習知識圖譜 (模擬)
           </CardTitle>
           <CardDescription>
-            根據您的學習數據生成的專屬知識脈絡，助您了解學習現狀與強弱項。
+            此處展示一個基於《紅樓夢》第一回內容的前端模擬知識圖譜，未來將根據您的實際學習歷史動態生成。
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="h-48 p-4 border rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground">
-              知識圖譜生成中...
-            </div>
-          ) : analysisResult ? (
-            <div 
-              className="h-48 p-4 border rounded-md bg-muted/20 flex flex-col items-center justify-center text-muted-foreground text-center"
-              data-ai-hint="knowledge graph"
-            >
-              <Share2 className="h-16 w-16 text-primary/50 mb-3" />
-              <p className="font-semibold text-foreground/90">個人知識圖譜 (模擬展示)</p>
-              <p className="text-xs mt-1">此區域將展示您的學習脈絡視覺化圖譜。</p>
-            </div>
-          ) : (
-            <div className="h-48 p-4 border rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground">
-              請先輸入學習數據並點擊下方的「生成學習狀況分析」按鈕以查看您的知識圖譜。
-            </div>
-          )}
+          <div className="p-1 border rounded-md bg-muted/20">
+            <SimulatedKnowledgeGraph />
+          </div>
         </CardContent>
       </Card>
 
@@ -128,7 +113,7 @@ export default function LearningAnalysisPage() {
               <div className="flex items-start p-3 rounded-md bg-muted/50 border border-dashed border-accent/50 text-accent">
                 <Info className="h-5 w-5 mr-2 shrink-0 mt-0.5" />
                 <p className="text-xs">
-                  <strong>提示：</strong> 輸入的學習數據越詳細（如閱讀章節、時長、測驗分數、筆記等），分析結果越準確。
+                  <strong>提示：</strong> 輸入的學習數據越詳細（如閱讀章節、時長、測驗分數、筆記等），下方生成的分析結果越準確。
                 </p>
               </div>
             </div>
