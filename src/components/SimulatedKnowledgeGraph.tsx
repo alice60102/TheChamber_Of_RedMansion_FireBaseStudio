@@ -1,6 +1,7 @@
 
 "use client";
 import type { DetailedHTMLProps, HTMLAttributes } from 'react';
+import { cn } from "@/lib/utils"; // Added import
 
 interface Node {
   id: string;
