@@ -24,13 +24,13 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 50, timeSpent: 75 },
-  { chapter: "第2回", comprehension: 65, timeSpent: 60 },
-  { chapter: "第3回", comprehension: 45, timeSpent: 70 },
-  { chapter: "第4回", comprehension: 30, timeSpent: 80 },
-  { chapter: "第5回", comprehension: 70, timeSpent: 85 },
-  { chapter: "第6回", comprehension: 72, timeSpent: 90 },
-  { chapter: "第7回", comprehension: 80, timeSpent: 95 },
+  { chapter: "第1回", comprehension: 60, timeSpent: 75 }, // comprehension: blue-ish (chart-2), timeSpent: gold (primary)
+  { chapter: "第2回", comprehension: 75, timeSpent: 60 },
+  { chapter: "第3回", comprehension: 55, timeSpent: 70 },
+  { chapter: "第4回", comprehension: 40, timeSpent: 80 },
+  { chapter: "第5回", comprehension: 80, timeSpent: 85 },
+  { chapter: "第6回", comprehension: 82, timeSpent: 90 },
+  { chapter: "第7回", comprehension: 90, timeSpent: 95 },
 ];
 
 // Sample data for simulated Cognitive Heatmap (Mastery by Topic)
@@ -195,8 +195,8 @@ export default function GoalsPage() {
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
                 <XAxis dataKey="chapter" stroke="hsl(var(--foreground)/0.7)" fontSize={12} />
-                <YAxis yAxisId="left" stroke="hsl(var(--primary))" fontSize={12} />
-                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-2))" fontSize={12} />
+                <YAxis yAxisId="left" stroke="hsl(var(--chart-2))" fontSize={12} />
+                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--primary))" fontSize={12} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--background))',
@@ -207,8 +207,8 @@ export default function GoalsPage() {
                   labelStyle={{ color: 'hsl(var(--primary))' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px', color: 'hsl(var(--foreground)/0.8)' }} />
-                <Line yAxisId="left" type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
-                <Line yAxisId="right" type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
+                <Line yAxisId="left" type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
+                <Line yAxisId="right" type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -313,7 +313,7 @@ export default function GoalsPage() {
           <CardDescription>對您的學習目標有疑問？或需要針對性指導？在此與AI互動。</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 p-4 rounded-md" style={{border: '1px solid hsl(var(--border))', backgroundImage: 'url(https://placehold.co/600x400/FFF8E1/4A3B31.png?text=書卷背景)', backgroundSize: 'cover', backgroundPosition: 'center'}} data-ai-hint="old paper scroll">
+          <div className="space-y-3 p-4 rounded-md" style={{border: '1px solid hsl(var(--border))', backgroundImage: 'url(https://placehold.co/600x400.png?tint=FFF8E1,4A3B31)', backgroundSize: 'cover', backgroundPosition: 'center'}} data-ai-hint="old paper scroll">
             <Textarea 
               value={aiCompanionQuery}
               onChange={(e) => setAiCompanionQuery(e.target.value)}
@@ -349,14 +349,14 @@ export default function GoalsPage() {
               <AlertDescription>{learningAnalysisError}</AlertDescription>
             </Alert>
           )}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6"> {/* Removed md:grid-cols-2 to stack charts */}
             <div>
               <h4 className="font-semibold mb-2 text-primary">文本主題掌握度 (模擬)</h4>
               <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="knowledge graph topic">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={cognitiveHeatmapData} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
-                    <XAxis dataKey="name" stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
+                    <XAxis dataKey="name" stroke="hsl(var(--foreground)/0.7)" fontSize={10} interval={0} />
                     <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={10}/>
                     <Tooltip
                       contentStyle={{
