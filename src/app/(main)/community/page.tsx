@@ -198,7 +198,7 @@ function PostCard({ post: initialPost }: { post: Post }) {
         )}
         <div className="flex flex-wrap gap-2 mt-3">
           {initialPost.tags.map(tag => (
-            <span key={tag} className="text-xs bg-accent/20 text-accent-foreground py-0.5 px-2 rounded-full cursor-pointer hover:bg-accent/30">#{tag}</span>
+            <span key={tag} className="text-xs bg-blue-500/20 text-blue-400 py-0.5 px-2 rounded-full cursor-pointer hover:bg-blue-500/30">#{tag}</span>
           ))}
         </div>
       </CardContent>
