@@ -1,2 +1,344 @@
-// This file has been removed as per user request.
-// The "學習目標" (Learning Goals) feature is no longer part of the application.
+
+"use client";
+
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Target, Lightbulb, Brain, BarChartHorizontalBig, BookOpen, AlertTriangle, Zap, PlusCircle, Trash2, Award } from "lucide-react";
+import { generateGoalSuggestions, type GenerateGoalSuggestionsInput, type GenerateGoalSuggestionsOutput } from '@/ai/flows/generate-goal-suggestions';
+import { analyzeLearningData, type LearningAnalysisInput, type LearningAnalysisOutput } from '@/ai/flows/learning-analysis';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+interface UserGoal {
+  id: string;
+  text: string;
+  progress: number; // 0-100
+  isAchieved: boolean;
+}
+
+export default function GoalsPage() {
+  const [userLearningSummary, setUserLearningSummary] = useState<string>("目前已初步閱讀《紅樓夢》前五回，對主要人物如賈寶玉、林黛玉、薛寶釵有基本印象。對小說開篇的甄士隱故事線較為模糊。");
+  const [aiSuggestedGoals, setAiSuggestedGoals] = useState<GenerateGoalSuggestionsOutput | null>(null);
+  const [isLoadingAiGoals, setIsLoadingAiGoals] = useState(false);
+  const [aiGoalsError, setAiGoalsError] = useState<string | null>(null);
+
+  const [userGoals, setUserGoals] = useState<UserGoal[]>([]);
+  const [newGoalText, setNewGoalText] = useState<string>("");
+
+  const [learningAnalysis, setLearningAnalysis] = useState<LearningAnalysisOutput | null>(null);
+  const [isLoadingLearningAnalysis, setIsLoadingLearningAnalysis] = useState(false);
+  const [learningAnalysisError, setLearningAnalysisError] = useState<string | null>(null);
+
+  const [aiCompanionQuery, setAiCompanionQuery] = useState<string>("");
+  const [aiCompanionResponse, setAiCompanionResponse] = useState<string>("");
+  const [isLoadingAiCompanion, setIsLoadingAiCompanion] = useState(false);
+
+  const handleGenerateAiGoals = async () => {
+    if (!userLearningSummary.trim()) {
+      setAiGoalsError("請先輸入您的學習概況。");
+      return;
+    }
+    setIsLoadingAiGoals(true);
+    setAiGoalsError(null);
+    setAiSuggestedGoals(null);
+    try {
+      const input: GenerateGoalSuggestionsInput = { userLearningSummary };
+      const result = await generateGoalSuggestions(input);
+      setAiSuggestedGoals(result);
+    } catch (error) {
+      console.error("Error generating AI goal suggestions:", error);
+      setAiGoalsError(error instanceof Error ? error.message : "生成AI目標建議時發生未知錯誤。");
+    }
+    setIsLoadingAiGoals(false);
+  };
+
+  const handleAddUserGoal = () => {
+    if (newGoalText.trim()) {
+      setUserGoals([...userGoals, { id: Date.now().toString(), text: newGoalText, progress: 0, isAchieved: false }]);
+      setNewGoalText("");
+    }
+  };
+
+  const handleUpdateGoalProgress = (id: string, progress: number) => {
+    setUserGoals(userGoals.map(goal => goal.id === id ? { ...goal, progress: Math.min(100, Math.max(0, progress)), isAchieved: progress >= 100 } : goal));
+  };
+  
+  const handleDeleteGoal = (id: string) => {
+    setUserGoals(userGoals.filter(goal => goal.id !== id));
+  };
+
+  const handleGenerateLearningAnalysis = async () => {
+     if (!userLearningSummary.trim() && userGoals.length === 0) {
+      setLearningAnalysisError("請提供學習概況或設定一些目標以進行分析。");
+      return;
+    }
+    setIsLoadingLearningAnalysis(true);
+    setLearningAnalysisError(null);
+    setLearningAnalysis(null);
+    try {
+      // Combine summary and goals for a richer analysis context
+      const analysisInputText = `學習概況：${userLearningSummary}\n設定的目標：${userGoals.map(g => `${g.text} (進度: ${g.progress}%)`).join('; ')}`;
+      const input: LearningAnalysisInput = { learningData: analysisInputText };
+      const result = await analyzeLearningData(input);
+      setLearningAnalysis(result);
+    } catch (error) {
+      console.error("Error generating learning analysis:", error);
+      setLearningAnalysisError(error instanceof Error ? error.message : "生成學習分析時發生未知錯誤。");
+    }
+    setIsLoadingLearningAnalysis(false);
+  };
+  
+  const handleAiCompanionSubmit = async () => {
+    if (!aiCompanionQuery.trim()) return;
+    setIsLoadingAiCompanion(true);
+    // Placeholder: In a real app, this would call a dedicated AI flow for Q&A.
+    // For now, we'll just echo the query or provide a canned response.
+    setAiCompanionResponse(`AI正在思考關於「${aiCompanionQuery}」的回答... (此功能待實現更複雜的AI對話流程)`);
+    // Simulate AI response delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setAiCompanionResponse(`針對「${aiCompanionQuery}」：AI建議您參考相關章節的研讀筆記，並嘗試將此問題與您設定的學習目標關聯起來。例如，如果您的目標是理解主要人物性格，可以思考這個問題如何幫助您深化對某人物的認識。(此為佔位回應)`);
+    setIsLoadingAiCompanion(false);
+  };
+
+  const renderGoalList = (goals: UserGoal[]) => (
+    <div className="space-y-3">
+      {goals.map(goal => (
+        <Card key={goal.id} className={`p-3 shadow-sm ${goal.isAchieved ? 'bg-green-500/10 border-green-500/50' : 'bg-card/80'}`}>
+          <div className="flex justify-between items-center">
+            <p className={`text-sm ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>{goal.text}</p>
+            <div className="flex items-center gap-2">
+              {!goal.isAchieved && (
+                <Input 
+                  type="number" 
+                  value={goal.progress} 
+                  onChange={(e) => handleUpdateGoalProgress(goal.id, parseInt(e.target.value))}
+                  className="w-16 h-8 text-xs p-1 bg-background/50"
+                  min="0" max="100"
+                />
+              )}
+              {goal.isAchieved && <Award className="h-5 w-5 text-accent" />}
+              <Button variant="ghost" size="icon" onClick={() => handleDeleteGoal(goal.id)} className="h-7 w-7">
+                <Trash2 className="h-4 w-4 text-destructive/70 hover:text-destructive" />
+              </Button>
+            </div>
+          </div>
+          {!goal.isAchieved && <Progress value={goal.progress} className="h-2 mt-1 [&>div]:bg-accent" />}
+          {goal.isAchieved && <p className="text-xs text-green-600 mt-1">目標已達成！</p>}
+        </Card>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-8">
+      <Card className="shadow-xl">
+        <CardHeader>
+          <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
+            <Target className="h-7 w-7" />
+            學習目標設定與追蹤
+          </CardTitle>
+          <CardDescription>
+            在此設定您的《紅樓夢》學習目標，並利用 AI 輔助獲得個性化建議，追蹤您的學習進程。
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      {/* Learning Progress Display Area - Placeholder */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-artistic text-xl text-foreground/90">學習進度總覽</CardTitle>
+          <CardDescription>您的學習曲線將在此以山水畫卷風格呈現。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="aspect-[16/7] w-full bg-muted/30 rounded-md flex items-center justify-center">
+            <Image src="https://placehold.co/800x350.png?text=學習進程畫卷+(示意)" alt="學習進程畫卷示意圖" width={800} height={350} className="rounded-md object-cover" data-ai-hint="chinese landscape scroll" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Personal Goal Setting & AI Suggestions */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-artistic text-xl text-foreground/90">設定與追蹤您的學習目標</CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-2 gap-6">
+          {/* User Goal Setting */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-primary">我的目標</h3>
+            <div className="flex gap-2">
+              <Input 
+                placeholder="輸入您的新學習目標..." 
+                value={newGoalText}
+                onChange={(e) => setNewGoalText(e.target.value)}
+                className="bg-background/50"
+              />
+              <Button onClick={handleAddUserGoal} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                <PlusCircle className="h-4 w-4 mr-1.5"/>新增
+              </Button>
+            </div>
+            {userGoals.length > 0 ? (
+              <ScrollArea className="h-60 pr-3">
+                {renderGoalList(userGoals.filter(g => !g.isAchieved))}
+              </ScrollArea>
+            ) : <p className="text-sm text-muted-foreground">暫無設定目標。請在上方輸入框添加您的第一個目標！</p>}
+
+            {userGoals.filter(g => g.isAchieved).length > 0 && (
+              <div className="mt-6">
+                <h4 className="font-semibold text-green-600 mb-2 flex items-center gap-1.5"><Award className="h-5 w-5"/>已達成成就</h4>
+                <ScrollArea className="h-40 pr-3">
+                 {renderGoalList(userGoals.filter(g => g.isAchieved))}
+                </ScrollArea>
+              </div>
+            )}
+          </div>
+
+          {/* AI Goal Suggestions */}
+          <div className="space-y-4 p-4 rounded-md bg-primary/5 border border-primary/20">
+            <h3 className="font-semibold text-primary">AI 目標建議 (基於SOLO理論)</h3>
+            <div>
+              <Label htmlFor="learningSummary" className="text-sm text-foreground/80">您的當前學習概況 (簡述)</Label>
+              <Textarea 
+                id="learningSummary"
+                value={userLearningSummary}
+                onChange={(e) => setUserLearningSummary(e.target.value)}
+                placeholder="例如：已閱讀前十章，對主要人物關係有初步了解..."
+                className="min-h-[80px] bg-background/70"
+                rows={3}
+              />
+            </div>
+            <Button onClick={handleGenerateAiGoals} disabled={isLoadingAiGoals} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+              <Zap className="h-4 w-4 mr-1.5"/> {isLoadingAiGoals ? "建議生成中..." : "獲取 AI 目標建議"}
+            </Button>
+            {aiGoalsError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>錯誤</AlertTitle>
+                <AlertDescription>{aiGoalsError}</AlertDescription>
+              </Alert>
+            )}
+            {aiSuggestedGoals && !isLoadingAiGoals && (
+              <ScrollArea className="h-72 mt-2">
+                <Accordion type="multiple" className="w-full">
+                  {Object.entries(aiSuggestedGoals).map(([levelKey, goalsArray]) => (
+                    <AccordionItem value={levelKey} key={levelKey} className="border-accent/30">
+                      <AccordionTrigger className="text-sm font-medium text-accent hover:text-accent/80 py-2">
+                        {
+                          levelKey === 'singlePointGoals' ? '單點結構目標' :
+                          levelKey === 'multiPointGoals' ? '多點結構目標' :
+                          levelKey === 'relationalGoals' ? '關聯結構目標' :
+                          levelKey === 'extendedAbstractGoals' ? '抽象拓展目標' : levelKey
+                        }
+                      </AccordionTrigger>
+                      <AccordionContent className="bg-card/50 p-0">
+                        <ul className="list-none p-3 space-y-1.5">
+                          {(goalsArray as string[]).map((goal, index) => (
+                            <li key={index} className="text-xs text-foreground/80 flex items-start">
+                              <Lightbulb className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-accent/70 shrink-0" />
+                              <span>{goal}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </ScrollArea>
+            )}
+          </div>
+        </CardContent>
+         <CardFooter>
+            <p className="text-xs text-muted-foreground">提示：AI建議的目標可作為參考，您可以選擇性地將它們添加到「我的目標」中進行追蹤。</p>
+        </CardFooter>
+      </Card>
+
+      {/* AI Q&A Interaction Area */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-artistic text-xl text-foreground/90">AI學伴 - 目標輔導</CardTitle>
+          <CardDescription>對您的學習目標有疑問？或需要針對性指導？在此與AI互動。</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 p-4 rounded-md" style={{border: '1px solid hsl(var(--border))', backgroundImage: 'url(https://placehold.co/600x400/FFF8E1/4A3B31.png?text=書卷背景)', backgroundSize: 'cover', backgroundPosition: 'center'}} data-ai-hint="old paper scroll">
+            <Textarea 
+              value={aiCompanionQuery}
+              onChange={(e) => setAiCompanionQuery(e.target.value)}
+              placeholder="輸入您關於學習目標的問題..."
+              className="min-h-[80px] bg-background/80"
+              rows={3}
+            />
+            <Button onClick={handleAiCompanionSubmit} disabled={isLoadingAiCompanion} className="bg-primary text-primary-foreground">
+              {isLoadingAiCompanion ? "發送中..." : "提問AI學伴"}
+            </Button>
+            {aiCompanionResponse && (
+              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm text-foreground/80 whitespace-pre-line">
+                <strong>AI學伴回覆：</strong> {aiCompanionResponse}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Learning Analysis Interface */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-artistic text-xl text-foreground/90">個人化學習分析</CardTitle>
+          <CardDescription>基於您的學習數據與目標，AI提供深度分析與建議。</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+           <Button onClick={handleGenerateLearningAnalysis} disabled={isLoadingLearningAnalysis} className="w-full md:w-auto bg-accent text-accent-foreground">
+            <Brain className="h-4 w-4 mr-2" /> {isLoadingLearningAnalysis ? "分析生成中..." : "生成學習分析報告"}
+          </Button>
+           {learningAnalysisError && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>分析錯誤</AlertTitle>
+              <AlertDescription>{learningAnalysisError}</AlertDescription>
+            </Alert>
+          )}
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-semibold mb-2 text-primary">認知熱力圖 (示意)</h4>
+              <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center">
+                 <Image src="https://placehold.co/600x400.png?text=大觀園俯瞰圖基底熱力圖+(示意)" alt="認知熱力圖示意" width={600} height={400} className="rounded-md object-cover" data-ai-hint="garden map overlay" />
+              </div>
+              {learningAnalysis?.cognitiveHeatmap && <p className="text-xs mt-2 text-foreground/80 p-2 bg-muted/20 rounded border border-border/30">{learningAnalysis.cognitiveHeatmap}</p>}
+            </div>
+            <div>
+              <h4 className="font-semibold mb-2 text-primary">閱讀軌跡 (示意)</h4>
+              <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center">
+                <Image src="https://placehold.co/600x400.png?text=山水畫卷風格閱讀軌跡+(示意)" alt="閱讀軌跡示意" width={600} height={400} className="rounded-md object-cover" data-ai-hint="scroll journey map" />
+              </div>
+            </div>
+          </div>
+          {learningAnalysis && (
+            <Card className="mt-4 bg-card/50 p-4" style={{border: '1px solid hsl(var(--border))'}}>
+              <CardTitle className="text-lg font-artistic text-primary mb-2">AI 個性化學習建議</CardTitle>
+              <ScrollArea className="h-40 text-sm text-foreground/80 space-y-2 pr-2">
+                {learningAnalysis.comprehensionDeviations && (
+                  <div>
+                    <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
+                    <p className="pl-5">{learningAnalysis.comprehensionDeviations}</p>
+                  </div>
+                )}
+                {learningAnalysis.recommendations && (
+                  <div className="mt-2">
+                    <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
+                    <p className="pl-5">{learningAnalysis.recommendations}</p>
+                  </div>
+                )}
+              </ScrollArea>
+              <p className="text-xs text-muted-foreground mt-3 text-center">(此處未來可融入學習倦怠預警、適應性路徑調整等更多AI分析結果)</p>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

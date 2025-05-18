@@ -12,7 +12,8 @@ import {
   Brain,
   Library,
   LogOut,
-  Users, // Added Users icon
+  Users,
+  Target, // Added Target icon for Goals
 } from "lucide-react";
 
 import {
@@ -51,9 +52,10 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "Dashboard" },
   { href: "/read", label: "章回閱讀", icon: BookOpen, tooltip: "Read Chapters" },
+  { href: "/goals", label: "學習目標", icon: Target, tooltip: "Learning Goals" },
   { href: "/characters", label: "學習狀況分析", icon: Brain, tooltip: "Learning Status Analysis" },
   { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" },
-  { href: "/community", label: "紅學社", icon: Users, tooltip: "Community Forum" }, // Added Community link
+  { href: "/community", label: "紅學社", icon: Users, tooltip: "Community Forum" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -64,10 +66,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push('/login'); // Redirect to login after logout
+      router.push('/login'); 
     } catch (error) {
       console.error("Logout error:", error);
-      // Optionally show a toast notification for logout error
     }
   };
 
@@ -141,7 +142,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md">
           <SidebarTrigger className="md:hidden" />
           <div className="flex items-center gap-4">
-            {/* Add any header content here, like search or notifications */}
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6">
