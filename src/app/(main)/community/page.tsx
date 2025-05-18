@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
-import { Label } from '@/components/ui/label'; // Added import for Label
+import { Label } from '@/components/ui/label';
 
 // Placeholder data for posts - in a real app, this would come from a backend
 const initialPostsData = [
@@ -25,7 +25,7 @@ const initialPostsData = [
     id: '2',
     author: '瀟湘妃子',
     timestamp: '5小時前',
-    content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？「試看春殘花漸落，便是紅顏老死時。一朝春盡紅顏老，花落人亡兩不知！」全詩淒婉動人，道盡了黛玉的多愁善感和悲劇命運。',
+    content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？「試看春殘花漸落，便是紅顏老死時。一朝春盡紅顏老，花落人亡兩不知！」全詩淒婉動人，道盡了黛玉的多愁 sensibilia (多愁善感) and tragic fate.',
     likes: 28,
     comments: 9,
     tags: ['詩詞賞析', '黛玉'],
@@ -49,6 +49,11 @@ type Post = {
   likes: number;
   comments: number;
   tags: string[];
+};
+
+type PostedComment = {
+  author: string;
+  text: string;
 };
 
 const MAX_POST_LENGTH = 5000;
@@ -115,6 +120,7 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
 function PostCard({ post: initialPost }: { post: Post }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const showMoreButton = initialPost.content.length > CONTENT_TRUNCATE_LENGTH;
+  const { user } = useAuth();
 
   // Likes state
   const [isLiked, setIsLiked] = useState(false);
@@ -133,11 +139,15 @@ function PostCard({ post: initialPost }: { post: Post }) {
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [currentCommentsCount, setCurrentCommentsCount] = useState(initialPost.comments);
-  const [postedComments, setPostedComments] = useState<string[]>([]); // To show newly posted comments (local only)
+  const [postedComments, setPostedComments] = useState<PostedComment[]>([]); 
 
   const handleSubmitComment = () => {
     if (newComment.trim()) {
-      setPostedComments(prev => [...prev, newComment.trim()]);
+      const newCommentEntry: PostedComment = {
+        author: user?.displayName || '匿名用戶',
+        text: newComment.trim(),
+      };
+      setPostedComments(prev => [...prev, newCommentEntry]);
       setCurrentCommentsCount(prev => prev + 1);
       setNewComment('');
       // Optionally keep the input open: setShowCommentInput(true);
@@ -207,16 +217,19 @@ function PostCard({ post: initialPost }: { post: Post }) {
             </Button>
           </div>
           {postedComments.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-border/30 space-y-2">
+            <div className="mt-3 pt-3 border-t border-border/30 space-y-3">
               {/* <h4 className="text-xs font-semibold text-muted-foreground">您的評論:</h4> */}
               {postedComments.map((comment, index) => (
-                <div key={index} className="text-xs p-2 bg-background/30 rounded-md text-foreground/80 flex items-start gap-2">
-                   <i 
+                <div key={index} className="p-2 bg-background/30 rounded-md text-foreground/80 flex items-start gap-2 leading-relaxed whitespace-pre-line">
+                  <i 
                     className="fa fa-user-circle text-primary/70 mt-0.5" 
                     aria-hidden="true"
-                    style={{ fontSize: '16px', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ fontSize: '20px', width: '20px', height: '20px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                   ></i>
-                  <span>{comment}</span>
+                  <div>
+                    <span className="font-semibold text-primary/90">{comment.author}: </span>
+                    <span>{comment.text}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -302,6 +315,3 @@ export default function CommunityPage() {
     </div>
   );
 }
-
-
-    
