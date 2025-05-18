@@ -8,14 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-// Progress component is no longer used for user goals
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Target, Lightbulb, Brain, BarChartHorizontalBig, BookOpen, AlertTriangle, Zap, PlusCircle, Trash2, Award, CheckCircle2, Circle } from "lucide-react"; // Added CheckCircle2, Circle
+import { Target, Lightbulb, Brain, BarChartHorizontalBig, BookOpen, AlertTriangle, Zap, PlusCircle, Trash2, Award, CheckCircle2, Circle } from "lucide-react";
 import { generateGoalSuggestions, type GenerateGoalSuggestionsInput, type GenerateGoalSuggestionsOutput } from '@/ai/flows/generate-goal-suggestions';
 import { analyzeLearningData, type LearningAnalysisInput, type LearningAnalysisOutput } from '@/ai/flows/learning-analysis';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
 
 interface UserGoal {
   id: string;
@@ -25,13 +24,34 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 65, timeSpent: 60 }, // Swapped colors back as per user
-  { chapter: "第2回", comprehension: 50, timeSpent: 75 },
+  { chapter: "第1回", comprehension: 50, timeSpent: 75 },
+  { chapter: "第2回", comprehension: 65, timeSpent: 60 },
   { chapter: "第3回", comprehension: 45, timeSpent: 70 },
   { chapter: "第4回", comprehension: 30, timeSpent: 80 },
   { chapter: "第5回", comprehension: 70, timeSpent: 85 },
   { chapter: "第6回", comprehension: 72, timeSpent: 90 },
   { chapter: "第7回", comprehension: 80, timeSpent: 95 },
+];
+
+// Sample data for simulated Cognitive Heatmap (Mastery by Topic)
+const cognitiveHeatmapData = [
+  { name: '人物關係', mastery: 70 },
+  { name: '詩詞典故', mastery: 50 },
+  { name: '情節發展', mastery: 85 },
+  { name: '社會背景', mastery: 60 },
+  { name: '象徵手法', mastery: 40 },
+  { name: '哲學思想', mastery: 55 },
+];
+
+// Sample data for simulated Reading Trajectory (Chapters read per day)
+const readingTrajectoryData = [
+  { day: '週一', chapters: 2 },
+  { day: '週二', chapters: 1 },
+  { day: '週三', chapters: 3 },
+  { day: '週四', chapters: 1 },
+  { day: '週五', chapters: 2 },
+  { day: '週六', chapters: 4 },
+  { day: '週日', chapters: 2 },
 ];
 
 
@@ -137,7 +157,6 @@ export default function GoalsPage() {
               </Button>
             </div>
           </div>
-          {/* Progress bar and input removed */}
         </Card>
       ))}
     </div>
@@ -176,7 +195,8 @@ export default function GoalsPage() {
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
                 <XAxis dataKey="chapter" stroke="hsl(var(--foreground)/0.7)" fontSize={12} />
-                <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={12} />
+                <YAxis yAxisId="left" stroke="hsl(var(--primary))" fontSize={12} />
+                <YAxis yAxisId="right" orientation="right" stroke="hsl(var(--chart-2))" fontSize={12} />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: 'hsl(var(--background))',
@@ -187,8 +207,8 @@ export default function GoalsPage() {
                   labelStyle={{ color: 'hsl(var(--primary))' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px', color: 'hsl(var(--foreground)/0.8)' }} />
-                <Line type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
-                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
+                <Line yAxisId="left" type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
+                <Line yAxisId="right" type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -331,16 +351,53 @@ export default function GoalsPage() {
           )}
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h4 className="font-semibold mb-2 text-primary">認知熱力圖 (示意)</h4>
-              <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center">
-                 <Image src="https://placehold.co/600x400.png?text=大觀園俯瞰圖基底熱力圖+(示意)" alt="認知熱力圖示意" width={600} height={400} className="rounded-md object-cover" data-ai-hint="garden map overlay" />
+              <h4 className="font-semibold mb-2 text-primary">文本主題掌握度 (模擬)</h4>
+              <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="knowledge graph topic">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={cognitiveHeatmapData} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
+                    <XAxis dataKey="name" stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
+                    <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={10}/>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        borderColor: 'hsl(var(--border))',
+                        color: 'hsl(var(--foreground))',
+                        borderRadius: 'var(--radius)',
+                        fontSize: '12px'
+                      }}
+                      labelStyle={{ color: 'hsl(var(--primary))', marginBottom: '4px' }}
+                      itemStyle={{ color: 'hsl(var(--foreground)/0.8)' }}
+                    />
+                    <Bar dataKey="mastery" name="掌握度" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
               {learningAnalysis?.cognitiveHeatmap && <p className="text-xs mt-2 text-foreground/80 p-2 bg-muted/20 rounded border border-border/30">{learningAnalysis.cognitiveHeatmap}</p>}
             </div>
             <div>
-              <h4 className="font-semibold mb-2 text-primary">閱讀軌跡 (示意)</h4>
-              <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center">
-                <Image src="https://placehold.co/600x400.png?text=山水畫卷風格閱讀軌跡+(示意)" alt="閱讀軌跡示意" width={600} height={400} className="rounded-md object-cover" data-ai-hint="scroll journey map" />
+              <h4 className="font-semibold mb-2 text-primary">每日閱讀進度 (模擬)</h4>
+              <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="reading progress chart">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={readingTrajectoryData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
+                    <XAxis dataKey="day" stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
+                    <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
+                    <Tooltip
+                       contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        borderColor: 'hsl(var(--border))',
+                        color: 'hsl(var(--foreground))',
+                        borderRadius: 'var(--radius)',
+                        fontSize: '12px'
+                      }}
+                      labelStyle={{ color: 'hsl(var(--primary))', marginBottom: '4px' }}
+                      itemStyle={{ color: 'hsl(var(--foreground)/0.8)' }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '10px', color: 'hsl(var(--foreground)/0.7)', paddingTop: '4px' }}/>
+                    <Line type="monotone" dataKey="chapters" name="閱讀章數" stroke="hsl(var(--chart-3))" strokeWidth={2} activeDot={{ r: 5 }} dot={{ fill: 'hsl(var(--chart-3))', r:2 }} />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
