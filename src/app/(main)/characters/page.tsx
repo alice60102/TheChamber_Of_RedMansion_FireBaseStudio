@@ -68,8 +68,37 @@ export default function LearningAnalysisPage() {
       <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
+            <BookOpen className="h-7 w-7" /> {/* Or another suitable icon like Share2 for graph */}
+            個人學習知識圖譜
+          </CardTitle>
+          <CardDescription>
+            根據您的學習數據生成的專屬知識脈絡，助您了解學習現狀與強弱項。
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading && !analysisResult ? (
+            <div className="h-48 p-4 border rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground">
+              知識圖譜生成中...
+            </div>
+          ) : analysisResult?.cognitiveHeatmap ? (
+            <ScrollArea className="h-48 p-4 border rounded-md bg-muted/10">
+              <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
+                {analysisResult.cognitiveHeatmap}
+              </div>
+            </ScrollArea>
+          ) : (
+            <div className="h-48 p-4 border rounded-md bg-muted/30 flex items-center justify-center text-muted-foreground">
+              請先輸入學習數據並點擊下方的「生成學習狀況分析」按鈕以查看您的知識圖譜。
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-xl">
+        <CardHeader>
+          <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
             <Brain className="h-7 w-7" />
-            學習狀況分析
+            學習狀況分析工具
           </CardTitle>
           <CardDescription>
             輸入學習數據，AI 將分析並生成相關的見解，包括文本掌握分析描述、理解偏差和學習建議。
@@ -111,7 +140,7 @@ export default function LearningAnalysisPage() {
                   <AlertDescription>{errorMessage}</AlertDescription>
                 </Alert>
               )}
-              {isLoading && !errorMessage ? (
+              {isLoading && !errorMessage && !analysisResult ? ( // Adjusted loading condition
                 <div className="aspect-video w-full bg-muted/30 rounded-md flex items-center justify-center text-muted-foreground">
                   AI 正在分析學習數據並構建學習狀況見解，請稍候...
                 </div>
