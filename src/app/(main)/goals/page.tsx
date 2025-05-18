@@ -195,8 +195,8 @@ export default function GoalsPage() {
                   labelStyle={{ color: 'hsl(var(--primary))' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px', color: 'hsl(var(--foreground)/0.8)' }} />
-                <Line type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
-                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
+                <Line type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
+                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
