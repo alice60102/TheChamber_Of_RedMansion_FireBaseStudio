@@ -76,7 +76,7 @@ export default function ReadPage() {
   const [currentNoteIsPublic, setCurrentNoteIsPublic] = useState(true);
   const [currentNoteSelectionRect, setCurrentNoteSelectionRect] = useState<DOMRectReadOnly | null>(null);
   
-  const chapterContentRef = useRef<HTMLDivElement>(null); // Ref for the CardContent holding chapter text
+  const chapterContentRef = useRef<HTMLDivElement>(null);
   const currentChapter = chapters[currentChapterIndex];
 
   useEffect(() => {
@@ -88,13 +88,13 @@ export default function ReadPage() {
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
-    setShowNoteSheet(false);
+    // Don't reset showNoteSheet here, as it might be open for a reason
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
-    // Check if the click is on a note highlight; if so, do nothing here.
-    if ((event.target as HTMLElement)?.closest('[data-note-highlight="true"]')) {
-        return;
+    if ((event.target as HTMLElement)?.closest('[data-selection-action-button="true"]') || 
+        (event.target as HTMLElement)?.closest('[data-note-highlight="true"]')) {
+      return;
     }
     
     if (chapterContentRef.current && chapterContentRef.current.contains(event.target as Node)) {
@@ -223,7 +223,6 @@ export default function ReadPage() {
       rangeRect: currentNoteSelectionRect,
     };
     setNotes(prevNotes => {
-      // Remove existing note for the same targetText and chapterId if it exists to avoid duplicates
       const filteredNotes = prevNotes.filter(
         note => !(note.targetText === newNote.targetText && note.chapterId === newNote.chapterId)
       );
@@ -277,39 +276,37 @@ export default function ReadPage() {
           <ScrollArea className="flex-grow p-1 relative" id="chapter-content-scroll-area">
             <CardContent 
               ref={chapterContentRef}
-              className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-foreground/90 relative" // Added position:relative
+              className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-foreground/90 relative"
               style={{ fontFamily: "'Noto Serif SC', serif" }}
             >
               {currentChapter.content}
 
-              {/* Render Note Highlights */}
               {notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect && chapterContentRef.current).map(note => {
                 const containerRect = chapterContentRef.current!.getBoundingClientRect();
                 if (!note.rangeRect) return null;
 
                 const style: React.CSSProperties = {
                   position: 'absolute',
-                  left: `${note.rangeRect.left - containerRect.left}px`,
-                  top: `${note.rangeRect.top - containerRect.top}px`,
+                  left: `${note.rangeRect.left - containerRect.left + chapterContentRef.current!.scrollLeft}px`,
+                  top: `${note.rangeRect.top - containerRect.top + chapterContentRef.current!.scrollTop}px`,
                   width: `${note.rangeRect.width}px`,
                   height: `${note.rangeRect.height}px`,
                   borderBottom: '1.5px dashed hsl(var(--primary)/0.7)',
                   cursor: 'pointer',
                   pointerEvents: 'all', 
-                  zIndex: 1, // Ensure highlights are clickable but below popovers
+                  zIndex: 1, 
                 };
 
                 return (
                   <Popover key={`highlight-${note.id}`}>
                     <PopoverTrigger asChild>
                       <div
-                        data-note-highlight="true" // Custom attribute to identify highlight
+                        data-note-highlight="true"
                         title={`筆記: ${note.targetText.substring(0,20)}...`}
                         style={style}
                         onClick={(e) => {
                           setSelectedTextInfo(null);
                           setIsAIPopoverOpen(false);
-                          // Popover opens via PopoverTrigger
                         }}
                       />
                     </PopoverTrigger>
@@ -329,7 +326,6 @@ export default function ReadPage() {
               })}
             </CardContent>
 
-            {/* Buttons for selected text */}
             {selectedTextInfo?.text && selectedTextInfo.position && (
               <div 
                   className="absolute flex gap-2" 
@@ -341,20 +337,22 @@ export default function ReadPage() {
                   }}
                 >
                   <Button
-                      variant="default" // Changed from outline
+                      variant="default"
                       size="sm"
                       className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
                       onClick={handleOpenNoteSheet}
+                      data-selection-action-button="true"
                       >
                       <FilePenLine className="h-4 w-4 mr-1" /> 記筆記
                   </Button>
                   <Popover open={isAIPopoverOpen} onOpenChange={setIsAIPopoverOpen}>
                       <PopoverTrigger asChild>
                           <Button
-                          variant="default" // Using default for a solid look
+                          variant="default"
                           size="sm"
                           className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
                           onClick={handleOpenAIPopover}
+                          data-selection-action-button="true"
                           >
                           <MessageSquare className="h-4 w-4 mr-1" /> 問AI
                           </Button>
@@ -411,7 +409,6 @@ export default function ReadPage() {
         </Card>
       </div>
 
-      {/* AI Tools Tabs */}
       <div className="lg:w-1/3">
         <Tabs defaultValue="context-analysis" className="h-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
@@ -482,7 +479,6 @@ export default function ReadPage() {
         </Tabs>
       </div>
 
-      {/* Note Taking Sheet */}
       <Sheet open={showNoteSheet} onOpenChange={setShowNoteSheet}>
         <SheetContent className="sm:max-w-lg w-[90vw] bg-card text-card-foreground p-0">
           <SheetHeader className="p-4 border-b border-border">
@@ -535,4 +531,6 @@ export default function ReadPage() {
     </div>
   );
 }
+    
+
     
