@@ -11,7 +11,7 @@ import { analyzeContext } from '@/ai/flows/context-aware-analysis';
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -202,16 +202,17 @@ export default function ReadPage() {
       const existingNote = notes.find(n => n.targetText === selectedTextInfo.text && n.chapterId === currentChapter.id);
       setCurrentNoteContent(existingNote ? existingNote.content : '');
       setCurrentNoteIsPublic(existingNote ? existingNote.isPublic : true);
-
+  
       const selectionRect = selectedTextInfo.range.getBoundingClientRect();
       const containerRect = chapterContentRef.current.getBoundingClientRect();
+  
       setCurrentNoteSelectionRect({
         top: selectionRect.top - containerRect.top + chapterContentRef.current.scrollTop,
         left: selectionRect.left - containerRect.left + chapterContentRef.current.scrollLeft,
         width: selectionRect.width,
         height: selectionRect.height,
       });
-
+  
       setShowNoteSheet(true);
       setSelectedTextInfo(null); 
       setIsAIPopoverOpen(false);
@@ -293,6 +294,8 @@ export default function ReadPage() {
 
               {chapterContentRef.current && notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect).map(note => {
                 if (!note.rangeRect || !chapterContentRef.current) return null;
+                
+                // Adjust for current scroll position of the chapter content area
                 const currentScrollTop = chapterContentRef.current.scrollTop;
                 const currentScrollLeft = chapterContentRef.current.scrollLeft;
 
@@ -401,7 +404,7 @@ export default function ReadPage() {
                           {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
                               <div>
                               <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
-                              <ScrollArea className="h-auto max-h-60 p-1 border rounded-md bg-muted/10">
+                              <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
                                   <div className="text-sm p-2 whitespace-pre-line text-foreground/80">{textExplanation}</div>
                               </ScrollArea>
                               <Button variant="ghost" onClick={() => setAiInteractionState('asking')} className="mt-2 text-sm">
@@ -435,7 +438,7 @@ export default function ReadPage() {
                 <CardDescription>探索本章節人物關係與詞義典故。</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+              <div className="space-y-4">
                   <Button onClick={handleFetchCharacterMapFromContext} disabled={isLoadingAi} className="w-full">
                     {isLoadingAi && !characterMap && !wordAnalysis ? "分析中..." : "生成脈絡分析"}
                   </Button>
@@ -471,7 +474,7 @@ export default function ReadPage() {
                 <CardDescription>連接經典與當代生活。</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+              <div className="space-y-4">
                   <Button onClick={handleFetchModernRelevance} disabled={isLoadingAi} className="w-full">
                     {isLoadingAi && !modernRelevance ? "生成中..." : "生成現代關聯"}
                   </Button>
