@@ -8,29 +8,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
+// Progress component is no longer used for user goals
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Target, Lightbulb, Brain, BarChartHorizontalBig, BookOpen, AlertTriangle, Zap, PlusCircle, Trash2, Award } from "lucide-react";
+import { Target, Lightbulb, Brain, BarChartHorizontalBig, BookOpen, AlertTriangle, Zap, PlusCircle, Trash2, Award, CheckCircle2, Circle } from "lucide-react"; // Added CheckCircle2, Circle
 import { generateGoalSuggestions, type GenerateGoalSuggestionsInput, type GenerateGoalSuggestionsOutput } from '@/ai/flows/generate-goal-suggestions';
 import { analyzeLearningData, type LearningAnalysisInput, type LearningAnalysisOutput } from '@/ai/flows/learning-analysis';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-// import { CardBody, CardHeader as ChartCardHeader, CardTitle as ChartCardTitle } from '@/components/ui/chart'; // Chart components not used directly
 
 interface UserGoal {
   id: string;
   text: string;
-  progress: number; // 0-100
   isAchieved: boolean;
 }
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 30, timeSpent: 60 },
-  { chapter: "第2回", comprehension: 45, timeSpent: 75 },
-  { chapter: "第3回", comprehension: 50, timeSpent: 70 },
-  { chapter: "第4回", comprehension: 65, timeSpent: 80 },
+  { chapter: "第1回", comprehension: 65, timeSpent: 60 }, // Swapped colors back as per user
+  { chapter: "第2回", comprehension: 50, timeSpent: 75 },
+  { chapter: "第3回", comprehension: 45, timeSpent: 70 },
+  { chapter: "第4回", comprehension: 30, timeSpent: 80 },
   { chapter: "第5回", comprehension: 70, timeSpent: 85 },
   { chapter: "第6回", comprehension: 72, timeSpent: 90 },
   { chapter: "第7回", comprehension: 80, timeSpent: 95 },
@@ -75,13 +73,13 @@ export default function GoalsPage() {
 
   const handleAddUserGoal = () => {
     if (newGoalText.trim()) {
-      setUserGoals([...userGoals, { id: Date.now().toString(), text: newGoalText, progress: 0, isAchieved: false }]);
+      setUserGoals([...userGoals, { id: Date.now().toString(), text: newGoalText, isAchieved: false }]);
       setNewGoalText("");
     }
   };
 
-  const handleUpdateGoalProgress = (id: string, progress: number) => {
-    setUserGoals(userGoals.map(goal => goal.id === id ? { ...goal, progress: Math.min(100, Math.max(0, progress)), isAchieved: progress >= 100 } : goal));
+  const handleToggleGoalStatus = (id: string) => {
+    setUserGoals(userGoals.map(goal => goal.id === id ? { ...goal, isAchieved: !goal.isAchieved } : goal));
   };
   
   const handleDeleteGoal = (id: string) => {
@@ -98,7 +96,7 @@ export default function GoalsPage() {
     setLearningAnalysis(null);
     try {
       // Combine summary and goals for a richer analysis context
-      const analysisInputText = `學習概況：${userLearningSummary}\n設定的目標：${userGoals.map(g => `${g.text} (進度: ${g.progress}%)`).join('; ')}`;
+      const analysisInputText = `學習概況：${userLearningSummary}\n設定的目標：${userGoals.map(g => `${g.text} (狀態: ${g.isAchieved ? '已完成' : '進行中'})`).join('; ')}`;
       const input: LearningAnalysisInput = { learningData: analysisInputText };
       const result = await analyzeLearningData(input);
       setLearningAnalysis(result);
@@ -112,39 +110,34 @@ export default function GoalsPage() {
   const handleAiCompanionSubmit = async () => {
     if (!aiCompanionQuery.trim()) return;
     setIsLoadingAiCompanion(true);
-    // Placeholder: In a real app, this would call a dedicated AI flow for Q&A.
-    // For now, we'll just echo the query or provide a canned response.
     setAiCompanionResponse(`AI正在思考關於「${aiCompanionQuery}」的回答... (此功能待實現更複雜的AI對話流程)`);
-    // Simulate AI response delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     setAiCompanionResponse(`針對「${aiCompanionQuery}」：AI建議您參考相關章節的研讀筆記，並嘗試將此問題與您設定的學習目標關聯起來。例如，如果您的目標是理解主要人物性格，可以思考這個問題如何幫助您深化對某人物的認識。(此為佔位回應)`);
     setIsLoadingAiCompanion(false);
   };
 
-  const renderGoalList = (goals: UserGoal[]) => (
+  const renderGoalList = (goals: UserGoal[], isActiveList: boolean) => (
     <div className="space-y-3">
       {goals.map(goal => (
         <Card key={goal.id} className={`p-3 shadow-sm ${goal.isAchieved ? 'bg-green-500/10 border-green-500/50' : 'bg-card/80'}`}>
           <div className="flex justify-between items-center">
-            <p className={`text-sm ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>{goal.text}</p>
-            <div className="flex items-center gap-2">
-              {!goal.isAchieved && (
-                <Input 
-                  type="number" 
-                  value={goal.progress} 
-                  onChange={(e) => handleUpdateGoalProgress(goal.id, parseInt(e.target.value))}
-                  className="w-16 h-8 text-xs p-1 bg-background/50"
-                  min="0" max="100"
-                />
+            <p className={`flex-grow text-sm ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>{goal.text}</p>
+            <div className="flex items-center gap-1 shrink-0 ml-2">
+              {isActiveList ? (
+                <Button variant="ghost" size="sm" onClick={() => handleToggleGoalStatus(goal.id)} className="h-7 px-2 text-xs text-green-600 hover:bg-green-500/10">
+                  <CheckCircle2 className="h-4 w-4 mr-1"/> 標記完成
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" onClick={() => handleToggleGoalStatus(goal.id)} className="h-7 px-2 text-xs text-amber-600 hover:bg-amber-500/10">
+                  <Circle className="h-4 w-4 mr-1"/> 重新激活
+                </Button>
               )}
-              {goal.isAchieved && <Award className="h-5 w-5 text-accent" />}
               <Button variant="ghost" size="icon" onClick={() => handleDeleteGoal(goal.id)} className="h-7 w-7">
                 <Trash2 className="h-4 w-4 text-destructive/70 hover:text-destructive" />
               </Button>
             </div>
           </div>
-          {!goal.isAchieved && <Progress value={goal.progress} className="h-2 mt-1 [&>div]:bg-accent" />}
-          {goal.isAchieved && <p className="text-xs text-green-600 mt-1">目標已達成！</p>}
+          {/* Progress bar and input removed */}
         </Card>
       ))}
     </div>
@@ -164,7 +157,6 @@ export default function GoalsPage() {
         </CardHeader>
       </Card>
 
-      {/* Learning Progress Display Area - Simulated Chart */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-artistic text-xl text-foreground/90">學習進度總覽 (模擬學習曲線)</CardTitle>
@@ -178,7 +170,7 @@ export default function GoalsPage() {
                 margin={{
                   top: 5,
                   right: 20,
-                  left: -20, // Adjust to make Y-axis labels visible
+                  left: -20, 
                   bottom: 5,
                 }}
               >
@@ -195,23 +187,21 @@ export default function GoalsPage() {
                   labelStyle={{ color: 'hsl(var(--primary))' }}
                 />
                 <Legend wrapperStyle={{ fontSize: '12px', color: 'hsl(var(--foreground)/0.8)' }} />
-                <Line type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
-                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
+                <Line type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
+                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
       </Card>
 
-      {/* Personal Goal Setting & AI Suggestions */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-artistic text-xl text-foreground/90">設定與追蹤您的學習目標</CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-6">
-          {/* User Goal Setting */}
           <div className="space-y-4">
-            <h3 className="font-semibold text-primary">我的目標</h3>
+            <h3 className="font-semibold text-primary">我的目標 (進行中)</h3>
             <div className="flex gap-2">
               <Input 
                 placeholder="輸入您的新學習目標..." 
@@ -223,23 +213,22 @@ export default function GoalsPage() {
                 <PlusCircle className="h-4 w-4 mr-1.5"/>新增
               </Button>
             </div>
-            {userGoals.length > 0 ? (
+            {userGoals.filter(g => !g.isAchieved).length > 0 ? (
               <ScrollArea className="h-60 pr-3">
-                {renderGoalList(userGoals.filter(g => !g.isAchieved))}
+                {renderGoalList(userGoals.filter(g => !g.isAchieved), true)}
               </ScrollArea>
-            ) : <p className="text-sm text-muted-foreground">暫無設定目標。請在上方輸入框添加您的第一個目標！</p>}
+            ) : <p className="text-sm text-muted-foreground">暫無進行中的目標。請在上方輸入框添加您的第一個目標！</p>}
 
             {userGoals.filter(g => g.isAchieved).length > 0 && (
               <div className="mt-6">
                 <h4 className="font-semibold text-green-600 mb-2 flex items-center gap-1.5"><Award className="h-5 w-5"/>已達成成就</h4>
                 <ScrollArea className="h-40 pr-3">
-                 {renderGoalList(userGoals.filter(g => g.isAchieved))}
+                 {renderGoalList(userGoals.filter(g => g.isAchieved), false)}
                 </ScrollArea>
               </div>
             )}
           </div>
 
-          {/* AI Goal Suggestions - Based on "SOLO" theory  */}
           <div className="space-y-4 p-4 rounded-md bg-primary/5 border border-primary/20">
             <h3 className="font-semibold text-primary">AI 目標建議</h3>
             <div>
@@ -298,7 +287,6 @@ export default function GoalsPage() {
         </CardFooter>
       </Card>
 
-      {/* AI Q&A Interaction Area */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-artistic text-xl text-foreground/90">AI學伴 - 目標輔導</CardTitle>
@@ -325,7 +313,6 @@ export default function GoalsPage() {
         </CardContent>
       </Card>
 
-      {/* Learning Analysis Interface */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-artistic text-xl text-foreground/90">個人化學習分析</CardTitle>

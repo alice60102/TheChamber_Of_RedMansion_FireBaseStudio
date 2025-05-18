@@ -1,8 +1,15 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Edit3, Target, Activity, BarChart3, Users } from "lucide-react";
+import { BookOpen, Edit3, Target, Activity, BarChart3, CheckSquare, Square, ListChecks } from "lucide-react"; // Added ListChecks
 import Link from "next/link";
+
+// Example goals for dashboard display
+const exampleUserGoals = [
+  { id: "d1", text: "完成《紅樓夢》前二十回閱讀", isAchieved: true },
+  { id: "d2", text: "理解主要人物（寶、黛、釵）的性格特點", isAchieved: false },
+  { id: "d3", text: "整理金陵十二釵判詞筆記", isAchieved: false },
+];
 
 export default function DashboardPage() {
   return (
@@ -34,21 +41,32 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
+        {/* New Card for User-Set Goals (Example) */}
         <Card className="shadow-lg hover:shadow-primary/20 transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">學習目標 (示例)</CardTitle>
-            <Target className="h-5 w-5 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">我的學習目標 (示例)</CardTitle>
+            <ListChecks className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div>
-              <div className="text-2xl font-bold font-artistic">完成前十章節</div>
-              <p className="text-xs text-muted-foreground">
-                已完成 40%
-              </p>
-               {/* Removed Button Link Here */}
+            <div className="space-y-2">
+              {exampleUserGoals.slice(0, 2).map(goal => ( // Displaying first 2 goals as example
+                <div key={goal.id} className="flex items-center gap-2">
+                  {goal.isAchieved ? <CheckSquare className="h-4 w-4 text-green-500" /> : <Square className="h-4 w-4 text-muted-foreground" />}
+                  <span className={`text-sm ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                    {goal.text}
+                  </span>
+                </div>
+              ))}
+              {exampleUserGoals.length > 2 && <p className="text-xs text-muted-foreground">還有更多目標...</p>}
+              <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2 text-sm" asChild>
+                <Link href="/goals">管理目標 &rarr;</Link>
+              </Button>
+              <p className="text-xs text-muted-foreground pt-1">提示: 此處將顯示您在「學習目標」頁面設定的目標。</p>
             </div>
           </CardContent>
         </Card>
+
+        {/* Removed the old "學習目標 (示例)" card that was confusing */}
       </div>
 
       <Card className="shadow-lg hover:shadow-primary/20 transition-shadow">
@@ -79,3 +97,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
