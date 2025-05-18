@@ -10,36 +10,10 @@ import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send, PencilLine
 import { useAuth } from '@/hooks/useAuth';
 import { Label } from '@/components/ui/label';
 
-// Placeholder data for posts - in a real app, this would come from a backend
-const initialPostsData = [
-  {
-    id: '1',
-    author: '寶玉哥哥',
-    timestamp: '2小時前',
-    content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡... 判詞云：「霽月難逢，彩雲易散。心比天高，身為下賤。風流靈巧招人怨。壽夭多因毀謗生，多情公子空牽念。」此處暗示晴雯命運。又云：「枉自溫柔和順，空雲似桂如蘭。堪羨優伶有福，誰知公子無緣。」此為襲人。這段文字其實非常長，需要測試截斷和展開功能，所以我要把它寫得更長一些，看看效果如何。希望能正確地顯示“更多”和“收起”按鈕。',
-    likes: 15,
-    comments: 2, // This post has 2 comments
-    tags: ['判詞解析', '人物探討'],
-  },
-  {
-    id: '2',
-    author: '瀟湘妃子',
-    timestamp: '5小時前',
-    content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？「試看春殘花漸落，便是紅顏老死時。一朝春盡紅顏老，花落人亡兩不知！」全詩淒婉動人，道盡了黛玉的多愁 sensibilia (多愁善感) and tragic fate.',
-    likes: 28,
-    comments: 0,
-    tags: ['詩詞賞析', '黛玉'],
-  },
-  {
-    id: '3',
-    author: '村夫賈雨村',
-    timestamp: '1天前',
-    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。這是一個較短的帖子，應該不需要展開。',
-    likes: 12,
-    comments: 1, // This post has 1 comment
-    tags: ['社會背景', '歷史研究'],
-  },
-];
+type PostedComment = {
+  author: string;
+  text: string;
+};
 
 type Post = {
   id: string;
@@ -47,14 +21,56 @@ type Post = {
   timestamp: string;
   content: string;
   likes: number;
-  comments: number;
   tags: string[];
+  initialPlaceholderComments?: PostedComment[];
 };
 
-type PostedComment = {
-  author: string;
-  text: string;
-};
+
+// Placeholder data for posts - with customized placeholder comments
+const initialPostsData: Post[] = [
+  {
+    id: '1',
+    author: '寶玉哥哥',
+    timestamp: '2小時前',
+    content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡... 判詞云：「霽月難逢，彩雲易散。心比天高，身為下賤。風流靈巧招人怨。壽夭多因毀謗生，多情公子空牽念。」此處暗示晴雯命運。又云：「枉自溫柔和順，空雲似桂如蘭。堪羨優伶有福，誰知公子無緣。」此為襲人。這段文字其實非常長，需要測試截斷和展開功能，所以我要把它寫得更長一些，看看效果如何。希望能正確地顯示“更多”和“收起”按鈕。',
+    likes: 15,
+    tags: ['判詞解析', '人物探討'],
+    initialPlaceholderComments: [
+      {
+        author: "林黛玉",
+        text: "寶玉哥哥此番見解深刻，晴雯判詞確令人心傷。一句「霽月難逢，彩雲易散」，道盡了她的不幸與淒涼。"
+      },
+      {
+        author: "薛寶釵",
+        text: "襲人判詞中「枉自溫柔和順，空雲似桂如蘭」，也頗耐人尋味。書中人物命運多舛，實是紅樓一夢，令人不勝唏噓。"
+      }
+    ]
+  },
+  {
+    id: '2',
+    author: '瀟湘妃子',
+    timestamp: '5小時前',
+    content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？「試看春殘花漸落，便是紅顏老死時。一朝春盡紅顏老，花落人亡兩不知！」全詩淒婉動人，道盡了黛玉的多愁 sensibilia (多愁善感) and tragic fate.',
+    likes: 28,
+    tags: ['詩詞賞析', '黛玉'],
+    initialPlaceholderComments: [] // No initial comments
+  },
+  {
+    id: '3',
+    author: '村夫賈雨村',
+    timestamp: '1天前',
+    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。這是一個較短的帖子，應該不需要展開。',
+    likes: 12,
+    tags: ['社會背景', '歷史研究'],
+    initialPlaceholderComments: [
+      {
+        author: "王熙鳳",
+        text: "雨村先生所言甚是。若論及排場與吃穿用度，我們賈府的確是冠絕一時。便是尋常一道茶點，也有無數講究呢。"
+      }
+    ]
+  },
+];
+
 
 const MAX_POST_LENGTH = 5000;
 const CONTENT_TRUNCATE_LENGTH = 150; // Character limit to show "更多"
@@ -138,21 +154,8 @@ function PostCard({ post: initialPost }: { post: Post }) {
   // Comments state
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [newComment, setNewComment] = useState('');
-  const [currentCommentsCount, setCurrentCommentsCount] = useState(initialPost.comments);
-  const [postedComments, setPostedComments] = useState<PostedComment[]>([]); 
-
-  useEffect(() => {
-    if (initialPost.comments > 0 && postedComments.length === 0) {
-      const placeholderComments: PostedComment[] = [];
-      for (let i = 0; i < initialPost.comments; i++) {
-        placeholderComments.push({
-          author: `熱心網友 ${String.fromCharCode(65 + i)}`, // 熱心網友 A, B, C...
-          text: `這是一條預設的示例評論 #${i + 1}。`
-        });
-      }
-      setPostedComments(placeholderComments);
-    }
-  }, [initialPost.comments, postedComments.length]);
+  const [postedComments, setPostedComments] = useState<PostedComment[]>(initialPost.initialPlaceholderComments || []); 
+  const [currentCommentsCount, setCurrentCommentsCount] = useState(initialPost.initialPlaceholderComments?.length || 0);
 
 
   const handleSubmitComment = () => {
@@ -218,13 +221,13 @@ function PostCard({ post: initialPost }: { post: Post }) {
           {postedComments.length > 0 && (
             <div className="mb-4 space-y-3">
               {postedComments.map((comment, index) => (
-                <div key={index} className="p-2 bg-background/30 rounded-md text-foreground/80 flex items-start gap-2 leading-relaxed whitespace-pre-line">
+                <div key={index} className="p-2 bg-background/30 rounded-md flex items-start gap-2">
                   <i 
                     className="fa fa-user-circle text-primary/70 mt-0.5" 
                     aria-hidden="true"
                     style={{ fontSize: '20px', width: '20px', height: '20px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                   ></i>
-                  <div>
+                  <div className="text-foreground/80 leading-relaxed whitespace-pre-line">
                     <span className="font-semibold text-primary/90">{comment.author}: </span>
                     <span>{comment.text}</span>
                   </div>
@@ -264,8 +267,8 @@ export default function CommunityPage() {
       timestamp: '剛剛',
       content: content,
       likes: 0,
-      comments: 0,
       tags: ['新帖'],
+      initialPlaceholderComments: []
     };
     setPosts([newPost, ...posts]);
   };
@@ -327,6 +330,3 @@ export default function CommunityPage() {
     </div>
   );
 }
-
-
-      
