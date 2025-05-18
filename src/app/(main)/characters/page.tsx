@@ -11,7 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph'; // Added import
+import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph'; 
 
 const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }) => {
   if (!data) {
@@ -31,7 +31,6 @@ const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><Lightbulb className="h-4 w-4" />學習建議:</h3>
         <p className="whitespace-pre-line">{data.recommendations}</p>
       </div>
-      <div className="mt-4 text-center text-muted-foreground text-xs"> (此處未來可展示更豐富的視覺化圖譜) </div>
     </ScrollArea>
   );
 };
@@ -68,11 +67,11 @@ export default function LearningAnalysisPage() {
       <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
-            <BookOpen className="h-7 w-7" /> {/* Consider a more specific icon like Share2 or Brain later */}
-            個人學習知識圖譜 (模擬)
+            <Share2 className="h-7 w-7" /> 
+            個人學習知識圖譜 (SVG模擬)
           </CardTitle>
           <CardDescription>
-            此處展示一個基於《紅樓夢》第一回內容的前端模擬知識圖譜，未來將根據您的實際學習歷史動態生成。
+            此處展示一個基於《紅樓夢》第一回內容的前端SVG模擬知識圖譜，呈現主要概念間的點線連接關係。
           </CardDescription>
         </CardHeader>
         <CardContent>
