@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Library, Search, FileText, MessageSquare, Filter, Microscope, Share2 } from "lucide-react";
+import { Library, Search, FileText, Microscope, Share2 } from "lucide-react";
 import { generateSpecialTopicFramework } from '@/ai/flows/generate-special-topic-framework';
 import type { GenerateSpecialTopicFrameworkInput, GenerateSpecialTopicFrameworkOutput } from '@/ai/flows/generate-special-topic-framework';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -51,7 +51,7 @@ export default function ResearchPage() {
     setIsLoading(false);
   };
 
-  const filteredTopics = researchTopics.filter(topic => 
+  const filteredTopics = researchTopics.filter(topic =>
     topic.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -74,9 +74,9 @@ export default function ResearchPage() {
               <h3 className="text-lg font-semibold text-foreground">選擇研究主題</h3>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  type="search" 
-                  placeholder="搜索推薦主題..." 
+                <Input
+                  type="search"
+                  placeholder="搜索推薦主題..."
                   className="pl-8 bg-background/50"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -99,9 +99,9 @@ export default function ResearchPage() {
               </ScrollArea>
               <div>
                 <Label htmlFor="customTopic">或自定義主題</Label>
-                <Input 
-                  id="customTopic" 
-                  placeholder="輸入您的研究主題" 
+                <Input
+                  id="customTopic"
+                  placeholder="輸入您的研究主題"
                   value={customTopic}
                   onChange={(e) => { setCustomTopic(e.target.value); setSelectedTopic(""); }}
                   className="bg-background/50"
@@ -109,9 +109,9 @@ export default function ResearchPage() {
               </div>
               <div>
                 <Label htmlFor="readingData">您的閱讀數據/背景 (簡述)</Label>
-                <Textarea 
-                  id="readingData" 
-                  value={studentReadingData} 
+                <Textarea
+                  id="readingData"
+                  value={studentReadingData}
                   onChange={(e) => setStudentReadingData(e.target.value)}
                   className="bg-background/50"
                   rows={3}
@@ -123,12 +123,17 @@ export default function ResearchPage() {
             </div>
 
             {/* Research Framework Display */}
-            <div className="md:col-span-2 space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
-              {researchFramework ? (
-                <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20">
-                  <div className="prose prose-sm dark:prose-invert prose-headings:text-primary prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
-                    <h4 className="font-semibold text-primary">研究框架:</h4>
+            <div className="md:col-span-2 flex flex-col">
+              <h3 className="text-lg font-semibold text-foreground mb-4">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
+              {isLoading ? (
+                 <div className="flex-grow h-0 border rounded-md p-4 bg-muted/20 flex items-center justify-center">
+                    <p className="text-sm text-muted-foreground text-center">
+                        正在為您構建研究框架...
+                    </p>
+                 </div>
+              ) : researchFramework ? (
+                <ScrollArea className="flex-grow h-0 border rounded-md p-4 bg-muted/20">
+                  <div className="prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                     <ReactMarkdown>{researchFramework.researchFramework}</ReactMarkdown>
                     
                     <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
@@ -139,9 +144,9 @@ export default function ResearchPage() {
                   </div>
                 </ScrollArea>
               ) : (
-                <div className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20 flex items-center justify-center">
+                <div className="flex-grow h-0 border rounded-md p-4 bg-muted/20 flex items-center justify-center">
                   <p className="text-sm text-muted-foreground text-center">
-                    {isLoading ? "正在為您構建研究框架..." : "選擇或輸入主題後，點擊按鈕生成研究框架。"}
+                    選擇或輸入主題後，點擊按鈕生成研究框架。
                   </p>
                 </div>
               )}
@@ -162,7 +167,7 @@ export default function ResearchPage() {
           </div>
         </CardFooter>
       </Card>
-      
+
       {/* Placeholder for other research tools */}
       <Card className="shadow-xl">
         <CardHeader>
@@ -179,3 +184,4 @@ export default function ResearchPage() {
   );
 }
 
+    
