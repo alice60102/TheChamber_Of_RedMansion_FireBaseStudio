@@ -386,10 +386,10 @@ export default function GoalsPage() {
           )}
           {learningAnalysis && !isLoadingLearningAnalysis && (
             <>
-              <div className="grid gap-6"> 
+              <div className="space-y-6"> 
                 <div>
                   <h4 className="font-semibold mb-2 text-primary">文本主題掌握度 (模擬)</h4>
-                  <div className="w-full bg-muted/30 rounded-md p-2" data-ai-hint="knowledge graph topic">
+                  <div className="w-full bg-muted/30 rounded-md p-2 min-h-[200px]" data-ai-hint="knowledge graph topic">
                     <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={cognitiveHeatmapData} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
@@ -448,16 +448,16 @@ export default function GoalsPage() {
                   {learningAnalysis.comprehensionDeviations && (
                     <div>
                       <h5 className="font-semibold text-white flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
-                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:m-0 prose-headings:mb-1 prose-headings:text-white prose-p:m-0 prose-p:mb-1 prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
-                        <ReactMarkdown>{learningAnalysis.comprehensionDeviations}</ReactMarkdown>
+                      <div className="pl-5 text-sm whitespace-pre-line text-white">
+                        {learningAnalysis.comprehensionDeviations}
                       </div>
                     </div>
                   )}
                   {learningAnalysis.recommendations && (
                     <div className="mt-2">
                       <h5 className="font-semibold text-white flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
-                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:m-0 prose-headings:mb-1 prose-headings:text-white prose-p:m-0 prose-p:mb-1 prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
-                        <ReactMarkdown>{learningAnalysis.recommendations}</ReactMarkdown>
+                      <div className="pl-5 text-sm whitespace-pre-line text-white">
+                        {learningAnalysis.recommendations}
                       </div>
                     </div>
                   )}
