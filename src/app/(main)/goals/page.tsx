@@ -26,8 +26,8 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 80, timeSpent: 60 }, 
-  { chapter: "第2回", comprehension: 60, timeSpent: 75 },
+  { chapter: "第1回", comprehension: 60, timeSpent: 75 }, 
+  { chapter: "第2回", comprehension: 80, timeSpent: 60 },
   { chapter: "第3回", comprehension: 70, timeSpent: 55 },
   { chapter: "第4回", comprehension: 75, timeSpent: 40 },
   { chapter: "第5回", comprehension: 85, timeSpent: 80 },
@@ -386,11 +386,11 @@ export default function GoalsPage() {
           )}
           {learningAnalysis && !isLoadingLearningAnalysis && (
             <>
-              <div className="grid gap-6"> {/* Removed md:grid-cols-2 to stack charts */}
+              <div className="grid gap-6"> 
                 <div>
                   <h4 className="font-semibold mb-2 text-primary">文本主題掌握度 (模擬)</h4>
-                  <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="knowledge graph topic">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div className="w-full bg-muted/30 rounded-md p-2" data-ai-hint="knowledge graph topic">
+                    <ResponsiveContainer width="100%" height={200}>
                       <BarChart data={cognitiveHeatmapData} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
                         <XAxis dataKey="name" stroke="hsl(var(--foreground)/0.7)" fontSize={10} interval={0} />
@@ -411,15 +411,15 @@ export default function GoalsPage() {
                     </ResponsiveContainer>
                   </div>
                   {learningAnalysis?.cognitiveHeatmap && 
-                    <div className="text-xs mt-2 p-2 bg-muted/20 rounded border border-border/30 prose prose-xs dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+                    <div className="text-xs mt-2 p-2 bg-muted/20 rounded border border-border/30 prose prose-sm dark:prose-invert prose-headings:m-0 prose-headings:mb-1 prose-headings:text-white prose-p:m-0 prose-p:mb-1 prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                       <ReactMarkdown>{learningAnalysis.cognitiveHeatmap}</ReactMarkdown>
                     </div>
                   }
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2 text-primary">每日閱讀進度 (模擬)</h4>
-                  <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="reading progress chart">
-                    <ResponsiveContainer width="100%" height="100%">
+                  <div className="w-full bg-muted/30 rounded-md p-2" data-ai-hint="reading progress chart">
+                    <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={readingTrajectoryData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
                         <XAxis dataKey="day" stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
@@ -448,7 +448,7 @@ export default function GoalsPage() {
                   {learningAnalysis.comprehensionDeviations && (
                     <div>
                       <h5 className="font-semibold text-white flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
-                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:m-0 prose-headings:mb-1 prose-headings:text-white prose-p:m-0 prose-p:mb-1 prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                         <ReactMarkdown>{learningAnalysis.comprehensionDeviations}</ReactMarkdown>
                       </div>
                     </div>
@@ -456,7 +456,7 @@ export default function GoalsPage() {
                   {learningAnalysis.recommendations && (
                     <div className="mt-2">
                       <h5 className="font-semibold text-white flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
-                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:m-0 prose-headings:mb-1 prose-headings:text-white prose-p:m-0 prose-p:mb-1 prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                         <ReactMarkdown>{learningAnalysis.recommendations}</ReactMarkdown>
                       </div>
                     </div>
