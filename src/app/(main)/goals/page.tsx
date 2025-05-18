@@ -16,7 +16,7 @@ import { analyzeLearningData, type LearningAnalysisInput, type LearningAnalysisO
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { CardBody, CardHeader as ChartCardHeader, CardTitle as ChartCardTitle } from '@/components/ui/chart'; // Assuming chart components exist
+// import { CardBody, CardHeader as ChartCardHeader, CardTitle as ChartCardTitle } from '@/components/ui/chart'; // Chart components not used directly
 
 interface UserGoal {
   id: string;
@@ -196,7 +196,7 @@ export default function GoalsPage() {
                 />
                 <Legend wrapperStyle={{ fontSize: '12px', color: 'hsl(var(--foreground)/0.8)' }} />
                 <Line type="monotone" dataKey="comprehension" name="理解程度 (%)" stroke="hsl(var(--primary))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--primary))', r:3 }}/>
-                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--accent))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--accent))', r:3 }}/>
+                <Line type="monotone" dataKey="timeSpent" name="學習時長 (分鐘)" stroke="hsl(var(--chart-2))" strokeWidth={2} activeDot={{ r: 6 }} dot={{ fill: 'hsl(var(--chart-2))', r:3 }}/>
               </LineChart>
             </ResponsiveContainer>
           </div>
