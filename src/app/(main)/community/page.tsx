@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send } from "lucide-react";
+import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send, PencilLine } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { Label } from '@/components/ui/label';
 
@@ -18,7 +18,7 @@ const initialPostsData = [
     timestamp: '2小時前',
     content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡... 判詞云：「霽月難逢，彩雲易散。心比天高，身為下賤。風流靈巧招人怨。壽夭多因毀謗生，多情公子空牽念。」此處暗示晴雯命運。又云：「枉自溫柔和順，空雲似桂如蘭。堪羨優伶有福，誰知公子無緣。」此為襲人。這段文字其實非常長，需要測試截斷和展開功能，所以我要把它寫得更長一些，看看效果如何。希望能正確地顯示“更多”和“收起”按鈕。',
     likes: 15,
-    comments: 4,
+    comments: 2, // This post has 2 comments
     tags: ['判詞解析', '人物探討'],
   },
   {
@@ -27,7 +27,7 @@ const initialPostsData = [
     timestamp: '5小時前',
     content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？「試看春殘花漸落，便是紅顏老死時。一朝春盡紅顏老，花落人亡兩不知！」全詩淒婉動人，道盡了黛玉的多愁 sensibilia (多愁善感) and tragic fate.',
     likes: 28,
-    comments: 9,
+    comments: 0,
     tags: ['詩詞賞析', '黛玉'],
   },
   {
@@ -36,7 +36,7 @@ const initialPostsData = [
     timestamp: '1天前',
     content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。這是一個較短的帖子，應該不需要展開。',
     likes: 12,
-    comments: 2,
+    comments: 1, // This post has 1 comment
     tags: ['社會背景', '歷史研究'],
   },
 ];
@@ -141,16 +141,29 @@ function PostCard({ post: initialPost }: { post: Post }) {
   const [currentCommentsCount, setCurrentCommentsCount] = useState(initialPost.comments);
   const [postedComments, setPostedComments] = useState<PostedComment[]>([]); 
 
+  useEffect(() => {
+    if (initialPost.comments > 0 && postedComments.length === 0) {
+      const placeholderComments: PostedComment[] = [];
+      for (let i = 0; i < initialPost.comments; i++) {
+        placeholderComments.push({
+          author: `熱心網友 ${String.fromCharCode(65 + i)}`, // 熱心網友 A, B, C...
+          text: `這是一條預設的示例評論 #${i + 1}。`
+        });
+      }
+      setPostedComments(placeholderComments);
+    }
+  }, [initialPost.comments, postedComments.length]);
+
+
   const handleSubmitComment = () => {
     if (newComment.trim()) {
       const newCommentEntry: PostedComment = {
         author: user?.displayName || '匿名用戶',
         text: newComment.trim(),
       };
-      setPostedComments(prev => [...prev, newCommentEntry]);
+      setPostedComments(prev => [newCommentEntry, ...prev]); // New comments at the top
       setCurrentCommentsCount(prev => prev + 1);
       setNewComment('');
-      // Optionally keep the input open: setShowCommentInput(true);
     }
   };
 
@@ -170,7 +183,7 @@ function PostCard({ post: initialPost }: { post: Post }) {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <p className={`text-foreground/80 leading-relaxed whitespace-pre-line ${!isExpanded ? 'line-clamp-3' : ''}`}>
+        <p className={`text-foreground/80 leading-relaxed whitespace-pre-line ${!isExpanded && initialPost.content.length > CONTENT_TRUNCATE_LENGTH ? 'line-clamp-3' : ''}`}>
           {initialPost.content}
         </p>
         {showMoreButton && (
@@ -202,23 +215,8 @@ function PostCard({ post: initialPost }: { post: Post }) {
 
       {showCommentInput && (
         <CardContent className="pt-4 border-t border-border/50 bg-muted/20">
-          <div className="space-y-2">
-            <Label htmlFor={`comment-input-${initialPost.id}`} className="text-sm font-semibold text-foreground/90">發表評論</Label>
-            <Textarea
-              id={`comment-input-${initialPost.id}`}
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              placeholder="寫下您的評論..."
-              rows={2}
-              className="bg-background/70 text-base"
-            />
-            <Button onClick={handleSubmitComment} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!newComment.trim()}>
-              <Send className="h-3 w-3 mr-1.5"/> 送出評論
-            </Button>
-          </div>
           {postedComments.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-border/30 space-y-3">
-              {/* <h4 className="text-xs font-semibold text-muted-foreground">您的評論:</h4> */}
+            <div className="mb-4 space-y-3">
               {postedComments.map((comment, index) => (
                 <div key={index} className="p-2 bg-background/30 rounded-md text-foreground/80 flex items-start gap-2 leading-relaxed whitespace-pre-line">
                   <i 
@@ -234,6 +232,20 @@ function PostCard({ post: initialPost }: { post: Post }) {
               ))}
             </div>
           )}
+          <div className="space-y-2">
+            <Label htmlFor={`comment-input-${initialPost.id}`} className="text-sm font-semibold text-foreground/90">發表評論</Label>
+            <Textarea
+              id={`comment-input-${initialPost.id}`}
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="寫下您的評論..."
+              rows={2}
+              className="bg-background/70 text-base"
+            />
+            <Button onClick={handleSubmitComment} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!newComment.trim()}>
+              <Send className="h-3 w-3 mr-1.5"/> 送出評論
+            </Button>
+          </div>
         </CardContent>
       )}
     </Card>
@@ -315,3 +327,6 @@ export default function CommunityPage() {
     </div>
   );
 }
+
+
+      
