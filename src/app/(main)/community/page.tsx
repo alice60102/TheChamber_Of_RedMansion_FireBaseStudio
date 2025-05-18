@@ -15,7 +15,7 @@ const initialPostsData = [
     id: '1',
     author: '寶玉哥哥',
     timestamp: '2小時前',
-    content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡... 判詞云：「霽月難逢，彩雲易散。心比天高，身為下賤。風流靈巧招人怨。壽夭多因毀謗生，多情公子空牽念。」此處暗示晴雯命運。又云：「枉自溫柔和順，空雲似桂如蘭。堪羨優伶有福，誰知公子無緣。」此為襲人。',
+    content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡... 判詞云：「霽月難逢，彩雲易散。心比天高，身為下賤。風流靈巧招人怨。壽夭多因毀謗生，多情公子空牽念。」此處暗示晴雯命運。又云：「枉自溫柔和順，空雲似桂如蘭。堪羨優伶有福，誰知公子無緣。」此為襲人。這段文字其實非常長，需要測試截斷和展開功能，所以我要把它寫得更長一些，看看效果如何。希望能正確地顯示“更多”和“收起”按鈕。',
     likes: 15,
     comments: 4,
     tags: ['判詞解析', '人物探討'],
@@ -33,7 +33,7 @@ const initialPostsData = [
     id: '3',
     author: '村夫賈雨村',
     timestamp: '1天前',
-    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。',
+    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。這是一個較短的帖子，應該不需要展開。',
     likes: 12,
     comments: 2,
     tags: ['社會背景', '歷史研究'],
@@ -51,6 +51,7 @@ type Post = {
 };
 
 const MAX_POST_LENGTH = 5000;
+const CONTENT_TRUNCATE_LENGTH = 150; // Character limit to show "更多"
 
 function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void }) {
   const { user } = useAuth();
@@ -110,6 +111,58 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
   );
 }
 
+function PostCard({ post }: { post: Post }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const showMoreButton = post.content.length > CONTENT_TRUNCATE_LENGTH;
+
+  return (
+    <Card className="shadow-lg overflow-hidden bg-card/70 hover:shadow-primary/10 transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-center gap-3 mb-2">
+          <i 
+            className="fa fa-user-circle text-primary" 
+            aria-hidden="true"
+            style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+          ></i>
+          <div>
+            <p className="font-semibold text-primary">{post.author}</p>
+            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <p className={`text-foreground/80 leading-relaxed whitespace-pre-line ${!isExpanded ? 'line-clamp-3' : ''}`}>
+          {post.content}
+        </p>
+        {showMoreButton && (
+          <Button 
+            variant="link" 
+            size="sm" 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="text-primary hover:text-primary/80 p-0 h-auto mt-1 text-sm"
+          >
+            {isExpanded ? "收起" : "更多"}
+          </Button>
+        )}
+        <div className="flex flex-wrap gap-2 mt-3">
+          {post.tags.map(tag => (
+            <span key={tag} className="text-xs bg-accent/20 text-accent-foreground py-0.5 px-2 rounded-full cursor-pointer hover:bg-accent/30">#{tag}</span>
+          ))}
+        </div>
+      </CardContent>
+      <CardFooter className="flex justify-start items-center pt-4 border-t border-border/50">
+        <div className="flex gap-4 text-muted-foreground">
+          <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-primary">
+            <ThumbsUp className="h-4 w-4" /> {post.likes}
+          </Button>
+          <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-primary">
+            <MessageCircle className="h-4 w-4" /> {post.comments}
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function CommunityPage() {
   const [posts, setPosts] = useState<Post[]>(initialPostsData);
@@ -169,41 +222,7 @@ export default function CommunityPage() {
           {filteredPosts.length > 0 ? (
             <div className="space-y-6">
               {filteredPosts.map((post) => (
-                <Card key={post.id} className="shadow-lg overflow-hidden bg-card/70 hover:shadow-primary/10 transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-3 mb-2">
-                      <i 
-                        className="fa fa-user-circle text-primary" 
-                        aria-hidden="true"
-                        style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                      ></i>
-                      <div>
-                        <p className="font-semibold text-primary">{post.author}</p>
-                        <p className="text-xs text-muted-foreground">{post.timestamp}</p>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-foreground/80 leading-relaxed whitespace-pre-line line-clamp-3">
-                      {post.content}
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {post.tags.map(tag => (
-                        <span key={tag} className="text-xs bg-accent/20 text-accent-foreground py-0.5 px-2 rounded-full cursor-pointer hover:bg-accent/30">#{tag}</span>
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="flex justify-start items-center pt-4 border-t border-border/50">
-                    <div className="flex gap-4 text-muted-foreground">
-                      <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-primary">
-                        <ThumbsUp className="h-4 w-4" /> {post.likes}
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-primary">
-                        <MessageCircle className="h-4 w-4" /> {post.comments}
-                      </Button>
-                    </div>
-                  </CardFooter>
-                </Card>
+                <PostCard key={post.id} post={post} />
               ))}
             </div>
           ) : (
@@ -220,4 +239,3 @@ export default function CommunityPage() {
     </div>
   );
 }
-
