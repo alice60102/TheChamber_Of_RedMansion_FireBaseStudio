@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import ReactMarkdown from 'react-markdown';
 
 // Placeholder chapter data
 const chapters = [
@@ -227,7 +228,7 @@ export default function ReadPage() {
 
   const handleSaveNote = () => {
     if (!currentNoteTargetText.trim() || !currentNoteContent.trim() || !currentNoteSelectionRect) {
-        alert("筆記內容不能為空或選區信息丟失！");
+        alert("筆記內容不能為空或選区信息丢失！");
         return;
     }
 
@@ -293,7 +294,7 @@ export default function ReadPage() {
                 </AccordionTrigger>
                 <AccordionContent className="text-sm text-foreground/80 p-3 bg-muted/20 rounded-md border border-border/50">
                   <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line">
-                    {currentChapter.summary}
+                    <ReactMarkdown>{currentChapter.summary}</ReactMarkdown>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -349,11 +350,11 @@ export default function ReadPage() {
                       onCloseAutoFocus={e => e.preventDefault()} 
                     >
                       <ScrollArea className="max-h-60">
-                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line">
+                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert max-w-none text-foreground/80">
                           <h4 className="font-semibold text-primary mb-1 truncate">
                             關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
                           </h4>
-                          <p className="text-sm text-foreground/80">{note.content}</p>
+                          <ReactMarkdown>{note.content}</ReactMarkdown>
                           <p className="text-xs text-muted-foreground mt-1">
                             {note.isPublic ? 
                               <span className="flex items-center gap-1"><Globe className="h-3 w-3 text-green-500" />公開筆記</span> : 
@@ -433,7 +434,7 @@ export default function ReadPage() {
                               <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
                               <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
                                 <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line p-2 text-foreground/80">
-                                  {textExplanation}
+                                  <ReactMarkdown>{textExplanation}</ReactMarkdown>
                                 </div>
                               </ScrollArea>
                               <Button variant="ghost" onClick={() => setAiInteractionState('asking')} className="mt-2 text-sm">
@@ -477,7 +478,7 @@ export default function ReadPage() {
                         <div>
                           <h4 className="font-semibold text-primary mb-1">人物關係：</h4>
                           <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-                            {characterMap}
+                            <ReactMarkdown>{characterMap}</ReactMarkdown>
                           </div>
                         </div>
                       )}
@@ -485,7 +486,7 @@ export default function ReadPage() {
                         <div className="mt-3">
                            <h4 className="font-semibold text-primary mb-1">詞義解析：</h4>
                            <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-                            {wordAnalysis}
+                            <ReactMarkdown>{wordAnalysis}</ReactMarkdown>
                           </div>
                         </div>
                       )}
@@ -514,7 +515,7 @@ export default function ReadPage() {
                   {modernRelevance && !isLoadingAi ? (
                     <ScrollArea className="h-64 p-2 border rounded-md bg-muted/10">
                       <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-                        {modernRelevance}
+                        <ReactMarkdown>{modernRelevance}</ReactMarkdown>
                       </div>
                     </ScrollArea>
                   ) : isLoadingAi ? (

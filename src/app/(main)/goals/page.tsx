@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -15,6 +14,7 @@ import { analyzeLearningData, type LearningAnalysisInput, type LearningAnalysisO
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
+import ReactMarkdown from 'react-markdown';
 
 interface UserGoal {
   id: string;
@@ -24,8 +24,8 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 80, timeSpent: 60 }, 
-  { chapter: "第2回", comprehension: 60, timeSpent: 75 },
+  { chapter: "第1回", comprehension: 60, timeSpent: 75 }, 
+  { chapter: "第2回", comprehension: 80, timeSpent: 60 },
   { chapter: "第3回", comprehension: 70, timeSpent: 55 },
   { chapter: "第4回", comprehension: 75, timeSpent: 40 },
   { chapter: "第5回", comprehension: 85, timeSpent: 80 },
@@ -144,7 +144,9 @@ export default function GoalsPage() {
       {goals.map(goal => (
         <Card key={goal.id} className={`p-3 shadow-sm ${goal.isAchieved ? 'bg-green-500/10 border-green-500/50' : 'bg-card/80'}`}>
           <div className="flex justify-between items-center">
-            <div className={`flex-grow text-sm prose prose-sm dark:prose-invert max-w-none whitespace-pre-line ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>{goal.text}</div>
+            <div className={`flex-grow text-sm prose prose-sm dark:prose-invert max-w-none whitespace-pre-line ${goal.isAchieved ? 'line-through text-muted-foreground' : 'text-foreground/90'}`}>
+              <ReactMarkdown>{goal.text}</ReactMarkdown>
+            </div>
             <div className="flex items-center gap-1 shrink-0 ml-2">
               {isActiveList ? (
                 <Button variant="ghost" size="sm" onClick={() => handleToggleGoalStatus(goal.id)} className="h-7 px-2 text-xs text-green-600 hover:bg-green-500/10">
@@ -221,7 +223,7 @@ export default function GoalsPage() {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="font-artistic text-xl text-foreground/90">設定與追蹤您的學習目標</CardTitle>
-          <CardDescription className="text-xs text-muted-foreground pt-1">提示：AI建議的目標可作為參考，您可以選擇性地將它們添加到「我的目標」中進行追蹤。</CardDescription>
+           <CardDescription className="text-xs text-muted-foreground pt-1">提示：AI建議的目標可作為參考，您可以選擇性地將它們添加到「我的目標」中進行追蹤。</CardDescription>
         </CardHeader>
         <CardContent className="grid md:grid-cols-2 gap-6">
           <div className="space-y-4">
@@ -294,7 +296,9 @@ export default function GoalsPage() {
                           {(goalsArray as string[]).map((goal, index) => (
                             <li key={index} className="text-xs text-foreground/80 flex items-start">
                                <Lightbulb className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-accent/70 shrink-0" />
-                               <div className="prose prose-xs dark:prose-invert max-w-none whitespace-pre-line">{goal}</div>
+                               <div className="prose prose-xs dark:prose-invert max-w-none whitespace-pre-line">
+                                <ReactMarkdown>{goal}</ReactMarkdown>
+                               </div>
                             </li>
                           ))}
                         </ul>
@@ -314,7 +318,7 @@ export default function GoalsPage() {
           <CardDescription>對您的學習目標有疑問？或需要針對性指導？在此與AI互動。</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3 p-4 rounded-md" style={{border: '1px solid hsl(var(--border))'}}>
+          <div className="space-y-3 p-4 rounded-md border border-border">
             <Textarea 
               value={aiCompanionQuery}
               onChange={(e) => setAiCompanionQuery(e.target.value)}
@@ -327,7 +331,8 @@ export default function GoalsPage() {
             </Button>
             {aiCompanionResponse && (
               <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm whitespace-pre-line prose prose-sm dark:prose-invert max-w-none text-foreground/80">
-                <strong>AI學伴回覆：</strong> {aiCompanionResponse}
+                <strong>AI學伴回覆：</strong> 
+                <ReactMarkdown>{aiCompanionResponse}</ReactMarkdown>
               </div>
             )}
           </div>
@@ -376,7 +381,7 @@ export default function GoalsPage() {
               </div>
               {learningAnalysis?.cognitiveHeatmap && 
                 <div className="text-xs mt-2 text-foreground/80 p-2 bg-muted/20 rounded border border-border/30 prose prose-xs dark:prose-invert max-w-none whitespace-pre-line">
-                  {learningAnalysis.cognitiveHeatmap}
+                  <ReactMarkdown>{learningAnalysis.cognitiveHeatmap}</ReactMarkdown>
                 </div>
               }
             </div>
@@ -413,16 +418,16 @@ export default function GoalsPage() {
                 {learningAnalysis.comprehensionDeviations && (
                   <div>
                     <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
-                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-                      {learningAnalysis.comprehensionDeviations}
+                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none text-foreground/80">
+                      <ReactMarkdown>{learningAnalysis.comprehensionDeviations}</ReactMarkdown>
                     </div>
                   </div>
                 )}
                 {learningAnalysis.recommendations && (
                   <div className="mt-2">
                     <h5 className="font-semibold text-foreground/90 flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
-                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-                      {learningAnalysis.recommendations}
+                    <div className="pl-5 prose prose-sm dark:prose-invert max-w-none text-foreground/80">
+                      <ReactMarkdown>{learningAnalysis.recommendations}</ReactMarkdown>
                     </div>
                   </div>
                 )}

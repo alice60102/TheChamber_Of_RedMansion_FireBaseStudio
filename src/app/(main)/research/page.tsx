@@ -10,6 +10,7 @@ import { Library, Search, FileText, MessageSquare, Filter, Microscope, Share2 } 
 import { generateSpecialTopicFramework } from '@/ai/flows/generate-special-topic-framework';
 import type { GenerateSpecialTopicFrameworkInput, GenerateSpecialTopicFrameworkOutput } from '@/ai/flows/generate-special-topic-framework';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import ReactMarkdown from 'react-markdown';
 
 const researchTopics = [
   "《紅樓夢》中的詩詞賞析",
@@ -126,15 +127,15 @@ export default function ResearchPage() {
               <h3 className="text-lg font-semibold text-foreground">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
               {researchFramework ? (
                 <ScrollArea className="h-[calc(60vh)] border rounded-md p-4 bg-muted/20">
-                  <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line">
+                  <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
                     <h4 className="font-semibold text-primary">研究框架:</h4>
-                    <div className="text-foreground/90">{researchFramework.researchFramework}</div>
+                    <ReactMarkdown>{researchFramework.researchFramework}</ReactMarkdown>
                     
                     <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
-                    <div className="text-foreground/90">{researchFramework.relatedMaterials}</div>
+                    <ReactMarkdown>{researchFramework.relatedMaterials}</ReactMarkdown>
 
                     <h4 className="font-semibold text-primary mt-4">分析工具:</h4>
-                    <div className="text-foreground/90">{researchFramework.analysisTools}</div>
+                    <ReactMarkdown>{researchFramework.analysisTools}</ReactMarkdown>
                   </div>
                 </ScrollArea>
               ) : (

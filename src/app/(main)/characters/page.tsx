@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph'; 
+import ReactMarkdown from 'react-markdown';
 
 const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }) => {
   if (!data) {
@@ -21,20 +22,20 @@ const AnalysisOutputDisplay = ({ data }: { data: LearningAnalysisOutput | null }
     <ScrollArea className="h-96 p-4 border rounded-md bg-muted/10 text-sm space-y-4">
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BookOpen className="h-4 w-4" />文本掌握分析描述:</h3>
-        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-          {data.cognitiveHeatmap}
+        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
+          <ReactMarkdown>{data.cognitiveHeatmap}</ReactMarkdown>
         </div>
       </div>
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4" />理解偏差分析:</h3>
-        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-          {data.comprehensionDeviations}
+        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
+          <ReactMarkdown>{data.comprehensionDeviations}</ReactMarkdown>
         </div>
       </div>
       <div>
         <h3 className="font-semibold mb-2 text-primary flex items-center gap-1"><Lightbulb className="h-4 w-4" />學習建議:</h3>
-        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none whitespace-pre-line text-foreground/80">
-          {data.recommendations}
+        <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-foreground/80">
+          <ReactMarkdown>{data.recommendations}</ReactMarkdown>
         </div>
       </div>
     </ScrollArea>
