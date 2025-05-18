@@ -28,7 +28,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// Avatar components are no longer used for user display here
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,10 +106,11 @@ export function AppShell({ children }: { children: ReactNode }) {
              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex h-auto w-full items-center justify-start gap-2 p-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || "https://placehold.co/100x100.png"} alt="User Avatar" data-ai-hint="user avatar"/>
-                    <AvatarFallback>{user.displayName?.charAt(0) || user.email?.charAt(0) || '用戶'}</AvatarFallback>
-                  </Avatar>
+                  <i 
+                    className="fa fa-user-circle text-sidebar-foreground" 
+                    aria-hidden="true"
+                    style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  ></i>
                   <div className="text-left">
                     <p className="text-sm font-medium text-sidebar-foreground truncate">{user.displayName || '用戶'}</p>
                     <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
