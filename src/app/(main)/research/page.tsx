@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Library, Search, FileText, Microscope, Share2 } from "lucide-react";
+import { Library, Search, FileText, Microscope, Share2, MessageSquare } from "lucide-react"; // Added MessageSquare
 import { generateSpecialTopicFramework } from '@/ai/flows/generate-special-topic-framework';
 import type { GenerateSpecialTopicFrameworkInput, GenerateSpecialTopicFrameworkOutput } from '@/ai/flows/generate-special-topic-framework';
 import { ScrollArea } from '@/components/ui/scroll-area';
