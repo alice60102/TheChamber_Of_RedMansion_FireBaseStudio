@@ -12,6 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Target, Lightbulb, Brain, BarChartHorizontalBig, BookOpen, AlertTriangle, Zap, PlusCircle, Trash2, Award, CheckCircle2, Circle } from "lucide-react";
 import { generateGoalSuggestions, type GenerateGoalSuggestionsInput, type GenerateGoalSuggestionsOutput } from '@/ai/flows/generate-goal-suggestions';
 import { analyzeLearningData, type LearningAnalysisInput, type LearningAnalysisOutput } from '@/ai/flows/learning-analysis';
+import { aiCompanionGuidance, type AiCompanionGuidanceInput, type AiCompanionGuidanceOutput } from '@/ai/flows/ai-companion-guidance';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
@@ -25,8 +26,8 @@ interface UserGoal {
 
 // Sample data for the learning curve chart
 const learningCurveData = [
-  { chapter: "第1回", comprehension: 60, timeSpent: 75 }, 
-  { chapter: "第2回", comprehension: 80, timeSpent: 60 },
+  { chapter: "第1回", comprehension: 80, timeSpent: 60 }, 
+  { chapter: "第2回", comprehension: 60, timeSpent: 75 },
   { chapter: "第3回", comprehension: 70, timeSpent: 55 },
   { chapter: "第4回", comprehension: 75, timeSpent: 40 },
   { chapter: "第5回", comprehension: 85, timeSpent: 80 },
@@ -70,8 +71,9 @@ export default function GoalsPage() {
   const [learningAnalysisError, setLearningAnalysisError] = useState<string | null>(null);
 
   const [aiCompanionQuery, setAiCompanionQuery] = useState<string>("");
-  const [aiCompanionResponse, setAiCompanionResponse] = useState<string>("");
+  const [aiCompanionResponse, setAiCompanionResponse] = useState<string | null>(null);
   const [isLoadingAiCompanion, setIsLoadingAiCompanion] = useState(false);
+  const [aiCompanionError, setAiCompanionError] = useState<string | null>(null);
 
   const handleGenerateAiGoals = async () => {
     if (!userLearningSummary.trim()) {
@@ -131,12 +133,20 @@ export default function GoalsPage() {
   const handleAiCompanionSubmit = async () => {
     if (!aiCompanionQuery.trim()) return;
     setIsLoadingAiCompanion(true);
-    setAiCompanionResponse(`AI正在思考關於「${aiCompanionQuery}」的回答... (此功能待實現更複雜的AI對話流程)`);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500)); 
-    // Placeholder response. Replace with actual AI call if \`explainTextSelection\` or a similar flow is suitable.
-    // For now, using a generic response.
-    setAiCompanionResponse(`針對「${aiCompanionQuery}」：AI建議您參考相關章節的研讀筆記，並嘗試將此問題與您設定的學習目標關聯起來。例如，如果您的目標是理解主要人物性格，可以思考這個問題如何幫助您深化對某人物的認識。(此為佔位回應，實際AI互動功能需進一步實現)`);
+    setAiCompanionResponse(null);
+    setAiCompanionError(null);
+    try {
+      const input: AiCompanionGuidanceInput = {
+        userQuestion: aiCompanionQuery,
+        userLearningSummary: userLearningSummary,
+        userGoals: userGoals.map(g => g.text),
+      };
+      const result = await aiCompanionGuidance(input);
+      setAiCompanionResponse(result.guidance);
+    } catch (error) {
+      console.error("Error getting AI companion guidance:", error);
+      setAiCompanionError(error instanceof Error ? error.message : "AI學伴回答時發生未知錯誤。");
+    }
     setIsLoadingAiCompanion(false);
   };
 
@@ -279,6 +289,9 @@ export default function GoalsPage() {
                 <AlertDescription>{aiGoalsError}</AlertDescription>
               </Alert>
             )}
+            {isLoadingAiGoals && !aiSuggestedGoals && (
+                 <div className="h-72 mt-2 flex items-center justify-center text-muted-foreground">AI 正在生成目標建議...</div>
+            )}
             {aiSuggestedGoals && !isLoadingAiGoals && (
               <ScrollArea className="h-72 mt-2">
                 <Accordion type="multiple" className="w-full">
@@ -327,11 +340,23 @@ export default function GoalsPage() {
               className="min-h-[80px] bg-background/80"
               rows={3}
             />
-            <Button onClick={handleAiCompanionSubmit} disabled={isLoadingAiCompanion} className="bg-primary text-primary-foreground">
+            <Button onClick={handleAiCompanionSubmit} disabled={isLoadingAiCompanion || !aiCompanionQuery.trim()} className="bg-primary text-primary-foreground">
               {isLoadingAiCompanion ? "發送中..." : "提問AI學伴"}
             </Button>
-            {aiCompanionResponse && (
-              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm whitespace-pre-line prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
+             {aiCompanionError && (
+              <Alert variant="destructive" className="mt-3">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>AI學伴錯誤</AlertTitle>
+                <AlertDescription>{aiCompanionError}</AlertDescription>
+              </Alert>
+            )}
+            {isLoadingAiCompanion && !aiCompanionResponse && !aiCompanionError && (
+              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm text-muted-foreground">
+                AI學伴正在思考您的問題...
+              </div>
+            )}
+            {aiCompanionResponse && !isLoadingAiCompanion && (
+              <div className="mt-3 p-3 border rounded-md bg-muted/50 text-sm prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
                 <strong>AI學伴回覆：</strong> 
                 <ReactMarkdown>{aiCompanionResponse}</ReactMarkdown>
               </div>
@@ -356,92 +381,93 @@ export default function GoalsPage() {
               <AlertDescription>{learningAnalysisError}</AlertDescription>
             </Alert>
           )}
-          <div className="grid gap-6"> {/* Removed md:grid-cols-2 to stack charts */}
-            <div>
-              <h4 className="font-semibold mb-2 text-primary">文本主題掌握度 (模擬)</h4>
-              <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="knowledge graph topic">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={cognitiveHeatmapData} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
-                    <XAxis dataKey="name" stroke="hsl(var(--foreground)/0.7)" fontSize={10} interval={0} />
-                    <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={10}/>
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        borderColor: 'hsl(var(--border))',
-                        color: 'hsl(var(--foreground))',
-                        borderRadius: 'var(--radius)',
-                        fontSize: '12px'
-                      }}
-                      labelStyle={{ color: 'hsl(var(--primary))', marginBottom: '4px' }}
-                      itemStyle={{ color: 'hsl(var(--foreground)/0.8)' }}
-                    />
-                    <Bar dataKey="mastery" name="掌握度" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              {learningAnalysis?.cognitiveHeatmap && 
-                <div className="text-xs mt-2 p-2 bg-muted/20 rounded border border-border/30 prose prose-xs dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
-                  <ReactMarkdown>{learningAnalysis.cognitiveHeatmap}</ReactMarkdown>
+          {isLoadingLearningAnalysis && !learningAnalysis && !learningAnalysisError && (
+            <div className="text-center py-8 text-muted-foreground">AI 正在為您生成個人化學習分析報告...</div>
+          )}
+          {learningAnalysis && !isLoadingLearningAnalysis && (
+            <>
+              <div className="grid gap-6"> {/* Removed md:grid-cols-2 to stack charts */}
+                <div>
+                  <h4 className="font-semibold mb-2 text-primary">文本主題掌握度 (模擬)</h4>
+                  <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="knowledge graph topic">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={cognitiveHeatmapData} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
+                        <XAxis dataKey="name" stroke="hsl(var(--foreground)/0.7)" fontSize={10} interval={0} />
+                        <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={10}/>
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--background))',
+                            borderColor: 'hsl(var(--border))',
+                            color: 'hsl(var(--foreground))',
+                            borderRadius: 'var(--radius)',
+                            fontSize: '12px'
+                          }}
+                          labelStyle={{ color: 'hsl(var(--primary))', marginBottom: '4px' }}
+                          itemStyle={{ color: 'hsl(var(--foreground)/0.8)' }}
+                        />
+                        <Bar dataKey="mastery" name="掌握度" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {learningAnalysis?.cognitiveHeatmap && 
+                    <div className="text-xs mt-2 p-2 bg-muted/20 rounded border border-border/30 prose prose-xs dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+                      <ReactMarkdown>{learningAnalysis.cognitiveHeatmap}</ReactMarkdown>
+                    </div>
+                  }
                 </div>
-              }
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2 text-primary">每日閱讀進度 (模擬)</h4>
-              <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="reading progress chart">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={readingTrajectoryData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
-                    <XAxis dataKey="day" stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
-                    <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
-                    <Tooltip
-                       contentStyle={{
-                        backgroundColor: 'hsl(var(--background))',
-                        borderColor: 'hsl(var(--border))',
-                        color: 'hsl(var(--foreground))',
-                        borderRadius: 'var(--radius)',
-                        fontSize: '12px'
-                      }}
-                      labelStyle={{ color: 'hsl(var(--primary))', marginBottom: '4px' }}
-                      itemStyle={{ color: 'hsl(var(--foreground)/0.8)' }}
-                    />
-                    <Legend wrapperStyle={{ fontSize: '10px', color: 'hsl(var(--foreground)/0.7)', paddingTop: '4px' }}/>
-                    <Line type="monotone" dataKey="chapters" name="閱讀章數" stroke="hsl(var(--chart-3))" strokeWidth={2.5} activeDot={{ r: 5 }} dot={{ fill: 'hsl(var(--chart-3))', r:2 }} />
-                  </LineChart>
-                </ResponsiveContainer>
+                <div>
+                  <h4 className="font-semibold mb-2 text-primary">每日閱讀進度 (模擬)</h4>
+                  <div className="aspect-[16/7] w-full bg-muted/30 rounded-md p-2" data-ai-hint="reading progress chart">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={readingTrajectoryData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border)/0.5)" />
+                        <XAxis dataKey="day" stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
+                        <YAxis stroke="hsl(var(--foreground)/0.7)" fontSize={10} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: 'hsl(var(--background))',
+                            borderColor: 'hsl(var(--border))',
+                            color: 'hsl(var(--foreground))',
+                            borderRadius: 'var(--radius)',
+                            fontSize: '12px'
+                          }}
+                          labelStyle={{ color: 'hsl(var(--primary))', marginBottom: '4px' }}
+                          itemStyle={{ color: 'hsl(var(--foreground)/0.8)' }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '10px', color: 'hsl(var(--foreground)/0.7)', paddingTop: '4px' }}/>
+                        <Line type="monotone" dataKey="chapters" name="閱讀章數" stroke="hsl(var(--chart-3))" strokeWidth={2.5} activeDot={{ r: 5 }} dot={{ fill: 'hsl(var(--chart-3))', r:2 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-          {learningAnalysis && (
-            <Card className="mt-4 bg-card/50 p-4" style={{border: '1px solid hsl(var(--border))'}}>
-              <CardTitle className="text-lg font-artistic text-primary mb-2">AI 個性化學習建議</CardTitle>
-              <ScrollArea className="h-40 text-sm space-y-2 pr-2">
-                {learningAnalysis.comprehensionDeviations && (
-                  <div>
-                    <h5 className="font-semibold text-white flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
-                    <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
-                      <ReactMarkdown>{learningAnalysis.comprehensionDeviations}</ReactMarkdown>
+              <Card className="mt-4 bg-card/50 p-4" style={{border: '1px solid hsl(var(--border))'}}>
+                <CardTitle className="text-lg font-artistic text-primary mb-2">AI 個性化學習建議</CardTitle>
+                <ScrollArea className="h-40 text-sm space-y-2 pr-2">
+                  {learningAnalysis.comprehensionDeviations && (
+                    <div>
+                      <h5 className="font-semibold text-white flex items-center gap-1"><BarChartHorizontalBig className="h-4 w-4 text-accent" />理解偏差提醒:</h5>
+                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+                        <ReactMarkdown>{learningAnalysis.comprehensionDeviations}</ReactMarkdown>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {learningAnalysis.recommendations && (
-                  <div className="mt-2">
-                    <h5 className="font-semibold text-white flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
-                    <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none text-white">
-                      <ReactMarkdown>{learningAnalysis.recommendations}</ReactMarkdown>
+                  )}
+                  {learningAnalysis.recommendations && (
+                    <div className="mt-2">
+                      <h5 className="font-semibold text-white flex items-center gap-1"><Lightbulb className="h-4 w-4 text-accent" />學習策略優化:</h5>
+                      <div className="pl-5 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
+                        <ReactMarkdown>{learningAnalysis.recommendations}</ReactMarkdown>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </ScrollArea>
-              <p className="text-xs text-muted-foreground mt-3 text-center">(此處未來可融入學習倦怠預警、適應性路徑調整等更多AI分析結果)</p>
-            </Card>
+                  )}
+                </ScrollArea>
+                <p className="text-xs text-muted-foreground mt-3 text-center">(此處未來可融入學習倦怠預警、適應性路徑調整等更多AI分析結果)</p>
+              </Card>
+            </>
           )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
-    
-
-    
