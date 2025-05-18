@@ -15,6 +15,20 @@ const firebaseConfig: FirebaseOptions = {
   // measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
 };
 
+// --- DEBUGGING LOG ---
+// This log will appear in your SERVER-SIDE terminal when the app starts.
+// Check if these values match exactly what's in your Firebase project console.
+console.log("Firebase Initialization Attempting with:");
+console.log("Project ID:", firebaseConfig.projectId);
+console.log("Auth Domain:", firebaseConfig.authDomain);
+if (!firebaseConfig.apiKey) {
+  console.error("Firebase API Key is MISSING in .env file!");
+}
+if (!firebaseConfig.projectId) {
+  console.error("Firebase Project ID is MISSING in .env file!");
+}
+// --- END DEBUGGING LOG ---
+
 // Initialize Firebase
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
