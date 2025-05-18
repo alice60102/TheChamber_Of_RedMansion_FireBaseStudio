@@ -19,8 +19,8 @@ body {
     --popover: 0 65% 15%;
     --popover-foreground: 30 40% 90%;
 
-    --primary: 0 63% 35%; /* #932121 */
-    --primary-foreground: 30 40% 90%;
+    --primary: 45 56% 62%; /* Gold - Changed from red */
+    --primary-foreground: 0 70% 11%; /* Dark Red-Brown for contrast on gold buttons - Changed from warm off-white */
 
     --secondary: 0 50% 25%;
     --secondary-foreground: 30 40% 90%;
@@ -69,8 +69,8 @@ body {
     --popover: 0 65% 15%;
     --popover-foreground: 30 40% 90%;
 
-    --primary: 0 63% 35%;
-    --primary-foreground: 30 40% 90%;
+    --primary: 45 56% 62%; /* Gold - Changed from red */
+    --primary-foreground: 0 70% 11%; /* Dark Red-Brown for contrast on gold buttons - Changed from warm off-white */
 
     --secondary: 0 50% 25%;
     --secondary-foreground: 30 40% 90%;
