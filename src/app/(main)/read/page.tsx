@@ -4,9 +4,10 @@ import { useState, useEffect, useRef, MouseEvent as ReactMouseEvent, useCallback
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Drama, Sparkles, BookText, HelpCircle, MessageSquare, FilePenLine, Globe, Lock, Save, XCircle, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Drama, Sparkles, BookText, MessageSquare, FilePenLine, Globe, Lock, Save, XCircle, Eye } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-// import { connectThemesToModernContexts } from '@/ai/flows/connect-themes-to-modern-contexts'; // Removed as per previous request
+import { connectThemesToModernContexts } from '@/ai/flows/connect-themes-to-modern-contexts';
+import type { ConnectThemesToModernContextsInput, ConnectThemesToModernContextsOutput } from '@/ai/flows/connect-themes-to-modern-contexts';
 import { analyzeContext } from '@/ai/flows/context-aware-analysis';
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
@@ -59,9 +60,11 @@ interface SelectedTextInfo {
 export default function ReadPage() {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [characterMap, setCharacterMap] = useState<string | null>(null); 
-  // const [modernRelevance, setModernRelevance] = useState<string | null>(null); // Removed as per previous request
+  const [modernRelevance, setModernRelevance] = useState<ConnectThemesToModernContextsOutput | null>(null);
   const [wordAnalysis, setWordAnalysis] = useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [isLoadingModernRelevance, setIsLoadingModernRelevance] = useState(false);
+
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<SelectedTextInfo | null>(null);
   const [isAIPopoverOpen, setIsAIPopoverOpen] = useState(false);
@@ -84,7 +87,7 @@ export default function ReadPage() {
 
   useEffect(() => {
     setCharacterMap(null);
-    // setModernRelevance(null); // Removed
+    setModernRelevance(null);
     setWordAnalysis(null);
     setSelectedTextInfo(null);
     setIsAIPopoverOpen(false);
@@ -155,22 +158,21 @@ export default function ReadPage() {
     }
     setIsLoadingAi(false);
   };
-
-  /* // Removed as per previous request
+  
   const handleFetchModernRelevance = async () => {
     if (!currentChapter) return;
-    setIsLoadingAi(true);
+    setIsLoadingModernRelevance(true);
     setModernRelevance(null);
     try {
-      const result = await connectThemesToModernContexts({ chapterText: currentChapter.content.substring(0, 1000) });
-      setModernRelevance(result.modernContextInsights);
+      const input: ConnectThemesToModernContextsInput = { chapterText: currentChapter.content.substring(0, 1000) };
+      const result = await connectThemesToModernContexts(input);
+      setModernRelevance(result);
     } catch (error) {
       console.error("Error fetching modern relevance:", error);
-      setModernRelevance("無法生成現代關聯，請稍後再試。");
+      setModernRelevance({ modernContextInsights: "無法生成現代關聯，請稍後再試。" });
     }
-    setIsLoadingAi(false);
+    setIsLoadingModernRelevance(false);
   };
-  */
   
   const handleOpenAIPopover = () => {
     if (selectedTextInfo?.text) {
@@ -204,7 +206,7 @@ export default function ReadPage() {
     setIsLoadingExplanation(false);
   };
 
-  const handleOpenNoteSheet = () => {
+ const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text && selectedTextInfo.range && chapterContentRef.current) {
       const selectionRect = selectedTextInfo.range.getBoundingClientRect();
       const containerRect = chapterContentRef.current.getBoundingClientRect();
@@ -295,7 +297,7 @@ export default function ReadPage() {
                   <BookText className="h-4 w-4 mr-2" /> 本回提要概述
                 </AccordionTrigger>
                 <AccordionContent className="text-sm p-3 bg-muted/20 rounded-md border border-border/50">
-                  <div className="prose prose-sm dark:prose-invert text-white prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white prose-ul:text-white prose-ol:text-white prose-li:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line">
+                  <div className="prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line text-white">
                     <ReactMarkdown>{currentChapter.summary}</ReactMarkdown>
                   </div>
                 </AccordionContent>
@@ -305,7 +307,7 @@ export default function ReadPage() {
           <ScrollArea className="flex-grow p-1 relative" id="chapter-content-scroll-area">
             <CardContent 
               ref={chapterContentRef}
-              className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-white relative"
+              className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none leading-relaxed whitespace-pre-line p-6 text-white relative"
               style={{ fontFamily: "'Noto Serif SC', serif", position: 'relative' }}
             >
               {currentChapter.content}
@@ -352,7 +354,7 @@ export default function ReadPage() {
                       onCloseAutoFocus={e => e.preventDefault()} 
                     >
                       <ScrollArea className="max-h-60">
-                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert text-white prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white prose-ul:text-white prose-ol:text-white prose-li:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line">
+                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line text-white">
                           <h4 className="font-semibold text-primary mb-1 truncate">
                             關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
                           </h4>
@@ -435,7 +437,7 @@ export default function ReadPage() {
                             <div>
                               <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
                               <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
-                                <div className="prose prose-sm dark:prose-invert text-white prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white prose-ul:text-white prose-ol:text-white prose-li:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line p-2">
+                                <div className="prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line p-2 text-white">
                                   <ReactMarkdown>{textExplanation}</ReactMarkdown>
                                 </div>
                               </ScrollArea>
@@ -458,9 +460,9 @@ export default function ReadPage() {
 
       <div className="lg:w-1/3">
         <Tabs defaultValue="context-analysis" className="h-full">
-          <TabsList className="grid w-full grid-cols-1 bg-muted/50"> {/* Changed grid-cols-2 to grid-cols-1 */}
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50">
             <TabsTrigger value="context-analysis"><Drama className="h-4 w-4 mr-1 inline-block" />脈絡分析</TabsTrigger>
-            {/* <TabsTrigger value="modern-relevance"><Sparkles className="h-4 w-4 mr-1 inline-block" />現代關聯</TabsTrigger> // Removed */}
+            <TabsTrigger value="modern-relevance"><Sparkles className="h-4 w-4 mr-1 inline-block" />現代關聯</TabsTrigger>
           </TabsList>
           
           <TabsContent value="context-analysis" className="mt-0">
@@ -477,12 +479,12 @@ export default function ReadPage() {
                   {(characterMap || wordAnalysis) && !isLoadingAi ? (
                     <ScrollArea className="h-64 p-2 border rounded-md bg-muted/10">
                       {characterMap && (
-                        <div className="prose prose-sm dark:prose-invert text-white prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white prose-ul:text-white prose-ol:text-white prose-li:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line">
+                        <div className="prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line text-white">
                           <ReactMarkdown>{characterMap}</ReactMarkdown>
                         </div>
                       )}
                       {wordAnalysis && (
-                        <div className="mt-3 prose prose-sm dark:prose-invert text-white prose-headings:text-white prose-p:text-white prose-strong:text-white prose-em:text-white prose-ul:text-white prose-ol:text-white prose-li:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line">
+                        <div className="mt-3 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line text-white">
                            <ReactMarkdown>{wordAnalysis}</ReactMarkdown>
                         </div>
                       )}
@@ -497,11 +499,32 @@ export default function ReadPage() {
             </Card>
           </TabsContent>
 
-          {/* Modern Relevance Tab Content Removed
           <TabsContent value="modern-relevance" className="mt-0">
-            // ... content removed ...
+            <Card className="shadow-lg h-[calc(100vh-var(--header-height,4rem)-6rem)]">
+              <CardHeader>
+                <CardTitle className="font-artistic text-lg">現代關聯</CardTitle>
+                <CardDescription>探索本章節主題與當代社會的聯繫。</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Button onClick={handleFetchModernRelevance} disabled={isLoadingModernRelevance} className="w-full">
+                    {isLoadingModernRelevance ? "生成中..." : "生成現代關聯見解"}
+                  </Button>
+                  {modernRelevance && !isLoadingModernRelevance ? (
+                    <ScrollArea className="h-64 p-2 border rounded-md bg-muted/10">
+                      <div className="prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line text-white">
+                        <ReactMarkdown>{modernRelevance.modernContextInsights}</ReactMarkdown>
+                      </div>
+                    </ScrollArea>
+                  ) : isLoadingModernRelevance ? (
+                     <p className="text-sm text-muted-foreground text-center p-4">AI 正在生成現代關聯見解，請稍候...</p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center p-4">點擊按鈕生成現代關聯見解。</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
-          */}
         </Tabs>
       </div>
 
@@ -557,5 +580,7 @@ export default function ReadPage() {
     </div>
   );
 }
+
+    
 
     
