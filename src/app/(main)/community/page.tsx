@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, MessageSquare, Search, ThumbsUp, MessageCircle } from "lucide-react";
+import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
+import { Label } from '@/components/ui/label'; // Added import for Label
 
 // Placeholder data for posts - in a real app, this would come from a backend
 const initialPostsData = [
@@ -111,9 +112,37 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
   );
 }
 
-function PostCard({ post }: { post: Post }) {
+function PostCard({ post: initialPost }: { post: Post }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const showMoreButton = post.content.length > CONTENT_TRUNCATE_LENGTH;
+  const showMoreButton = initialPost.content.length > CONTENT_TRUNCATE_LENGTH;
+
+  // Likes state
+  const [isLiked, setIsLiked] = useState(false);
+  const [currentLikes, setCurrentLikes] = useState(initialPost.likes);
+
+  const handleLike = () => {
+    if (isLiked) {
+      setCurrentLikes(prev => prev - 1);
+    } else {
+      setCurrentLikes(prev => prev + 1);
+    }
+    setIsLiked(!isLiked);
+  };
+
+  // Comments state
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [currentCommentsCount, setCurrentCommentsCount] = useState(initialPost.comments);
+  const [postedComments, setPostedComments] = useState<string[]>([]); // To show newly posted comments (local only)
+
+  const handleSubmitComment = () => {
+    if (newComment.trim()) {
+      setPostedComments(prev => [...prev, newComment.trim()]);
+      setCurrentCommentsCount(prev => prev + 1);
+      setNewComment('');
+      // Optionally keep the input open: setShowCommentInput(true);
+    }
+  };
 
   return (
     <Card className="shadow-lg overflow-hidden bg-card/70 hover:shadow-primary/10 transition-shadow">
@@ -125,14 +154,14 @@ function PostCard({ post }: { post: Post }) {
             style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           ></i>
           <div>
-            <p className="font-semibold text-primary">{post.author}</p>
-            <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+            <p className="font-semibold text-primary">{initialPost.author}</p>
+            <p className="text-xs text-muted-foreground">{initialPost.timestamp}</p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
         <p className={`text-foreground/80 leading-relaxed whitespace-pre-line ${!isExpanded ? 'line-clamp-3' : ''}`}>
-          {post.content}
+          {initialPost.content}
         </p>
         {showMoreButton && (
           <Button 
@@ -145,21 +174,55 @@ function PostCard({ post }: { post: Post }) {
           </Button>
         )}
         <div className="flex flex-wrap gap-2 mt-3">
-          {post.tags.map(tag => (
+          {initialPost.tags.map(tag => (
             <span key={tag} className="text-xs bg-accent/20 text-accent-foreground py-0.5 px-2 rounded-full cursor-pointer hover:bg-accent/30">#{tag}</span>
           ))}
         </div>
       </CardContent>
       <CardFooter className="flex justify-start items-center pt-4 border-t border-border/50">
-        <div className="flex gap-4 text-muted-foreground">
-          <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-primary">
-            <ThumbsUp className="h-4 w-4" /> {post.likes}
+        <div className="flex gap-2 text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={handleLike} className={`flex items-center gap-1 ${isLiked ? 'text-primary' : 'hover:text-primary'}`}>
+            <ThumbsUp className={`h-4 w-4 ${isLiked ? 'fill-primary text-primary' : ''}`} /> {currentLikes}
           </Button>
-          <Button variant="ghost" size="sm" className="flex items-center gap-1 hover:text-primary">
-            <MessageCircle className="h-4 w-4" /> {post.comments}
+          <Button variant="ghost" size="sm" onClick={() => setShowCommentInput(!showCommentInput)} className="flex items-center gap-1 hover:text-primary">
+            <MessageCircle className="h-4 w-4" /> {currentCommentsCount}
           </Button>
         </div>
       </CardFooter>
+
+      {showCommentInput && (
+        <CardContent className="pt-4 border-t border-border/50 bg-muted/20">
+          <div className="space-y-2">
+            <Label htmlFor={`comment-input-${initialPost.id}`} className="text-sm font-semibold text-foreground/90">發表評論</Label>
+            <Textarea
+              id={`comment-input-${initialPost.id}`}
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              placeholder="寫下您的評論..."
+              rows={2}
+              className="bg-background/70 text-base"
+            />
+            <Button onClick={handleSubmitComment} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!newComment.trim()}>
+              <Send className="h-3 w-3 mr-1.5"/> 送出評論
+            </Button>
+          </div>
+          {postedComments.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-border/30 space-y-2">
+              {/* <h4 className="text-xs font-semibold text-muted-foreground">您的評論:</h4> */}
+              {postedComments.map((comment, index) => (
+                <div key={index} className="text-xs p-2 bg-background/30 rounded-md text-foreground/80 flex items-start gap-2">
+                   <i 
+                    className="fa fa-user-circle text-primary/70 mt-0.5" 
+                    aria-hidden="true"
+                    style={{ fontSize: '16px', width: '16px', height: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                  ></i>
+                  <span>{comment}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      )}
     </Card>
   );
 }
@@ -239,3 +302,6 @@ export default function CommunityPage() {
     </div>
   );
 }
+
+
+    
