@@ -46,7 +46,6 @@ interface UserNote {
   targetText: string; 
   content: string;
   isPublic: boolean;
-  // Store rect relative to the scrollable content's origin
   rangeRect: { top: number; left: number; width: number; height: number; } | null; 
 }
 
@@ -75,8 +74,7 @@ export default function ReadPage() {
   const [currentNoteTargetText, setCurrentNoteTargetText] = useState<string>('');
   const [currentNoteContent, setCurrentNoteContent] = useState('');
   const [currentNoteIsPublic, setCurrentNoteIsPublic] = useState(true);
-  // Stores the viewport-relative DOMRect of the selection when the note sheet is opened
-  const [currentNoteSelectionViewportRect, setCurrentNoteSelectionViewportRect] = useState<DOMRectReadOnly | null>(null); 
+  const [currentNoteSelectionRect, setCurrentNoteSelectionRect] = useState<{ top: number; left: number; width: number; height: number; } | null>(null);
   
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const currentChapter = chapters[currentChapterIndex];
@@ -199,12 +197,21 @@ export default function ReadPage() {
   };
 
   const handleOpenNoteSheet = () => {
-    if (selectedTextInfo?.text && selectedTextInfo.range) {
+    if (selectedTextInfo?.text && selectedTextInfo.range && chapterContentRef.current) {
       setCurrentNoteTargetText(selectedTextInfo.text);
       const existingNote = notes.find(n => n.targetText === selectedTextInfo.text && n.chapterId === currentChapter.id);
       setCurrentNoteContent(existingNote ? existingNote.content : '');
       setCurrentNoteIsPublic(existingNote ? existingNote.isPublic : true);
-      setCurrentNoteSelectionViewportRect(selectedTextInfo.range.getBoundingClientRect()); // Store viewport-relative rect
+
+      const selectionRect = selectedTextInfo.range.getBoundingClientRect();
+      const containerRect = chapterContentRef.current.getBoundingClientRect();
+      setCurrentNoteSelectionRect({
+        top: selectionRect.top - containerRect.top + chapterContentRef.current.scrollTop,
+        left: selectionRect.left - containerRect.left + chapterContentRef.current.scrollLeft,
+        width: selectionRect.width,
+        height: selectionRect.height,
+      });
+
       setShowNoteSheet(true);
       setSelectedTextInfo(null); 
       setIsAIPopoverOpen(false);
@@ -212,21 +219,10 @@ export default function ReadPage() {
   };
 
   const handleSaveNote = () => {
-    if (!currentNoteTargetText.trim() || !currentNoteContent.trim() || !chapterContentRef.current || !currentNoteSelectionViewportRect) {
+    if (!currentNoteTargetText.trim() || !currentNoteContent.trim() || !currentNoteSelectionRect) {
         alert("筆記內容不能為空或選區信息丟失！");
         return;
     }
-
-    const containerViewportRect = chapterContentRef.current.getBoundingClientRect();
-    const scrollTopAtCapture = chapterContentRef.current.scrollTop;
-    const scrollLeftAtCapture = chapterContentRef.current.scrollLeft;
-
-    const rectForStorageInNote = {
-        top: currentNoteSelectionViewportRect.top - containerViewportRect.top + scrollTopAtCapture,
-        left: currentNoteSelectionViewportRect.left - containerViewportRect.left + scrollLeftAtCapture,
-        width: currentNoteSelectionViewportRect.width,
-        height: currentNoteSelectionViewportRect.height,
-    };
 
     const newNote: UserNote = {
       id: Date.now().toString(),
@@ -234,7 +230,7 @@ export default function ReadPage() {
       targetText: currentNoteTargetText,
       content: currentNoteContent,
       isPublic: currentNoteIsPublic,
-      rangeRect: rectForStorageInNote,
+      rangeRect: currentNoteSelectionRect,
     };
     setNotes(prevNotes => {
       const filteredNotes = prevNotes.filter(
@@ -249,7 +245,7 @@ export default function ReadPage() {
     setShowNoteSheet(false);
     setCurrentNoteTargetText('');
     setCurrentNoteContent('');
-    setCurrentNoteSelectionViewportRect(null);
+    setCurrentNoteSelectionRect(null);
   };
 
   const goToNextChapter = () => {
@@ -291,14 +287,14 @@ export default function ReadPage() {
             <CardContent 
               ref={chapterContentRef}
               className="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none leading-relaxed whitespace-pre-line p-6 text-foreground/90 relative"
-              style={{ fontFamily: "'Noto Serif SC', serif" }}
+              style={{ fontFamily: "'Noto Serif SC', serif", position: 'relative' }}
             >
               {currentChapter.content}
 
               {chapterContentRef.current && notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect).map(note => {
-                if (!note.rangeRect) return null;
-                const currentScrollTop = chapterContentRef.current!.scrollTop;
-                const currentScrollLeft = chapterContentRef.current!.scrollLeft;
+                if (!note.rangeRect || !chapterContentRef.current) return null;
+                const currentScrollTop = chapterContentRef.current.scrollTop;
+                const currentScrollLeft = chapterContentRef.current.scrollLeft;
 
                 const style: React.CSSProperties = {
                   position: 'absolute',
@@ -320,7 +316,6 @@ export default function ReadPage() {
                         title={`筆記: ${note.targetText.substring(0,20)}...`}
                         style={style}
                         onClick={(e) => {
-                          // Prevent re-triggering text selection logic when clicking a highlight
                           e.stopPropagation(); 
                           setSelectedTextInfo(null);
                           setIsAIPopoverOpen(false);
@@ -354,7 +349,7 @@ export default function ReadPage() {
                   }}
                 >
                   <Button
-                      variant="default" // Changed from "outline" for solid background
+                      variant="default"
                       size="sm"
                       className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
                       onClick={handleOpenNoteSheet}
@@ -434,7 +429,7 @@ export default function ReadPage() {
           </TabsList>
           
           <TabsContent value="context-analysis" className="mt-0">
-             <Card className="shadow-lg h-[calc(100vh-var(--header-height,4rem)-6rem)]">
+            <Card className="shadow-lg h-[calc(100vh-var(--header-height,4rem)-6rem)]">
               <CardHeader>
                 <CardTitle className="font-artistic text-lg">文本脈絡分析</CardTitle>
                 <CardDescription>探索本章節人物關係與詞義典故。</CardDescription>
