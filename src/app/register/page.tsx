@@ -53,8 +53,13 @@ export default function RegisterPage() {
         setFirebaseError('此電子郵件地址已被註冊。');
       } else if (error.code === 'auth/weak-password') {
         setFirebaseError('密碼太弱，請使用更強的密碼。');
-      } else {
-        setFirebaseError('註冊失敗，請稍後再試。');
+      } else if (error.code === 'auth/configuration-not-found') {
+        setFirebaseError('Firebase 驗證設定未找到。請確認您的 .env 文件中的 Firebase 專案ID是否正確，並在 Firebase 控制台中啟用了 Email/Password 登入方式。');
+      } else if (error.code === 'auth/invalid-api-key') {
+        setFirebaseError('Firebase API 金鑰無效。請檢查您的 .env 文件中的 Firebase 配置是否正確。');
+      }
+      else {
+        setFirebaseError('註冊失敗，請稍後再試。錯誤碼：' + error.code);
       }
       console.error("Registration error:", error);
     } finally {
