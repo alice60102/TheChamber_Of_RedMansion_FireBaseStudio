@@ -106,7 +106,7 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
             style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           ></i>
           <div className="flex-grow">
-            <p className="font-semibold text-primary mb-1">{user?.displayName || '訪客'}</p>
+            <p className="font-semibold text-white mb-1">{user?.displayName || '訪客'}</p>
             <Textarea
               placeholder="發文內容..."
               value={postContent}
@@ -180,7 +180,7 @@ function PostCard({ post: initialPost }: { post: Post }) {
             style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           ></i>
           <div>
-            <p className="font-semibold text-primary">{initialPost.author}</p>
+            <p className="font-semibold text-white">{initialPost.author}</p>
             <p className="text-xs text-muted-foreground">{initialPost.timestamp}</p>
           </div>
         </div>
@@ -228,7 +228,7 @@ function PostCard({ post: initialPost }: { post: Post }) {
                     style={{ fontSize: '20px', width: '20px', height: '20px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                   ></i>
                   <div className="text-foreground/80 leading-relaxed whitespace-pre-line">
-                    <span className="font-semibold text-primary/90">{comment.author}: </span>
+                    <span className="font-semibold text-white">{comment.author}: </span>
                     <span>{comment.text}</span>
                   </div>
                 </div>
@@ -330,3 +330,4 @@ export default function CommunityPage() {
     </div>
   );
 }
+
