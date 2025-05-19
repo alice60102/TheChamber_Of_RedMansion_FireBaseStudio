@@ -10,7 +10,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2 ml-4"> {/* Added ml-4 here */}
             {/* Replace with an actual logo if available */}
             {/* <ScrollText className="h-8 w-8 text-primary" /> */}
             <span className="text-2xl font-artistic font-bold text-white">紅樓慧讀</span>

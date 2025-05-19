@@ -1,4 +1,3 @@
-
 { pkgs, ... }: {
 
   # This is a basic Nix configuration for Firebase Studio.
@@ -7,9 +6,9 @@
   # Environment packages.
   # Firebase Studio manages Node.js and npm versions.
   # You can uncomment and specify a specific Node.js version if needed, e.g.:
-  # environment.projectPackages = [ pkgs.nodejs_20 ]; # For Node.js 20
+  # packages = [ pkgs.nodejs_20 ]; # For Node.js 20
   # Or rely on Studio's default Node.js environment which is usually suitable.
-  environment.systemPackages = [ pkgs.nodejs pkgs.corepack_latest ];
+  packages = [ pkgs.nodejs pkgs.corepack_latest ];
 
   # Enable previews and customize configuration
   idx.previews = {
@@ -24,6 +23,7 @@
           "run"  # npm subcommand
           "dev"  # Your script name in package.json (which is now just "next dev")
           "--"   # Separator: arguments after this are passed to the script `next dev`
+          "."    # The project directory (current directory)
           "--port"
           "$PORT" # Firebase Studio injects this environment variable for the port
           "--hostname"

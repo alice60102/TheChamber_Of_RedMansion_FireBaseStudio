@@ -1,4 +1,3 @@
-
 "use client";
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
@@ -43,6 +42,12 @@ export default function ResearchPage() {
         selectedTopic: topicToUse,
       };
       const result = await generateSpecialTopicFramework(input);
+      // 預處理可能的空列表項問題
+      if (result.researchFramework) {
+        result.researchFramework = result.researchFramework
+          .replace(/\n\s*•\s*\n/g, '\n• ') // 修復空的列表項
+          .replace(/:\s*\n/g, ': '); // 修復冒號後直接換行的情況
+      }
       setResearchFramework(result);
     } catch (error) {
       console.error("Error generating research framework:", error);
@@ -126,21 +131,27 @@ export default function ResearchPage() {
             <div className="md:col-span-2 flex flex-col">
               <h3 className="text-lg font-semibold text-foreground mb-4">AI 生成研究框架 ({customTopic || selectedTopic || "待選擇主題"})</h3>
               {isLoading ? (
-                 <div className="flex-grow h-0 border rounded-md p-4 bg-muted/20 flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground text-center">
-                        正在為您構建研究框架...
-                    </p>
-                 </div>
+                <div className="flex-grow h-0 border rounded-md p-4 bg-muted/20 flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground text-center">
+                    正在為您構建研究框架...
+                  </p>
+                </div>
               ) : researchFramework ? (
                 <ScrollArea className="flex-grow h-0 border rounded-md p-4 bg-muted/20">
-                  <div className="prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white max-w-none whitespace-pre-line text-white">
-                    <ReactMarkdown>{researchFramework.researchFramework}</ReactMarkdown>
+                  <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-white">
+                    <ReactMarkdown className="prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-li:pl-1">
+                      {researchFramework.researchFramework}
+                    </ReactMarkdown>
                     
-                    <h4 className="font-semibold text-primary mt-4">相關材料:</h4>
-                    <ReactMarkdown>{researchFramework.relatedMaterials}</ReactMarkdown>
+                    <h4 className="font-semibold text-primary mt-6 mb-2">相關材料:</h4>
+                    <ReactMarkdown className="prose-ul:my-2 prose-li:my-1 prose-li:pl-1">
+                      {researchFramework.relatedMaterials}
+                    </ReactMarkdown>
 
-                    <h4 className="font-semibold text-primary mt-4">分析工具:</h4>
-                    <ReactMarkdown>{researchFramework.analysisTools}</ReactMarkdown>
+                    <h4 className="font-semibold text-primary mt-6 mb-2">分析工具:</h4>
+                    <ReactMarkdown className="prose-ul:my-2 prose-li:my-1 prose-li:pl-1">
+                      {researchFramework.analysisTools}
+                    </ReactMarkdown>
                   </div>
                 </ScrollArea>
               ) : (
@@ -155,15 +166,15 @@ export default function ResearchPage() {
         </CardContent>
         <CardFooter>
           <div className="flex flex-col items-start gap-2 md:flex-row md:justify-between w-full">
-              <p className="text-xs text-muted-foreground">
-                  AI 生成的框架為初步建議，您可以此為基礎進行調整和深化。
-              </p>
-              {researchFramework && (
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm"><FileText className="h-4 w-4 mr-2"/>導出為文檔</Button>
-                  <Button variant="outline" size="sm"><Share2 className="h-4 w-4 mr-2"/>分享框架</Button>
-                </div>
-              )}
+            <p className="text-xs text-muted-foreground">
+              AI 生成的框架為初步建議，您可以此為基礎進行調整和深化。
+            </p>
+            {researchFramework && (
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm"><FileText className="h-4 w-4 mr-2"/>導出為文檔</Button>
+                <Button variant="outline" size="sm"><Share2 className="h-4 w-4 mr-2"/>分享框架</Button>
+              </div>
+            )}
           </div>
         </CardFooter>
       </Card>
@@ -171,12 +182,12 @@ export default function ResearchPage() {
       {/* Placeholder for other research tools */}
       <Card className="shadow-xl">
         <CardHeader>
-            <CardTitle className="font-artistic text-xl text-primary flex items-center gap-2"><Microscope className="h-6 w-6"/>其他研究工具</CardTitle>
+          <CardTitle className="font-artistic text-xl text-primary flex items-center gap-2"><Microscope className="h-6 w-6"/>其他研究工具</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-2 gap-4">
-              <Button variant="outline" className="justify-start gap-2"><FileText className="h-4 w-4"/>敘事結構可視化 (待實現)</Button>
-              <Button variant="outline" className="justify-start gap-2"><MessageSquare className="h-4 w-4"/>多層次問題生成 (待實現)</Button>
+            <Button variant="outline" className="justify-start gap-2"><FileText className="h-4 w-4"/>敘事結構可視化 (待實現)</Button>
+            <Button variant="outline" className="justify-start gap-2"><MessageSquare className="h-4 w-4"/>多層次問題生成 (待實現)</Button>
           </div>
         </CardContent>
       </Card>
