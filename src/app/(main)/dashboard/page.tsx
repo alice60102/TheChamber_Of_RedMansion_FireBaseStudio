@@ -19,7 +19,7 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-artistic font-bold tracking-tight text-foreground">儀表板</h1>
           <p className="text-muted-foreground">歡迎回來！這是您的學習進度概覽。</p>
         </div>
-        <Button className="bg-accent text-accent-foreground hover:bg-accent/90">開始新的學習</Button>
+        {/* Removed "開始新的學習" button */}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

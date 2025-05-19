@@ -40,13 +40,16 @@ export default function ResearchPage() {
       const input: GenerateSpecialTopicFrameworkInput = {
         readingData: studentReadingData,
         selectedTopic: topicToUse,
+        language: "zh-TW", // 明確指定使用繁體中文
       };
       const result = await generateSpecialTopicFramework(input);
-      // 預處理可能的空列表項問題
+      // 預處理可能的空列表項問題，並確保輸出繁體中文
       if (result.researchFramework) {
         result.researchFramework = result.researchFramework
           .replace(/\n\s*•\s*\n/g, '\n• ') // 修復空的列表項
-          .replace(/:\s*\n/g, ': '); // 修復冒號後直接換行的情況
+          .replace(/:\s*\n/g, ': ') // 修復冒號後直接換行的情況
+          .replace(/Dream of the Red Chamber/g, '《紅樓夢》') // 將英文書名替換為中文
+          .replace(/Lin Daiyu/g, '林黛玉'); // 將英文人名替換為中文
       }
       setResearchFramework(result);
     } catch (error) {
@@ -139,17 +142,17 @@ export default function ResearchPage() {
               ) : researchFramework ? (
                 <ScrollArea className="flex-grow h-0 border rounded-md p-4 bg-muted/20">
                   <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line text-white">
-                    <ReactMarkdown className="prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-1 prose-li:pl-1">
+                    <ReactMarkdown className="text-white prose-h1:text-white prose-h2:text-white prose-h3:text-white prose-h4:text-white prose-h5:text-white prose-h6:text-white prose-p:text-white prose-a:text-white prose-blockquote:text-white prose-figcaption:text-white prose-pre:text-white prose-code:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-table:text-white prose-th:text-white prose-td:text-white prose-img:text-white prose-hr:text-white prose-strong:text-white prose-em:text-white prose-headings:mt-3 prose-headings:mb-1 prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0.5 prose-li:pl-1">
                       {researchFramework.researchFramework}
                     </ReactMarkdown>
                     
-                    <h4 className="font-semibold text-primary mt-6 mb-2">相關材料:</h4>
-                    <ReactMarkdown className="prose-ul:my-2 prose-li:my-1 prose-li:pl-1">
+                    <h4 className="font-semibold text-primary mt-4 mb-1.5">相關材料:</h4>
+                    <ReactMarkdown className="text-white prose-h1:text-white prose-h2:text-white prose-h3:text-white prose-h4:text-white prose-h5:text-white prose-h6:text-white prose-p:text-white prose-a:text-white prose-blockquote:text-white prose-figcaption:text-white prose-pre:text-white prose-code:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-table:text-white prose-th:text-white prose-td:text-white prose-img:text-white prose-hr:text-white prose-strong:text-white prose-em:text-white prose-ul:my-1.5 prose-li:my-0.5 prose-li:pl-1">
                       {researchFramework.relatedMaterials}
                     </ReactMarkdown>
 
-                    <h4 className="font-semibold text-primary mt-6 mb-2">分析工具:</h4>
-                    <ReactMarkdown className="prose-ul:my-2 prose-li:my-1 prose-li:pl-1">
+                    <h4 className="font-semibold text-primary mt-4 mb-1.5">分析工具:</h4>
+                    <ReactMarkdown className="text-white prose-h1:text-white prose-h2:text-white prose-h3:text-white prose-h4:text-white prose-h5:text-white prose-h6:text-white prose-p:text-white prose-a:text-white prose-blockquote:text-white prose-figcaption:text-white prose-pre:text-white prose-code:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-table:text-white prose-th:text-white prose-td:text-white prose-img:text-white prose-hr:text-white prose-strong:text-white prose-em:text-white prose-ul:my-1.5 prose-li:my-0.5 prose-li:pl-1">
                       {researchFramework.analysisTools}
                     </ReactMarkdown>
                   </div>
