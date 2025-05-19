@@ -77,11 +77,6 @@ export default function DashboardPage() {
         <CardContent>
           <ul className="space-y-3">
             <li className="flex items-center gap-3">
-              <Activity className="h-5 w-5 text-primary" />
-              <span className="text-sm">完成了 "第四回" 測驗，得分 85%。</span>
-              <span className="ml-auto text-xs text-muted-foreground">2 小時前</span>
-            </li>
-            <li className="flex items-center gap-3">
               <BarChart3 className="h-5 w-5 text-green-500" />
               <span className="text-sm">閱讀時長達到 5 小時。</span>
               <span className="ml-auto text-xs text-muted-foreground">3 天前</span>
@@ -97,4 +92,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
