@@ -13,7 +13,7 @@ export default function HomePage() {
           <Link href="/" className="flex items-center space-x-2">
             {/* Replace with an actual logo if available */}
             {/* <ScrollText className="h-8 w-8 text-primary" /> */}
-            <span className="text-2xl font-artistic font-bold text-black">紅樓慧讀</span>
+            <span className="text-2xl font-artistic font-bold text-white">紅樓慧讀</span>
           </Link>
           <nav className="flex items-center space-x-2">
             <Button variant="ghost" asChild>
@@ -45,8 +45,8 @@ export default function HomePage() {
             data-ai-hint="chinese classical art"
           />
           <div className="container relative mx-auto px-6 text-center">
-            <h1 className="text-4xl font-artistic font-bold text-foreground md:text-6xl leading-tight">
-              智能引航，重煥<span className="text-black">紅樓</span>之夢
+            <h1 className="text-4xl font-artistic font-bold text-white md:text-6xl leading-tight">
+              智能引航，重煥<span className="text-white">紅樓</span>之夢
             </h1>
             <p className="mt-6 text-lg text-foreground/80 md:text-xl">
               深入探索《紅樓夢》的宏大世界。借助 AI 賦能的文本分析、學習狀況洞察與深度研究工具，開啟您的智慧閱讀之旅。

@@ -78,7 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <SidebarHeader className="p-4">
           <Link href="/dashboard" className="flex items-center gap-2">
             <ScrollText className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-artistic text-black">紅樓慧讀</h1>
+            <h1 className="text-xl font-artistic text-white">紅樓慧讀</h1>
           </Link>
         </SidebarHeader>
         <SidebarContent>
