@@ -1,42 +1,35 @@
-# To learn more about how to use Nix to configure your environment
-# see: https://firebase.google.com/docs/studio/customize-workspace
-{pkgs}: {
-  # Which nixpkgs channel to use.
-  channel = "stable-24.11"; # or "unstable"
-  # Use https://search.nixos.org/packages to find packages
-  packages = [
-    pkgs.nodejs_20
-    pkgs.zulu
-  ];
-  # Sets environment variables in the workspace
-  env = {};
-  # This adds a file watcher to startup the firebase emulators. The emulators will only start if
-  # a firebase.json file is written into the user's directory
-  services.firebase.emulators = {
-    detect = true;
-    projectId = "demo-app";
-    services = ["auth" "firestore"];
-  };
-  idx = {
-    # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
-    extensions = [
-      # "vscodevim.vim"
-    ];
-    workspace = {
-      onCreate = {
-        default.openFiles = [
-          "src/app/page.tsx"
-        ];
-      };
-    };
-    # Enable previews and customize configuration
+
+{ pkgs, ... }: {
+
+  # This is a basic Nix configuration for Firebase Studio.
+  # For more information, see https://firebase.google.com/docs/studio/customize-workspace
+
+  # Environment packages.
+  # Firebase Studio manages Node.js and npm versions.
+  # You can uncomment and specify a specific Node.js version if needed, e.g.:
+  # environment.projectPackages = [ pkgs.nodejs_20 ]; # For Node.js 20
+  # Or rely on Studio's default Node.js environment which is usually suitable.
+  environment.systemPackages = [ pkgs.nodejs pkgs.corepack_latest ];
+
+  # Enable previews and customize configuration
+  idx.previews = {
+    enable = true;
     previews = {
-      enable = true;
-      previews = {
-        web = {
-          command = ["npm" "run" "dev" "--" "--port" "$PORT" "--hostname" "0.0.0.0"];
-          manager = "web";
-        };
+      web = {
+        # This command tells Firebase Studio how to start your Next.js dev server.
+        # It uses `npm run dev` and passes arguments to `next dev`
+        # to use the port Studio provides ($PORT) and listen on all interfaces (0.0.0.0).
+        command = [
+          "npm"  # The command to run
+          "run"  # npm subcommand
+          "dev"  # Your script name in package.json (which is now just "next dev")
+          "--"   # Separator: arguments after this are passed to the script `next dev`
+          "--port"
+          "$PORT" # Firebase Studio injects this environment variable for the port
+          "--hostname"
+          "0.0.0.0" # Listen on all network interfaces
+        ];
+        manager = "web"; # Indicates this is a web preview
       };
     };
   };
