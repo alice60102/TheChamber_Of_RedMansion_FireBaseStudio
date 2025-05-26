@@ -18,8 +18,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
 const registerSchema = z.object({
-  firstName: z.string().min(1, { message: "名字不能為空" }),
-  lastName: z.string().min(1, { message: "稱呼不能為空" }),
+  firstName: z.string().min(1, { message: "姓氏不能為空" }), // Zod message might need update if "firstName" now means "surname"
+  lastName: z.string().min(1, { message: "名字不能為空" }),  // Zod message might need update if "lastName" now means "given name"
   email: z.string().email({ message: "請輸入有效的電子郵件地址" }),
   password: z.string().min(6, { message: "密碼長度至少為6位" }),
 });
@@ -41,9 +41,11 @@ export default function RegisterPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       // Optionally update profile with name
+      // Note: If firstName is now surname and lastName is given name, ensure displayName is formed as desired.
+      // For many Chinese names, it's Surname followed by Given Name.
       if (userCredential.user) {
         await updateProfile(userCredential.user, {
-          displayName: `${data.firstName} ${data.lastName}`,
+          displayName: `${data.firstName}${data.lastName}`, // Example: "李四" if firstName="李", lastName="四"
         });
       }
       router.push('/dashboard'); // Redirect to dashboard on successful registration
@@ -88,12 +90,12 @@ export default function RegisterPage() {
             )}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">名字</Label>
+                <Label htmlFor="firstName">請輸入姓氏</Label>
                 <Input id="firstName" placeholder="姓氏" {...register("firstName")} className={`bg-background/70 ${errors.firstName ? 'border-destructive' : ''}`} />
                 {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">稱呼</Label>
+                <Label htmlFor="lastName">請輸入名字</Label>
                 <Input id="lastName" placeholder="名字" {...register("lastName")} className={`bg-background/70 ${errors.lastName ? 'border-destructive' : ''}`} />
                 {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
               </div>

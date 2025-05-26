@@ -140,7 +140,7 @@ export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLPro
         ))}
       </svg>
       <p className="text-xs text-muted-foreground text-center mt-2">
-        (此為基於第一回內容的前端SVG模擬知識圖譜，展示點線連接概念。未來可擴展為更複雜的交互式圖譜。)
+        (此為基於用戶學習第一回內容之後，模擬前端SVG模擬知識圖譜，展示點線連接概念。未來可擴展為更複雜的交互式圖譜。)
       </p>
     </div>
   );

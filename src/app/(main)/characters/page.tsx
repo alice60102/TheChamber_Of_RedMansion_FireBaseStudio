@@ -75,10 +75,10 @@ export default function LearningAnalysisPage() {
         <CardHeader>
           <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
             <Share2 className="h-7 w-7" /> 
-            個人學習知識圖譜 (SVG模擬)
+            個人學習知識圖譜 (SVG圖模擬)
           </CardTitle>
           <CardDescription>
-            此處展示一個基於《紅樓夢》第一回內容的前端SVG模擬知識圖譜，呈現主要概念間的點線連接關係。
+            此處模擬展示一位用戶，閱讀了《紅樓夢》第一回內容根據用戶的認知，產生知識圖譜，呈現主要概念間的點線連接關係。
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,6 +1,5 @@
-
 "use client";
-import { useState, useEffect, useRef, MouseEvent as ReactMouseEvent, useCallback } from 'react';
+import React, { useState, useEffect, useRef, MouseEvent as ReactMouseEvent, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,7 +47,7 @@ interface UserNote {
   targetText: string; 
   content: string;
   isPublic: boolean;
-  rangeRect: { top: number; left: number; width: number; height: number; } | null; 
+  rangeRects: { top: number; left: number; width: number; height: number; }[];
 }
 
 interface SelectedTextInfo {
@@ -78,8 +77,9 @@ export default function ReadPage() {
   const [currentNoteTargetText, setCurrentNoteTargetText] = useState<string>('');
   const [currentNoteContent, setCurrentNoteContent] = useState('');
   const [currentNoteIsPublic, setCurrentNoteIsPublic] = useState(true);
-  const [currentNoteSelectionRect, setCurrentNoteSelectionRect] = useState<{ top: number; left: number; width: number; height: number; } | null>(null);
+  const [currentNoteSelectionRects, setCurrentNoteSelectionRects] = useState<{ top: number; left: number; width: number; height: number; }[]>([]);
   
+  const [activeCenterNote, setActiveCenterNote] = useState<UserNote | null>(null);
   const [activeNotePopover, setActiveNotePopover] = useState<string | null>(null); 
 
   const chapterContentRef = useRef<HTMLDivElement>(null);
@@ -208,32 +208,38 @@ export default function ReadPage() {
 
  const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text && selectedTextInfo.range && chapterContentRef.current) {
-      const selectionRect = selectedTextInfo.range.getBoundingClientRect();
+      const range = selectedTextInfo.range;
       const containerRect = chapterContentRef.current.getBoundingClientRect();
+      const rects: { top: number; left: number; width: number; height: number; }[] = [];
+      
+      const clientRects = range.getClientRects();
+      for (let i = 0; i < clientRects.length; i++) {
+        const rect = clientRects[i];
+        rects.push({
+          top: rect.top - containerRect.top + chapterContentRef.current.scrollTop,
+          left: rect.left - containerRect.left + chapterContentRef.current.scrollLeft,
+          width: rect.width,
+          height: rect.height
+        });
+      }
       
       setCurrentNoteTargetText(selectedTextInfo.text);
       const existingNote = notes.find(n => n.targetText === selectedTextInfo.text && n.chapterId === currentChapter.id);
       setCurrentNoteContent(existingNote ? existingNote.content : '');
       setCurrentNoteIsPublic(existingNote ? existingNote.isPublic : true);
-      
-      setCurrentNoteSelectionRect({
-        top: selectionRect.top - containerRect.top + chapterContentRef.current.scrollTop,
-        left: selectionRect.left - containerRect.left + chapterContentRef.current.scrollLeft,
-        width: selectionRect.width,
-        height: selectionRect.height,
-      });
-  
+      setCurrentNoteSelectionRects(rects);
+
       setShowNoteSheet(true);
-      setSelectedTextInfo(null); 
+      setSelectedTextInfo(null);
       setIsAIPopoverOpen(false);
       setActiveNotePopover(null);
     }
   };
 
   const handleSaveNote = () => {
-    if (!currentNoteTargetText.trim() || !currentNoteContent.trim() || !currentNoteSelectionRect) {
-        alert("筆記內容不能為空或選区信息丢失！");
-        return;
+    if (!currentNoteTargetText.trim() || !currentNoteContent.trim() || currentNoteSelectionRects.length === 0) {
+      alert("筆記內容不能為空或選區信息丢失！");
+      return;
     }
 
     const newNote: UserNote = {
@@ -242,8 +248,9 @@ export default function ReadPage() {
       targetText: currentNoteTargetText,
       content: currentNoteContent,
       isPublic: currentNoteIsPublic,
-      rangeRect: currentNoteSelectionRect, 
+      rangeRects: currentNoteSelectionRects,
     };
+    
     setNotes(prevNotes => {
       const filteredNotes = prevNotes.filter(
         note => !(note.targetText === newNote.targetText && note.chapterId === newNote.chapterId)
@@ -257,14 +264,24 @@ export default function ReadPage() {
     setShowNoteSheet(false);
     setCurrentNoteTargetText('');
     setCurrentNoteContent('');
-    setCurrentNoteSelectionRect(null);
+    setCurrentNoteSelectionRects([]);
   };
 
   const handleNoteHighlightClick = (noteId: string, event: ReactMouseEvent<HTMLDivElement>) => {
     event.stopPropagation(); 
     setSelectedTextInfo(null); 
     setIsAIPopoverOpen(false); 
-    setActiveNotePopover(noteId === activeNotePopover ? null : noteId); 
+    
+    const note = notes.find(n => n.id === noteId);
+    if (note) {
+      setActiveCenterNote(note);
+    } else {
+      setActiveCenterNote(null);
+    }
+  };
+
+  const handleCloseCenterNote = () => {
+    setActiveCenterNote(null);
   };
 
   const goToNextChapter = () => {
@@ -312,66 +329,80 @@ export default function ReadPage() {
             >
               {currentChapter.content}
 
-              {chapterContentRef.current && notes.filter(n => n.chapterId === currentChapter.id && n.rangeRect).map(note => {
-                if (!note.rangeRect || !chapterContentRef.current) return null;
+              {chapterContentRef.current && notes.filter(n => n.chapterId === currentChapter.id && n.rangeRects && n.rangeRects.length > 0).map(note => {
+                if (!note.rangeRects || !note.rangeRects.length || !chapterContentRef.current) return null;
                 
                 const currentScrollTop = chapterContentRef.current.scrollTop;
                 const currentScrollLeft = chapterContentRef.current.scrollLeft;
 
-                const style: React.CSSProperties = {
-                  position: 'absolute',
-                  left: `${note.rangeRect.left - currentScrollLeft}px`,
-                  top: `${note.rangeRect.top - currentScrollTop}px`,
-                  width: `${note.rangeRect.width}px`,
-                  height: `${note.rangeRect.height}px`,
-                  borderBottom: '1.5px dashed hsl(var(--primary)/0.7)',
-                  cursor: 'pointer',
-                  pointerEvents: 'all', 
-                  zIndex: 1, 
-                };
-
                 return (
-                  <Popover 
-                    key={`highlight-popover-${note.id}`} 
-                    open={activeNotePopover === note.id} 
-                    onOpenChange={(isOpen) => {
-                      if (!isOpen) setActiveNotePopover(null);
-                    }}
-                  >
-                    <PopoverTrigger asChild>
-                      <div
-                        data-note-highlight="true"
-                        title={`筆記: ${note.targetText.substring(0,20)}...`}
-                        style={style}
-                        onClick={(e) => handleNoteHighlightClick(note.id, e)}
-                      />
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      side="top" 
-                      align="center" 
-                      className="w-80 z-20 bg-card text-card-foreground shadow-xl border-border" 
-                      onOpenAutoFocus={e => e.preventDefault()}
-                      onCloseAutoFocus={e => e.preventDefault()} 
-                    >
-                      <ScrollArea className="max-h-60">
-                        <div className="space-y-2 p-2 prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line text-white">
-                          <h4 className="font-semibold text-primary mb-1 truncate">
-                            關聯筆記: "{note.targetText.substring(0,15)}{note.targetText.length > 15 ? '...' : ''}"
-                          </h4>
-                          <ReactMarkdown>{note.content}</ReactMarkdown>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {note.isPublic ? 
-                              <span className="flex items-center gap-1"><Globe className="h-3 w-3 text-green-500" />公開筆記</span> : 
-                              <span className="flex items-center gap-1"><Lock className="h-3 w-3 text-red-500" />私人筆記</span>
-                            }
-                          </p>
-                        </div>
-                      </ScrollArea>
-                    </PopoverContent>
-                  </Popover>
+                  <React.Fragment key={`highlight-group-${note.id}`}>
+                    {note.rangeRects.map((rect, rectIndex) => {
+                      const style: React.CSSProperties = {
+                        position: 'absolute',
+                        left: `${rect.left - currentScrollLeft}px`,
+                        top: `${rect.top - currentScrollTop}px`,
+                        width: `${rect.width}px`,
+                        height: `${rect.height}px`,
+                        borderBottom: '1.5px dashed hsl(var(--primary)/0.7)',
+                        cursor: 'pointer',
+                        pointerEvents: 'all',
+                        zIndex: 1,
+                      };
+
+                      return (
+                        <div
+                          key={`highlight-${note.id}-${rectIndex}`}
+                          data-note-highlight="true"
+                          data-note-id={note.id}
+                          title={`筆記: ${note.targetText.substring(0,20)}...`}
+                          style={style}
+                          onClick={(e) => handleNoteHighlightClick(note.id, e)}
+                        />
+                      );
+                    })}
+                  </React.Fragment>
                 );
               })}
             </CardContent>
+
+            {activeCenterNote && (
+              <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/30 backdrop-blur-sm p-4" onClick={handleCloseCenterNote}>
+                <Card className="w-[90%] max-w-md max-h-[80%] shadow-xl" onClick={(e) => e.stopPropagation()}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg font-semibold text-primary">
+                        筆記內容
+                      </CardTitle>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="p-1 h-auto" 
+                        onClick={handleCloseCenterNote}
+                      >
+                        <XCircle className="h-5 w-5" />
+                      </Button>
+                    </div>
+                    <CardDescription className="text-sm text-muted-foreground flex items-center gap-1.5">
+                      {activeCenterNote.isPublic ? 
+                        <><Globe className="h-3.5 w-3.5 text-green-500" />公開筆記</> : 
+                        <><Lock className="h-3.5 w-3.5 text-red-500" />私人筆記</>
+                      }
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-muted/20 rounded-md p-3 mb-3 text-sm italic border-l-2 border-primary/40">
+                      「{activeCenterNote.targetText}」
+                    </div>
+                    <ScrollArea className="max-h-60">
+                      <div className="prose prose-sm dark:prose-invert prose-headings:text-white prose-p:text-white prose-strong:text-white prose-li:text-white prose-ul:text-white prose-ol:text-white prose-bullets:text-white prose-a:text-white prose-code:text-white max-w-none whitespace-pre-line text-white">
+                        <ReactMarkdown>{activeCenterNote.content}</ReactMarkdown>
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {selectedTextInfo?.text && selectedTextInfo.position && (
               <div 
@@ -580,7 +611,3 @@ export default function ReadPage() {
     </div>
   );
 }
-
-    
-
-    
