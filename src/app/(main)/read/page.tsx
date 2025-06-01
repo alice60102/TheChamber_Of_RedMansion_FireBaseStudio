@@ -44,13 +44,13 @@ const chapters: Chapter[] = [
     subtitle: "紅樓夢:第三版(中國古典文學讀本叢書)",
     summary: "本回主要講述了甄士隱夢遇一僧一道談論石頭下凡歷劫，以及賈雨村的落魄與發跡。甄士隱因女兒英蓮被拐、家遭火災而看破紅塵，隨跛足道人出家，點出了小說「真事隱去，假語存焉」的創作主旨和「夢幻」的基調。",
     paragraphs: [
-      { content: ["此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！當此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。"], vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以至於今天一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提并論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
+      { content: ["此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！当此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。"], vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以至於今天一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提并論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
       { 
         content: [
           "你道此書從何而起？說來雖近荒唐，細玩頗有趣味。卻說那",
           { 
             text: "女媧氏煉石補天", 
-            note: "女媧氏煉石補天——古代神話：天原來不整齊，女媧氏煉五色石把它修補起來。後又被共工氏闖壞，天塌了西北角，地陷了東南角。見《列子》。《列子》注說女媧氏是“古天子”，“風”姓。所以又稱“媧皇”。",
+            note: "女媧氏煉石補天——古代神話：天原來不整齊，女媧氏煉五色石把它修補起來。後又被共工氏闖壞，天塌了西北角，地陷了東南角。見《列子》。《列子》注說女媧氏是「古天子」，「風」姓。所以又稱「媧皇」。",
             id: "ch1-p2-anno-nuwa" 
           },
           "之時，於大荒山無稽崖煉成高十二丈、見方二十四丈大的頑石三萬六千五百零一塊。那媧皇只用了三萬六千五百塊，單單剩下一塊未用，棄在此山青埂峰下。誰知此石自經鍛煉之後，靈性已通，自去自來，可大可小。因見眾石俱得補天，獨自己無才不堪入選，遂自怨自愧，日夜悲哀。"
@@ -115,6 +115,7 @@ export default function ReadPage() {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
+      // Only hide if no sheets are open
       if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen) { 
         setIsToolbarVisible(false);
       }
@@ -130,7 +131,6 @@ export default function ReadPage() {
     if (isToolbarVisible) {
       hideToolbarAfterDelay();
     }
-    // Clear timeout on component unmount or when dependencies change
     return () => {
       if (toolbarTimeoutRef.current) {
         clearTimeout(toolbarTimeoutRef.current);
@@ -154,12 +154,12 @@ export default function ReadPage() {
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
-    
-    // If click is inside a sheet or popover, or on a selection action button, do nothing to selection, just handle toolbar
-    if (targetElement?.closest('[data-radix-dialog-content]') ||  // for Sheets
-        targetElement?.closest('[data-radix-popover-content]') || // for Popovers (like annotation)
+  
+    // If click is inside a sheet or popover, or on a selection action button, do nothing to selection
+    if (targetElement?.closest('[data-radix-dialog-content]') || 
+        targetElement?.closest('[data-radix-popover-content]') ||
         targetElement?.closest('[data-selection-action-button="true"]')) {
-      setTimeout(() => handleInteraction(), 0);
+      setTimeout(() => handleInteraction(), 0); // Still handle toolbar interaction
       return;
     }
   
@@ -175,10 +175,8 @@ export default function ReadPage() {
   
     if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
-      // Ensure selection is within the main chapter content area
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
         const rect = range.getBoundingClientRect();
-        // Get scroll container (the ScrollArea) to adjust coordinates
         const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
         const scrollTop = scrollAreaElement?.scrollTop || 0;
         const scrollLeft = scrollAreaElement?.scrollLeft || 0;
@@ -187,15 +185,12 @@ export default function ReadPage() {
         const left = rect.left + scrollLeft + (rect.width / 2); 
   
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        // Close any open sheets when a new selection is made, ensuring buttons are visible
         setIsAiSheetOpen(false); 
         setIsNoteSheetOpen(false);
       } else {
-        // Selection is outside the content area
         setSelectedTextInfo(null);
       }
     } else {
-      // No text selected or selection invalid
       setSelectedTextInfo(null);
     }
     setTimeout(() => handleInteraction(), 0);
@@ -204,8 +199,8 @@ export default function ReadPage() {
 
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('scroll', handleInteraction, { passive: true, capture: true }); // Added capture for scroll
-    document.addEventListener('mousemove', handleInteraction, { passive: true, capture: true }); // Added capture for mousemove
+    document.addEventListener('scroll', handleInteraction, { passive: true, capture: true }); 
+    document.addEventListener('mousemove', handleInteraction, { passive: true, capture: true });
 
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
@@ -229,7 +224,6 @@ export default function ReadPage() {
   
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
-      // setCurrentNote(""); // Don't clear note if reopening for same selection, user might want to continue
       setIsNoteSheetOpen(true);
       setIsAiSheetOpen(false);
       handleInteraction();
@@ -269,8 +263,8 @@ export default function ReadPage() {
 
   const handleSelectChapterFromToc = (index: number) => {
     setCurrentChapterIndex(index);
-    setIsTocSheetOpen(false); // Close TOC sheet after selection
-    handleInteraction(); // Ensure toolbar is visible after interaction
+    setIsTocSheetOpen(false); 
+    handleInteraction(); 
   };
 
   const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-1 text-xs text-muted-foreground hover:text-primary";
@@ -285,7 +279,7 @@ export default function ReadPage() {
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
         data-no-selection="true" 
-        onClick={(e) => e.stopPropagation()} 
+        onClick={(e) => { e.stopPropagation(); handleInteraction(); }} 
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-1 md:gap-2">
@@ -366,8 +360,9 @@ export default function ReadPage() {
                         <Popover>
                           <PopoverTrigger asChild>
                             <button
-                              className="inline-flex items-center justify-center w-5 h-5 p-0 mx-1 text-[10px] align-middle bg-green-200 text-green-700 dark:bg-green-600 dark:text-green-100 rounded-full leading-none hover:bg-green-300 dark:hover:bg-green-500 focus:outline-none focus:ring-1 focus:ring-green-400 dark:focus:ring-green-500 shadow-sm"
-                              style={{ position: 'relative', top: '-0.1em' }}
+                              className="inline-flex items-center justify-center w-4 h-4 p-0 mx-0.5 text-[9px] align-middle bg-green-200 text-green-700 dark:bg-green-600 dark:text-green-100 rounded-full leading-none hover:bg-green-300 dark:hover:bg-green-500 focus:outline-none focus:ring-1 focus:ring-green-400 dark:focus:ring-green-500 shadow-sm"
+                              style={{ position: 'relative', top: '-0.2em' }}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               註
                             </button>
@@ -377,7 +372,7 @@ export default function ReadPage() {
                             align="center"
                             sideOffset={5}
                             className="w-full max-w-md p-4 text-sm shadow-xl bg-card text-card-foreground border border-border rounded-md"
-                            onClick={(e) => e.stopPropagation()} // Prevent clicks inside popover from closing it via document listener
+                            onClick={(e) => e.stopPropagation()} 
                           >
                             <div className="relative">
                               <PopoverClose className="absolute top-1 right-1 rounded-full p-0.5 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
