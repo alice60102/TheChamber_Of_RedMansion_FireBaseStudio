@@ -2,18 +2,16 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  ChevronLeft, ChevronRight, Settings, Book, Search as SearchIcon, DownloadCloud, CornerUpLeft,
-  BookOpen as BookOpenIcon, Columns, Type, Plus, Brain, List, ZoomIn, Maximize, FileText, MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, Map, X, Edit3
+  ChevronLeft, ChevronRight, Settings, BookOpen as BookOpenIcon, Search as SearchIcon, Maximize, Map, X, Edit3,
+  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
@@ -28,7 +26,7 @@ interface Chapter {
   id: number;
   title: string;
   subtitle?: string;
-  summary: string;
+  summary: string; // summary is kept for other potential uses, but not shown in toolbar
   paragraphs: Paragraph[];
 }
 
@@ -85,9 +83,11 @@ export default function ReadPage() {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
-      setIsToolbarVisible(false);
+      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen) { // Only hide if no sheets are open
+        setIsToolbarVisible(false);
+      }
     }, 5000);
-  }, []);
+  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen]);
 
   const handleInteraction = useCallback(() => {
     setIsToolbarVisible(true);
@@ -103,7 +103,7 @@ export default function ReadPage() {
         clearTimeout(toolbarTimeoutRef.current);
       }
     };
-  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex]);
+  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen]);
 
   useEffect(() => {
     setSelectedTextInfo(null);
@@ -119,16 +119,11 @@ export default function ReadPage() {
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
 
-    // If click is inside a sheet or on the action buttons, do nothing here
-    if (
-      targetElement?.closest('[data-radix-dialog-content]') ||
-      targetElement?.closest('[data-selection-action-button="true"]')
-    ) {
+    if (targetElement?.closest('[data-radix-dialog-content]') || targetElement?.closest('[data-selection-action-button="true"]')) {
       setTimeout(() => handleInteraction(), 0);
       return;
     }
 
-    // If click is on an area marked to ignore selection (like toolbar)
     if (targetElement?.closest('[data-no-selection="true"]')) {
       setSelectedTextInfo(null);
       setTimeout(() => handleInteraction(), 0);
@@ -150,13 +145,12 @@ export default function ReadPage() {
         const left = rect.left + scrollLeft + (rect.width / 2);
 
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAiSheetOpen(false); // Close AI sheet if a new selection is made
-        setIsNoteSheetOpen(false); // Close Note sheet if a new selection is made
+        setIsAiSheetOpen(false);
+        setIsNoteSheetOpen(false);
       } else {
         setSelectedTextInfo(null);
       }
     } else {
-        // If no text is selected (e.g., click on empty space), clear selection info
         setSelectedTextInfo(null);
     }
     setTimeout(() => handleInteraction(), 0);
@@ -184,7 +178,6 @@ export default function ReadPage() {
       setAiInteractionState('asking');
       setIsAiSheetOpen(true);
       setIsNoteSheetOpen(false); 
-      // Keep selectedTextInfo for the sheet
       handleInteraction();
     }
   };
@@ -194,7 +187,6 @@ export default function ReadPage() {
       setCurrentNote(""); 
       setIsNoteSheetOpen(true);
       setIsAiSheetOpen(false);
-      // Keep selectedTextInfo for the sheet
       handleInteraction();
     }
   };
@@ -247,7 +239,7 @@ export default function ReadPage() {
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
         data-no-selection="true"
-        onClick={(e) => e.stopPropagation()} // Prevent clicks on toolbar from closing selection popups
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-1">
@@ -267,7 +259,7 @@ export default function ReadPage() {
             <Button variant="ghost" size="icon" onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
               {showVernacular ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setIsKnowledgeGraphSheetOpen(true)} title="知識圖譜"><Map className="h-5 w-5"/></Button>
+            <Button variant="ghost" size="icon" onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜"><Map className="h-5 w-5"/></Button>
             <Button variant="ghost" size="icon" title="目錄" disabled><List className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="書內搜尋" disabled><SearchIcon className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="全螢幕" disabled><Maximize className="h-5 w-5" /></Button>
@@ -277,18 +269,10 @@ export default function ReadPage() {
             <Button variant="ghost" size="sm" onClick={goToPrevChapter} disabled={currentChapterIndex === 0}>
                 <ChevronLeft className="h-4 w-4 mr-1" /> 上一回
             </Button>
-            <Accordion type="single" collapsible className="w-full max-w-xs md:max-w-md mx-auto my-0 py-0">
-              <AccordionItem value="chapter-summary" className="border-none">
-                <AccordionTrigger className="text-xs text-muted-foreground hover:text-primary/90 data-[state=open]:text-primary py-1 px-1 justify-center">
-                   本回提要概述
-                </AccordionTrigger>
-                <AccordionContent className="text-xs p-2 bg-muted/20 rounded-md border border-border/50 max-h-24 overflow-y-auto">
-                  <ReactMarkdown className="prose prose-xs dark:prose-invert max-w-none whitespace-pre-line text-white">
-                    {currentChapter.summary}
-                  </ReactMarkdown>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            {/* Removed Accordion for chapter summary */}
+            <div className="flex-grow text-center px-2">
+                {/* Placeholder for potential future content if needed, or can be removed for more space for title */}
+            </div>
             <Button variant="ghost" size="sm" onClick={goToNextChapter} disabled={currentChapterIndex === chapters.length - 1}>
                 下一回 <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
@@ -355,7 +339,7 @@ export default function ReadPage() {
             side="bottom" 
             className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" 
             data-no-selection="true" 
-            onClick={(e) => e.stopPropagation()} // Prevent closing selection popups
+            onClick={(e) => e.stopPropagation()}
         >
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
@@ -378,7 +362,7 @@ export default function ReadPage() {
             side="right" 
             className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" 
             data-no-selection="true" 
-            onClick={(e) => e.stopPropagation()} // Prevent closing selection popups
+            onClick={(e) => e.stopPropagation()}
         >
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">撰寫筆記</SheetTitle>
@@ -413,7 +397,7 @@ export default function ReadPage() {
                 console.log("Note content:", currentNote);
                 // Actual save logic to be implemented
                 setIsNoteSheetOpen(false);
-                setSelectedTextInfo(null); // Clear selection after note is "saved"
+                setSelectedTextInfo(null); 
               }}
               className="bg-primary hover:bg-primary/90"
             >
@@ -429,7 +413,7 @@ export default function ReadPage() {
             side="right" 
             className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" 
             data-no-selection="true" 
-            onClick={(e) => e.stopPropagation()} // Prevent closing selection popups
+            onClick={(e) => e.stopPropagation()}
         >
             <SheetHeader className="p-4 border-b border-border">
                 <SheetTitle className="text-primary text-xl font-artistic">問 AI</SheetTitle>
@@ -445,7 +429,7 @@ export default function ReadPage() {
                     </div>
                 )}
                 {aiInteractionState === 'asking' && (
-                    <div className="space-y-4"> {/* Added space-y-4 here */}
+                    <div className="space-y-4"> 
                         <div>
                             <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">您的問題：</Label>
                             <Textarea
@@ -487,8 +471,4 @@ export default function ReadPage() {
     </div>
   );
 }
-    
-
-      
-
     
