@@ -13,7 +13,7 @@ import {
   Library,
   LogOut,
   Users,
-  Target, // Added Target icon for Goals
+  Target,
 } from "lucide-react";
 
 import {
@@ -50,11 +50,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "Dashboard" },
-  { href: "/read", label: "章回閱讀", icon: BookOpen, tooltip: "Read Chapters" },
-  { href: "/goals", label: "學習目標", icon: Target, tooltip: "Learning Goals" },
-  { href: "/characters", label: "學習狀況分析", icon: Brain, tooltip: "Learning Status Analysis" },
-  { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" },
+  { href: "/dashboard", label: "首頁", icon: LayoutDashboard, tooltip: "首頁" },
+  { href: "/read", label: "閱讀", icon: BookOpen, tooltip: "閱讀" },
+  // { href: "/goals", label: "學習目標", icon: Target, tooltip: "Learning Goals" }, // Removed
+  // { href: "/characters", label: "學習狀況分析", icon: Brain, tooltip: "Learning Status Analysis" }, // Removed
+  // { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" }, // Removed
   { href: "/community", label: "紅學社", icon: Users, tooltip: "Community Forum" },
 ];
 
