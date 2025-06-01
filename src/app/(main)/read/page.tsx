@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useRef, MouseEvent as ReactMouseEvent, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Card related components might be removed or reused differently
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
 import {
   ChevronLeft, ChevronRight, Settings, Book, Search as SearchIcon, DownloadCloud, CornerUpLeft,
   BookOpen as BookOpenIcon, Columns, Type, Plus, Brain, List, ZoomIn, Maximize, FileText, MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, Map
@@ -15,7 +15,7 @@ import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"; // Removed SheetTrigger from here
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import ReactMarkdown from 'react-markdown';
@@ -24,7 +24,7 @@ import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
 
 interface Paragraph {
   original: string;
-  vernacular?: string; // Optional vernacular translation
+  vernacular?: string; 
 }
 
 interface Chapter {
@@ -35,7 +35,6 @@ interface Chapter {
   paragraphs: Paragraph[];
 }
 
-// Placeholder chapter data with new structure
 const chapters: Chapter[] = [
   {
     id: 1,
@@ -43,7 +42,7 @@ const chapters: Chapter[] = [
     subtitle: "紅樓夢:第三版(中國古典文學讀本叢書)",
     summary: "本回主要講述了甄士隱夢遇一僧一道談論石頭下凡歷劫，以及賈雨村的落魄與發跡。甄士隱因女兒英蓮被拐、家遭火災而看破紅塵，隨跛足道人出家，點出了小說「真事隱去，假語存焉」的創作主旨和「夢幻」的基調。",
     paragraphs: [
-      { original: "此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！當此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。", vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以至於今天一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她們的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提並論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
+      { original: "此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！當此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。", vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以至於今天一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提并論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
       { original: "此回中，甄士隱夢見一僧一道，談論石頭下凡歷劫之事。賈雨村寄居甄家，中秋與甄士隱賞月吟詩，後得甄家資助，上京赴考。甄士隱之女英蓮元宵燈節被拐，甄家隨後又遭火災，家道中落。甄士隱看破紅塵，隨跛足道人出家。", vernacular: "（白話文）這一回裡，甄士隱夢見一個和尚和一個道士，談論石頭下凡間歷劫的事情。賈雨村寄住在甄家，中秋節和甄士隱一起賞月作詩，後來得到甄家的資助，到京城參加科舉考試。甄士隱的女兒英蓮在元宵節看花燈時被人拐走，甄家隨後又遭遇火災，家境衰落。甄士隱看破紅塵，跟著一個跛腳的道士出家了。" },
     ]
   },
@@ -84,8 +83,13 @@ export default function ReadPage() {
     }
     toolbarTimeoutRef.current = setTimeout(() => {
       setIsToolbarVisible(false);
-    }, 5000); // Hide after 5 seconds of inactivity
+    }, 5000); 
   }, []);
+
+  const handleInteraction = useCallback(() => {
+    setIsToolbarVisible(true);
+    hideToolbarAfterDelay();
+  }, [hideToolbarAfterDelay]);
 
   useEffect(() => {
     if (isToolbarVisible) {
@@ -98,54 +102,65 @@ export default function ReadPage() {
     };
   }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex]);
   
-  const handleInteraction = () => {
-    setIsToolbarVisible(true);
-    hideToolbarAfterDelay();
-  };
-
   useEffect(() => {
     setSelectedTextInfo(null);
     setIsAIPopoverOpen(false);
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
-    setIsToolbarVisible(true); // Show toolbar on chapter change
+    setIsToolbarVisible(true); 
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
-    handleInteraction();
+    const selection = window.getSelection();
+    const text = selection?.toString().trim() || '';
     const targetElement = event.target as HTMLElement;
-     if (targetElement?.closest('[data-selection-action-button="true"]') || targetElement?.closest('[data-no-selection="true"]')) {
-      return;
+
+    // If click is on the action buttons themselves, preserve selection and interact with toolbar
+    if (targetElement?.closest('[data-selection-action-button="true"]')) {
+        handleInteraction();
+        return;
+    }
+
+    // If click is on an area marked as no-selection (e.g., toolbar), clear selection
+    if (targetElement?.closest('[data-no-selection="true"]')) {
+        setSelectedTextInfo(null);
+        setIsAIPopoverOpen(false); // Close AI Q&A popover if it was open
+        handleInteraction();
+        return;
     }
     
-    if (chapterContentRef.current && chapterContentRef.current.contains(targetElement)) {
-      const selection = window.getSelection();
-      const text = selection?.toString().trim() || '';
-      if (text && text.length > 1) {
-        const range = selection!.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        
-        let top = rect.bottom + window.scrollY + 5;
-        let left = rect.left + window.scrollX + rect.width / 2;
-        
-        setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAIPopoverOpen(false); 
-      } else {
-        if (!isAIPopoverOpen) {
-           setSelectedTextInfo(null);
+    let newSelectedTextInfo = null;
+
+    if (text.length > 1 && chapterContentRef.current && chapterContentRef.current.contains(targetElement) && selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        // Double check selection is truly within the content area
+        if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
+            const rect = range.getBoundingClientRect();
+            const top = rect.bottom + window.scrollY + 5;
+            const left = rect.left + window.scrollX + (rect.width / 2);
+            newSelectedTextInfo = { text, position: { top, left }, range: range.cloneRange() };
         }
-      }
-    } else {
-       if (!isAIPopoverOpen) {
-          setSelectedTextInfo(null);
-       }
     }
-  }, [isAIPopoverOpen, handleInteraction]);
+    
+    setSelectedTextInfo(newSelectedTextInfo);
+    
+    if (newSelectedTextInfo) {
+      setIsAIPopoverOpen(false); // Close Q&A popover for new selection
+    }
+    
+    // Only call handleInteraction if not on selection buttons (already handled)
+    // and not on no-selection areas (already handled)
+    // This ensures toolbar appears for general clicks in content area too.
+    if (!targetElement?.closest('[data-selection-action-button="true"]') && !targetElement?.closest('[data-no-selection="true"]')) {
+        handleInteraction();
+    }
+
+}, [handleInteraction]);
   
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('scroll', handleInteraction);
+    document.addEventListener('scroll', handleInteraction, { passive: true });
     document.addEventListener('mousemove', handleInteraction);
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
@@ -161,6 +176,7 @@ export default function ReadPage() {
       setUserQuestionInput('');
       setAiInteractionState('asking');
       setIsAIPopoverOpen(true);
+      // Toolbar interaction is implicitly handled by PopoverTrigger click
     }
   };
 
@@ -184,7 +200,7 @@ export default function ReadPage() {
       setAiInteractionState('error');
     }
     setIsLoadingExplanation(false);
-    handleInteraction(); // Keep toolbar visible
+    // handleInteraction(); // Keep toolbar visible - not needed, popover interaction does this
   };
 
   const goToNextChapter = () => {
@@ -195,14 +211,13 @@ export default function ReadPage() {
     setCurrentChapterIndex((prev) => Math.max(prev - 1, 0));
   };
 
-  // Placeholder for future note functionality
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
       console.log("Opening note sheet for:", selectedTextInfo.text);
-      // setShowNoteSheet(true); // Assuming you'll re-add note sheet logic
-      setSelectedTextInfo(null);
-      setIsAIPopoverOpen(false);
-      handleInteraction();
+      // setShowNoteSheet(true); // Re-enable or implement note functionality
+      // setSelectedTextInfo(null); // DO NOT clear selection here if note sheet is a non-modal overlay
+      // setIsAIPopoverOpen(false); 
+      handleInteraction(); // Keep toolbar visible for note taking interaction
     }
   };
   
@@ -216,14 +231,18 @@ export default function ReadPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" onClick={handleInteraction} data-no-selection="true">
+    <div className="h-full flex flex-col" onClick={(e) => { 
+      // General click on background should trigger interaction if not on text itself
+      if (e.target === e.currentTarget) handleInteraction();
+     }} data-no-selection="true">
       {/* Top Toolbar */}
       <div 
         className={cn(
           "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-md p-2 transition-all duration-300 ease-in-out",
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
-        data-no-selection="true"
+        data-no-selection="true" // Toolbar itself should not trigger text selection
+        onClick={(e) => e.stopPropagation()} // Prevent clicks on toolbar from bubbling to main div's onClick
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-1">
@@ -243,7 +262,6 @@ export default function ReadPage() {
             <Button variant="ghost" size="icon" onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
               {showVernacular ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
             </Button>
-            {/* Removed SheetTrigger wrapper, relying on onClick to control Sheet state */}
             <Button variant="ghost" size="icon" onClick={() => setIsKnowledgeGraphSheetOpen(true)} title="知識圖譜"><Map className="h-5 w-5"/></Button>
             <Button variant="ghost" size="icon" title="目錄" disabled><List className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="書內搜尋" disabled><SearchIcon className="h-5 w-5" /></Button>
@@ -273,14 +291,15 @@ export default function ReadPage() {
       </div>
 
       {/* Main Reading Area */}
-      <ScrollArea className="flex-grow pt-28 pb-10 px-4 md:px-8" id="chapter-content-scroll-area"> {/* Add padding top to avoid overlap with fixed toolbar */}
+      <ScrollArea className="flex-grow pt-28 pb-10 px-4 md:px-8" id="chapter-content-scroll-area">
         <div 
           ref={chapterContentRef}
           className={cn(
-            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto leading-relaxed whitespace-pre-line text-foreground select-text",
+            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto leading-relaxed whitespace-pre-line text-foreground select-text", // Ensure text is selectable
             getColumnClass()
           )}
           style={{ fontFamily: "'Noto Serif SC', serif", position: 'relative' }}
+          // No onClick here, rely on document mouseup
         >
           {currentChapter.paragraphs.map((para, index) => (
             <div key={index} className="mb-4 break-inside-avoid-column">
@@ -303,14 +322,14 @@ export default function ReadPage() {
                 transform: 'translateX(-50%)',
                 zIndex: 60, 
             }}
-            data-selection-action-button="true"
+            data-selection-action-button="true" // This div contains the action buttons
           >
             <Button
                 variant="default"
                 size="sm"
                 className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
-                onClick={handleOpenNoteSheet} // Re-enable or implement note functionality
-                data-selection-action-button="true"
+                onClick={handleOpenNoteSheet}
+                data-selection-action-button="true" // Individual button
                 >
                 <FileText className="h-4 w-4 mr-1" /> 記筆記
             </Button>
@@ -321,7 +340,7 @@ export default function ReadPage() {
                     size="sm"
                     className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
                     onClick={handleOpenAIPopover}
-                    data-selection-action-button="true"
+                    data-selection-action-button="true" // Individual button
                     >
                     <MessageSquare className="h-4 w-4 mr-1" /> 問AI
                     </Button>
@@ -332,9 +351,10 @@ export default function ReadPage() {
                     align="center"
                     onOpenAutoFocus={(e) => e.preventDefault()} 
                     onCloseAutoFocus={(e) => e.preventDefault()}
-                    data-selection-action-button="true"
+                    data-selection-action-button="true" // The popover content itself
+                    onClick={(e) => e.stopPropagation()} // Prevent clicks inside popover from clearing selection via main div's onClick
                 >
-                    <div className="space-y-3 p-2" onClick={(e) => e.stopPropagation()} data-selection-action-button="true">
+                    <div className="space-y-3 p-2">
                     {aiInteractionState === 'asking' && (
                         <>
                         <p className="text-sm text-muted-foreground">
@@ -378,7 +398,6 @@ export default function ReadPage() {
       
       {/* Knowledge Graph Sheet */}
       <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={setIsKnowledgeGraphSheetOpen}>
-        {/* Note: SheetTrigger is not used here as the open state is controlled programmatically */}
         <SheetContent side="bottom" className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true">
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
@@ -399,5 +418,3 @@ export default function ReadPage() {
     </div>
   );
 }
-
-    
