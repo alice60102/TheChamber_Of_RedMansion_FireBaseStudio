@@ -41,18 +41,9 @@ const chapters: Chapter[] = [
       { original: "此回中，甄士隱夢見一僧一道，談論石頭下凡歷劫之事。賈雨村寄居甄家，中秋與甄士隱賞月吟詩，後得甄家資助，上京赴考。甄士隱之女英蓮元宵燈節被拐，甄家隨後又遭火災，家道中落。甄士隱看破紅塵，隨跛足道人出家。", vernacular: "（白話文）這一回裡，甄士隱夢見一個和尚和一個道士，談論石頭下凡間歷劫的事情。賈雨村寄住在甄家，中秋節和甄士隱一起賞月作詩，後來得到甄家的資助，到京城參加科舉考試。甄士隱的女兒英蓮在元宵節看花燈時被人拐走，甄家隨後又遭遇火災，家境衰落。甄士隱看破紅塵，跟著一個跛腳的道士出家了。" },
     ]
   },
-  {
-    id: 2,
-    title: "第二回 賈夫人仙逝揚州城 冷子興演說榮國府",
-    subtitle: "示例副標題",
-    summary: "林黛玉之母賈敏病故。賈雨村偶遇舊識冷子興，冷子興向賈雨村詳細介紹了京城榮國府和寧國府的複雜人物關係、顯赫家世以及當前的衰敗跡象，為後文主要人物登場和故事展開作了重要鋪墊。",
-    paragraphs: [
-      { original: "（此處省略第二回內容...）賈寶玉和林黛玉初次見面，寶玉便說：「這個妹妹我曾見過的。」", vernacular: "（白話文）（此處省略第二回內容...）賈寶玉和林黛玉初次見面，寶玉便說：「這個妹妹我以前見過。」" }
-    ]
-  },
   // Add more chapters up to 25
-  ...Array.from({ length: 23 }, (_, i) => {
-    const chapterNum = i + 3;
+  ...Array.from({ length: 24 }, (_, i) => { // Corrected to 24 to make a total of 25
+    const chapterNum = i + 2; // Start from chapter 2
     return {
       id: chapterNum,
       title: `第 ${chapterNum} 回 示例標題 ${chapterNum}`,
@@ -138,7 +129,7 @@ export default function ReadPage() {
     const targetElement = event.target as HTMLElement;
     
     if (targetElement?.closest('[data-radix-dialog-content]') || targetElement?.closest('[data-selection-action-button="true"]')) {
-      setTimeout(() => handleInteraction(), 0);
+      setTimeout(() => handleInteraction(), 0); // Ensure toolbar stays visible if clicking inside a sheet/popover or action button
       return;
     }
   
@@ -243,42 +234,76 @@ export default function ReadPage() {
   const handleSelectChapterFromToc = (index: number) => {
     setCurrentChapterIndex(index);
     setIsTocSheetOpen(false);
-    handleInteraction(); // Keep toolbar visible after selection
+    handleInteraction(); 
   };
 
+  const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-1 text-xs text-muted-foreground hover:text-primary";
+  const toolbarIconClass = "h-5 w-5"; // Consistent icon size
+  const toolbarLabelClass = "mt-0.5 text-[10px] leading-none";
+
   return (
-    <div className="h-full flex flex-col" onClickCapture={handleInteraction} onMouseMoveCapture={handleInteraction}>
+    <div className="h-full flex flex-col">
       {/* Top Toolbar */}
       <div
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-md p-2 transition-all duration-300 ease-in-out",
+          "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-md p-1.5 transition-all duration-300 ease-in-out",
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
         data-no-selection="true"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} title="返回首頁"><CornerUpLeft className="h-5 w-5" /></Button>
-            <Button variant="ghost" size="icon" title="設定" disabled><Settings className="h-5 w-5" /></Button>
-            <Button variant={columnLayout === 'single' ? 'default' : 'ghost'} size="icon" onClick={() => setColumnLayout('single')} title="單欄"><AlignLeft className="h-5 w-5"/></Button>
-            <Button variant={columnLayout === 'double' ? 'default' : 'ghost'} size="icon" onClick={() => setColumnLayout('double')} title="雙欄"><AlignCenter className="h-5 w-5"/></Button>
-            <Button variant={columnLayout === 'triple' ? 'default' : 'ghost'} size="icon" onClick={() => setColumnLayout('triple')} title="三欄"><AlignJustify className="h-5 w-5"/></Button>
+          <div className="flex items-center gap-1 md:gap-2">
+            <Button variant="ghost" size="icon" className={toolbarButtonBaseClass} onClick={() => router.push('/dashboard')} title="返回首頁">
+              <CornerUpLeft className={toolbarIconClass} />
+              <span className={toolbarLabelClass}>返回</span>
+            </Button>
+            <Button variant="ghost" size="icon" className={toolbarButtonBaseClass} title="設定" disabled>
+              <Settings className={toolbarIconClass} />
+              <span className={toolbarLabelClass}>設定</span>
+            </Button>
+            <div className="h-8 border-l border-border/50 mx-1 md:mx-2"></div> {/* Vertical Separator */}
+            <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} size="icon" className={toolbarButtonBaseClass} onClick={() => setColumnLayout('single')} title="單欄">
+              <AlignLeft className={toolbarIconClass}/>
+              <span className={toolbarLabelClass}>單欄</span>
+            </Button>
+            <Button variant={columnLayout === 'double' ? 'secondary' : 'ghost'} size="icon" className={toolbarButtonBaseClass} onClick={() => setColumnLayout('double')} title="雙欄">
+              <AlignCenter className={toolbarIconClass}/>
+              <span className={toolbarLabelClass}>雙欄</span>
+            </Button>
+            <Button variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} size="icon" className={toolbarButtonBaseClass} onClick={() => setColumnLayout('triple')} title="三欄">
+              <AlignJustify className={toolbarIconClass}/>
+              <span className={toolbarLabelClass}>三欄</span>
+            </Button>
           </div>
           
-          <div className="text-center overflow-hidden flex-grow px-2">
+          <div className="text-center overflow-hidden flex-grow px-2 mx-1 md:mx-4">
             <h1 className="text-sm md:text-base font-semibold text-primary truncate">{currentChapter.title}</h1>
             {currentChapter.subtitle && <p className="text-xs text-muted-foreground truncate">{currentChapter.subtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
-              {showVernacular ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
+          <div className="flex items-center gap-1 md:gap-2">
+            <Button variant="ghost" size="icon" className={toolbarButtonBaseClass} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
+              {showVernacular ? <EyeOff className={toolbarIconClass}/> : <Eye className={toolbarIconClass}/>}
+              <span className={toolbarLabelClass}>{showVernacular ? "隱藏白話" : "顯示白話"}</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜"><Map className="h-5 w-5"/></Button>
-            <Button variant="ghost" size="icon" onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄"><List className="h-5 w-5" /></Button>
-            <Button variant="ghost" size="icon" title="書內搜尋" disabled><SearchIcon className="h-5 w-5" /></Button>
-            <Button variant="ghost" size="icon" title="全螢幕" disabled><Maximize className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" className={toolbarButtonBaseClass} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜">
+              <Map className={toolbarIconClass}/>
+              <span className={toolbarLabelClass}>圖譜</span>
+            </Button>
+            <Button variant="ghost" size="icon" className={toolbarButtonBaseClass} onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄">
+              <List className={toolbarIconClass}/>
+              <span className={toolbarLabelClass}>目錄</span>
+            </Button>
+            <div className="h-8 border-l border-border/50 mx-1 md:mx-2"></div> {/* Vertical Separator */}
+            <Button variant="ghost" size="icon" className={toolbarButtonBaseClass} title="書內搜尋" disabled>
+              <SearchIcon className={toolbarIconClass} />
+              <span className={toolbarLabelClass}>搜尋</span>
+            </Button>
+            <Button variant="ghost" size="icon" className={toolbarButtonBaseClass} title="全螢幕" disabled>
+              <Maximize className={toolbarIconClass} />
+              <span className={toolbarLabelClass}>全螢幕</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -433,14 +458,13 @@ export default function ReadPage() {
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border flex justify-between">
             <SheetClose asChild>
-              <Button variant="outline" onClick={() => {/*setSelectedTextInfo(null);*/}}>取消</Button>
+              <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false)}}>取消</Button>
             </SheetClose>
             <Button
               onClick={() => {
                 console.log("Saving note for text:", selectedTextInfo?.text);
                 console.log("Note content:", currentNote);
                 setIsNoteSheetOpen(false);
-                // setSelectedTextInfo(null); // Consider if selection should be cleared after saving
               }}
               className="bg-primary hover:bg-primary/90"
             >
@@ -471,24 +495,27 @@ export default function ReadPage() {
                         </blockquote>
                     </div>
                 )}
-                {aiInteractionState === 'asking' && (
-                    <div className="space-y-4"> 
-                        <div>
-                            <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">您的問題：</Label>
-                            <Textarea
-                                id="userQuestionAiSheet"
-                                value={userQuestionInput}
-                                onChange={(e) => setUserQuestionInput(e.target.value)}
-                                placeholder="請輸入您想問的問題..."
-                                className="min-h-[100px] text-sm bg-background/70 mt-1"
-                                rows={4}
-                            />
-                        </div>
+                
+                <div className="space-y-4"> 
+                    <div>
+                        <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">您的問題：</Label>
+                        <Textarea
+                            id="userQuestionAiSheet"
+                            value={userQuestionInput}
+                            onChange={(e) => setUserQuestionInput(e.target.value)}
+                            placeholder="請輸入您想問的問題..."
+                            className="min-h-[100px] text-sm bg-background/70 mt-1"
+                            rows={4}
+                            disabled={aiInteractionState === 'answering' || aiInteractionState === 'answered'}
+                        />
+                    </div>
+                    {aiInteractionState === 'asking' && (
                         <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full">
                             {isLoadingExplanation ? "傳送中..." : "送出問題"}
                         </Button>
-                    </div>
-                )}
+                    )}
+                </div>
+
                 {(aiInteractionState === 'answering') && (
                      <div className="p-4 flex flex-col items-center justify-center text-muted-foreground">
                         <Lightbulb className="h-8 w-8 mb-2 animate-pulse text-primary" />
@@ -511,7 +538,7 @@ export default function ReadPage() {
             </ScrollArea>
             <SheetFooter className="p-4 border-t border-border">
                  <SheetClose asChild>
-                    <Button variant="outline" onClick={() => {/*setSelectedTextInfo(null);*/}}>關閉</Button>
+                    <Button variant="outline" onClick={() => {setIsAiSheetOpen(false)}}>關閉</Button>
                  </SheetClose>
             </SheetFooter>
         </SheetContent>
