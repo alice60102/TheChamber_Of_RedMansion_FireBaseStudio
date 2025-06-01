@@ -15,7 +15,7 @@ import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet"; // Removed SheetTrigger from here
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import ReactMarkdown from 'react-markdown';
@@ -243,9 +243,8 @@ export default function ReadPage() {
             <Button variant="ghost" size="icon" onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
               {showVernacular ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
             </Button>
-            <SheetTrigger asChild>
-                 <Button variant="ghost" size="icon" onClick={() => setIsKnowledgeGraphSheetOpen(true)} title="知識圖譜"><Map className="h-5 w-5"/></Button>
-            </SheetTrigger>
+            {/* Removed SheetTrigger wrapper, relying on onClick to control Sheet state */}
+            <Button variant="ghost" size="icon" onClick={() => setIsKnowledgeGraphSheetOpen(true)} title="知識圖譜"><Map className="h-5 w-5"/></Button>
             <Button variant="ghost" size="icon" title="目錄" disabled><List className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="書內搜尋" disabled><SearchIcon className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="全螢幕" disabled><Maximize className="h-5 w-5" /></Button>
@@ -379,6 +378,7 @@ export default function ReadPage() {
       
       {/* Knowledge Graph Sheet */}
       <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={setIsKnowledgeGraphSheetOpen}>
+        {/* Note: SheetTrigger is not used here as the open state is controlled programmatically */}
         <SheetContent side="bottom" className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true">
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
