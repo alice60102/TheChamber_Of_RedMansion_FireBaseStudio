@@ -130,12 +130,14 @@ export default function ReadPage() {
     if (isToolbarVisible) {
       hideToolbarAfterDelay();
     }
+    // Clear timeout on component unmount or when dependencies change
     return () => {
       if (toolbarTimeoutRef.current) {
         clearTimeout(toolbarTimeoutRef.current);
       }
     };
   }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen]);
+
 
   useEffect(() => {
     setSelectedTextInfo(null);
@@ -153,13 +155,15 @@ export default function ReadPage() {
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
     
-    if (targetElement?.closest('[data-radix-dialog-content]') || 
-        targetElement?.closest('[data-radix-popover-content]') || // Added for popover content
+    // If click is inside a sheet or popover, or on a selection action button, do nothing to selection, just handle toolbar
+    if (targetElement?.closest('[data-radix-dialog-content]') ||  // for Sheets
+        targetElement?.closest('[data-radix-popover-content]') || // for Popovers (like annotation)
         targetElement?.closest('[data-selection-action-button="true"]')) {
       setTimeout(() => handleInteraction(), 0);
       return;
     }
   
+    // If click is on an area that should explicitly prevent selection (like the main toolbar)
     if (targetElement?.closest('[data-no-selection="true"]')) {
       setSelectedTextInfo(null);
       setTimeout(() => handleInteraction(), 0);
@@ -171,23 +175,27 @@ export default function ReadPage() {
   
     if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
+      // Ensure selection is within the main chapter content area
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
         const rect = range.getBoundingClientRect();
-        const scrollArea = chapterContentRef.current.closest('#chapter-content-scroll-area');
-        
-        const scrollTop = scrollArea?.scrollTop || window.scrollY || document.documentElement.scrollTop;
-        const scrollLeft = scrollArea?.scrollLeft || window.scrollX || document.documentElement.scrollLeft;
+        // Get scroll container (the ScrollArea) to adjust coordinates
+        const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
+        const scrollTop = scrollAreaElement?.scrollTop || 0;
+        const scrollLeft = scrollAreaElement?.scrollLeft || 0;
         
         const top = rect.bottom + scrollTop + 8; 
         const left = rect.left + scrollLeft + (rect.width / 2); 
   
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
+        // Close any open sheets when a new selection is made, ensuring buttons are visible
         setIsAiSheetOpen(false); 
         setIsNoteSheetOpen(false);
       } else {
+        // Selection is outside the content area
         setSelectedTextInfo(null);
       }
     } else {
+      // No text selected or selection invalid
       setSelectedTextInfo(null);
     }
     setTimeout(() => handleInteraction(), 0);
@@ -196,13 +204,13 @@ export default function ReadPage() {
 
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('scroll', handleInteraction, { passive: true });
-    document.addEventListener('mousemove', handleInteraction);
+    document.addEventListener('scroll', handleInteraction, { passive: true, capture: true }); // Added capture for scroll
+    document.addEventListener('mousemove', handleInteraction, { passive: true, capture: true }); // Added capture for mousemove
 
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('scroll', handleInteraction);
-      document.removeEventListener('mousemove', handleInteraction);
+      document.removeEventListener('scroll', handleInteraction, { capture: true });
+      document.removeEventListener('mousemove', handleInteraction, { capture: true });
       if (toolbarTimeoutRef.current) clearTimeout(toolbarTimeoutRef.current);
     };
   }, [handleInteraction, handleMouseUp]);
@@ -221,7 +229,7 @@ export default function ReadPage() {
   
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
-      setCurrentNote(""); 
+      // setCurrentNote(""); // Don't clear note if reopening for same selection, user might want to continue
       setIsNoteSheetOpen(true);
       setIsAiSheetOpen(false);
       handleInteraction();
@@ -236,7 +244,7 @@ export default function ReadPage() {
     try {
       const input: ExplainTextSelectionInput = {
         selectedText: selectedTextInfo.text,
-        chapterContext: currentChapter.paragraphs.flatMap(p => p.content).filter(item => typeof item === 'string').join(' ').substring(0, 1000), // Adjusted to get text from new structure
+        chapterContext: currentChapter.paragraphs.flatMap(p => p.content).filter(item => typeof item === 'string').join(' ').substring(0, 1000),
         userQuestion: userQuestionInput,
       };
       const result = await explainTextSelection(input);
@@ -261,8 +269,8 @@ export default function ReadPage() {
 
   const handleSelectChapterFromToc = (index: number) => {
     setCurrentChapterIndex(index);
-    setIsTocSheetOpen(false);
-    handleInteraction(); 
+    setIsTocSheetOpen(false); // Close TOC sheet after selection
+    handleInteraction(); // Ensure toolbar is visible after interaction
   };
 
   const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-1 text-xs text-muted-foreground hover:text-primary";
@@ -357,13 +365,12 @@ export default function ReadPage() {
                         {item.text}
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="inline-flex items-center justify-center p-[2px] px-[5px] ml-[2px] mr-[1px] text-[10px] align-baseline bg-primary/20 text-primary rounded-sm h-auto leading-none hover:bg-primary/30 focus:ring-0 focus-visible:ring-0"
+                            <button
+                              className="inline-flex items-center justify-center w-5 h-5 p-0 mx-1 text-[10px] align-middle bg-green-200 text-green-700 dark:bg-green-600 dark:text-green-100 rounded-full leading-none hover:bg-green-300 dark:hover:bg-green-500 focus:outline-none focus:ring-1 focus:ring-green-400 dark:focus:ring-green-500 shadow-sm"
+                              style={{ position: 'relative', top: '-0.1em' }}
                             >
                               註
-                            </Button>
+                            </button>
                           </PopoverTrigger>
                           <PopoverContent
                             side="top"
