@@ -19,9 +19,9 @@ import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
 
 interface Annotation {
-  text: string; // The text in the main content that triggers the annotation
-  note: string; // The actual annotation content
-  id: string;   // Unique ID for the annotation
+  text: string; 
+  note: string; 
+  id: string;   
 }
 
 interface Paragraph {
@@ -44,7 +44,7 @@ const chapters: Chapter[] = [
     subtitle: "紅樓夢:第三版(中國古典文學讀本叢書)",
     summary: "本回主要講述了甄士隱夢遇一僧一道談論石頭下凡歷劫，以及賈雨村的落魄與發跡。甄士隱因女兒英蓮被拐、家遭火災而看破紅塵，隨跛足道人出家，點出了小說「真事隱去，假語存焉」的創作主旨和「夢幻」的基調。",
     paragraphs: [
-      { content: ["此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！当此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。"], vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以至於今天一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提并論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
+      { content: ["此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！当此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。"], vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以至於今天一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提並論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
       { 
         content: [
           "你道此書從何而起？說來雖近荒唐，細玩頗有趣味。卻說那",
@@ -115,7 +115,6 @@ export default function ReadPage() {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
-      // Only hide if no sheets are open
       if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen) { 
         setIsToolbarVisible(false);
       }
@@ -155,15 +154,13 @@ export default function ReadPage() {
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
   
-    // If click is inside a sheet or popover, or on a selection action button, do nothing to selection
     if (targetElement?.closest('[data-radix-dialog-content]') || 
         targetElement?.closest('[data-radix-popover-content]') ||
         targetElement?.closest('[data-selection-action-button="true"]')) {
-      setTimeout(() => handleInteraction(), 0); // Still handle toolbar interaction
+      setTimeout(() => handleInteraction(), 0);
       return;
     }
   
-    // If click is on an area that should explicitly prevent selection (like the main toolbar)
     if (targetElement?.closest('[data-no-selection="true"]')) {
       setSelectedTextInfo(null);
       setTimeout(() => handleInteraction(), 0);
@@ -178,8 +175,8 @@ export default function ReadPage() {
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
         const rect = range.getBoundingClientRect();
         const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
-        const scrollTop = scrollAreaElement?.scrollTop || 0;
-        const scrollLeft = scrollAreaElement?.scrollLeft || 0;
+        const scrollTop = scrollAreaElement?.scrollTop || window.scrollY || 0;
+        const scrollLeft = scrollAreaElement?.scrollLeft || window.scrollX || 0;
         
         const top = rect.bottom + scrollTop + 8; 
         const left = rect.left + scrollLeft + (rect.width / 2); 
@@ -267,22 +264,22 @@ export default function ReadPage() {
     handleInteraction(); 
   };
 
-  const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-1 text-xs text-muted-foreground hover:text-primary";
-  const toolbarIconClass = "h-5 w-5"; 
-  const toolbarLabelClass = "mt-0.5 text-[10px] leading-none";
+  const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-2 text-muted-foreground hover:text-primary";
+  const toolbarIconClass = "h-6 w-6"; 
+  const toolbarLabelClass = "mt-1 text-xs leading-none";
 
   return (
     <div className="h-full flex flex-col">
       <div
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-md p-1.5 transition-all duration-300 ease-in-out",
+          "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-lg p-2 transition-all duration-300 ease-in-out",
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
         data-no-selection="true" 
         onClick={(e) => { e.stopPropagation(); handleInteraction(); }} 
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
-          <div className="flex items-center gap-1 md:gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
             <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => router.push('/dashboard')} title="返回首頁">
               <CornerUpLeft className={toolbarIconClass} />
               <span className={toolbarLabelClass}>返回</span>
@@ -291,7 +288,7 @@ export default function ReadPage() {
               <Settings className={toolbarIconClass} />
               <span className={toolbarLabelClass}>設定</span>
             </Button>
-            <div className="h-8 border-l border-border/50 mx-1 md:mx-2"></div> 
+            <div className="h-10 border-l border-border/50 mx-2 md:mx-3"></div> 
             <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} className={toolbarButtonBaseClass} onClick={() => setColumnLayout('single')} title="單欄">
               <AlignLeft className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>單欄</span>
@@ -306,12 +303,12 @@ export default function ReadPage() {
             </Button>
           </div>
           
-          <div className="text-center overflow-hidden flex-grow px-2 mx-1 md:mx-4">
-            <h1 className="text-sm md:text-base font-semibold text-primary truncate">{currentChapter.title}</h1>
-            {currentChapter.subtitle && <p className="text-xs text-muted-foreground truncate">{currentChapter.subtitle}</p>}
+          <div className="text-center overflow-hidden flex-grow px-2 mx-2 md:mx-4">
+            <h1 className="text-base md:text-lg font-semibold text-primary truncate">{currentChapter.title}</h1>
+            {currentChapter.subtitle && <p className="text-sm text-muted-foreground truncate">{currentChapter.subtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-1 md:gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
             <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
               {showVernacular ? <EyeOff className={toolbarIconClass}/> : <Eye className={toolbarIconClass}/>}
               <span className={toolbarLabelClass}>{showVernacular ? "隱藏白話" : "顯示白話"}</span>
@@ -324,7 +321,7 @@ export default function ReadPage() {
               <List className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>目錄</span>
             </Button>
-            <div className="h-8 border-l border-border/50 mx-1 md:mx-2"></div> 
+            <div className="h-10 border-l border-border/50 mx-2 md:mx-3"></div> 
             <Button variant="ghost" className={toolbarButtonBaseClass} title="書內搜尋" disabled>
               <SearchIcon className={toolbarIconClass} />
               <span className={toolbarLabelClass}>搜尋</span>
@@ -337,7 +334,7 @@ export default function ReadPage() {
         </div>
       </div>
 
-      <ScrollArea className="flex-grow pt-20 pb-10 px-4 md:px-8" id="chapter-content-scroll-area">
+      <ScrollArea className="flex-grow pt-24 pb-10 px-4 md:px-8" id="chapter-content-scroll-area">
         <div
           ref={chapterContentRef}
           className={cn(
@@ -609,4 +606,6 @@ export default function ReadPage() {
     </div>
   );
 }
+    
+
     
