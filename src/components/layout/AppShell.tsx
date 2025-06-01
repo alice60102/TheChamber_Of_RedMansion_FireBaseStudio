@@ -9,11 +9,8 @@ import {
   Settings,
   ScrollText,
   LayoutDashboard,
-  Brain,
-  Library,
   LogOut,
   Users,
-  Target,
 } from "lucide-react";
 
 import {
@@ -25,7 +22,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
+  SidebarTrigger, // Kept for mobile view on dashboard
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -41,6 +38,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   href: string;
@@ -49,17 +47,15 @@ interface NavItem {
   tooltip: string;
 }
 
+// Nav items for the sidebar, shown when AppShell is used (i.e., on dashboard)
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "首頁", icon: LayoutDashboard, tooltip: "首頁" },
   { href: "/read", label: "閱讀", icon: BookOpen, tooltip: "閱讀" },
-  // { href: "/goals", label: "學習目標", icon: Target, tooltip: "Learning Goals" }, // Removed
-  // { href: "/characters", label: "學習狀況分析", icon: Brain, tooltip: "Learning Status Analysis" }, // Removed
-  // { href: "/research", label: "專題研究", icon: Library, tooltip: "Research Topics" }, // Removed
   { href: "/community", label: "紅學社", icon: Users, tooltip: "Community Forum" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const pathname = usePathname(); // Used for highlighting active nav item
   const router = useRouter();
   const { user } = useAuth();
 
@@ -72,6 +68,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   };
 
+  // AppShell is now only rendered by MainAppLayout when on '/dashboard'.
+  // So, SidebarProvider can default to open for desktop.
   return (
     <SidebarProvider defaultOpen>
       <Sidebar className="border-r-sidebar-border">
@@ -139,12 +137,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md">
-          <SidebarTrigger className="md:hidden" />
-          <div className="flex items-center gap-4">
-          </div>
+        {/* This header is part of the main content area when AppShell is used (on dashboard) */}
+        {/* It contains the SidebarTrigger for mobile */}
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-start border-b bg-background/80 px-6 backdrop-blur-md md:justify-between">
+          <SidebarTrigger className="md:hidden" /> {/* For opening sidebar on mobile when on dashboard */}
+          <div>{/* Placeholder for any other content in dashboard's header */}</div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6"> {/* Dashboard content always has padding */}
           {children}
         </main>
       </SidebarInset>

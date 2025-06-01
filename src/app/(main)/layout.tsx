@@ -1,9 +1,9 @@
 
-"use client"; 
+"use client";
 
 import type { ReactNode } from 'react';
 import { useEffect } from 'react';
-import { usePathname, useRouter } from 'next/navigation'; // Added usePathname
+import { usePathname, useRouter } from 'next/navigation';
 import { AppShell } from '@/components/layout/AppShell';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 export default function MainAppLayout({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname(); // Get current path
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -19,38 +19,35 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
     }
   }, [user, isLoading, router]);
 
-  if (isLoading) {
-     return null; 
-  }
-  
-  if (!user) {
-    return null;
+  if (isLoading || !user) {
+    return null; 
   }
 
-  // For the read page, we want the AppShell to take full height
-  // and the main content area to be scrollable without a fixed header inside AppShell's main
+  const isDashboardPage = pathname === '/dashboard';
   const isReadPage = pathname === '/read';
 
-  return (
-    <AppShell>
-      {isReadPage ? (
-        <main className="flex-1 overflow-hidden h-full"> 
-          {/* Read page content will manage its own scrolling and header */}
-          {children}
-        </main>
-      ) : (
-        <>
-          {/* Original structure for non-read pages */}
-          <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md md:hidden">
-            {/* For mobile: SidebarTrigger might be here or in AppShell's SidebarInset header */}
-          </header>
+  if (isDashboardPage) {
+    // Dashboard uses AppShell with the sidebar
+    return <AppShell>{children}</AppShell>;
+  } else {
+    // Other pages (e.g., /read, /community) do not use the sidebar
+    // They get a simpler, full-width layout
+    return (
+      <div className="flex flex-col min-h-screen bg-background text-foreground">
+        {/* No global header here from this layout for non-dashboard pages */}
+        {/* Individual pages like /read manage their own specific headers if needed (like the top toolbar) */}
+        {isReadPage ? (
+          <main className="flex-1 overflow-hidden h-full">
+            {/* Read page content will manage its own scrolling and header */}
+            {children}
+          </main>
+        ) : (
+          // For pages like /community, /research etc.
           <main className="flex-1 overflow-y-auto p-6">
             {children}
           </main>
-        </>
-      )}
-    </AppShell>
-  );
+        )}
+      </div>
+    );
+  }
 }
-
-    
