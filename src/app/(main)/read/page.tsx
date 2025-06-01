@@ -3,14 +3,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import {
-  ChevronLeft, ChevronRight, Settings, BookOpen as BookOpenIcon, Search as SearchIcon, Maximize, Map, X, Edit3,
-  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List
+  Settings, Search as SearchIcon, Maximize, Map, X, Edit3,
+  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
 import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ interface Chapter {
   id: number;
   title: string;
   subtitle?: string;
-  summary: string; // summary is kept for other potential uses, but not shown in toolbar
+  summary: string;
   paragraphs: Paragraph[];
 }
 
@@ -44,11 +44,26 @@ const chapters: Chapter[] = [
   {
     id: 2,
     title: "第二回 賈夫人仙逝揚州城 冷子興演說榮國府",
+    subtitle: "示例副標題",
     summary: "林黛玉之母賈敏病故。賈雨村偶遇舊識冷子興，冷子興向賈雨村詳細介紹了京城榮國府和寧國府的複雜人物關係、顯赫家世以及當前的衰敗跡象，為後文主要人物登場和故事展開作了重要鋪墊。",
     paragraphs: [
       { original: "（此處省略第二回內容...）賈寶玉和林黛玉初次見面，寶玉便說：「這個妹妹我曾見過的。」", vernacular: "（白話文）（此處省略第二回內容...）賈寶玉和林黛玉初次見面，寶玉便說：「這個妹妹我以前見過。」" }
     ]
   },
+  // Add more chapters up to 25
+  ...Array.from({ length: 23 }, (_, i) => {
+    const chapterNum = i + 3;
+    return {
+      id: chapterNum,
+      title: `第 ${chapterNum} 回 示例標題 ${chapterNum}`,
+      subtitle: `紅樓夢示例副標題 ${chapterNum}`,
+      summary: `這是第 ${chapterNum} 回的摘要。此回主要講述了 [簡短描述] 等情節，展現了 [主要人物] 的 [性格特點或遭遇]。`,
+      paragraphs: [
+        { original: `此為第 ${chapterNum} 回示例原文段落一。話說 [某角色] 如何如何...`, vernacular: `（白話文）這是第 ${chapterNum} 回的白話示例段落一。[某角色] 做了些什麼...` },
+        { original: `第 ${chapterNum} 回示例原文段落二，又提及 [另一事件或人物]。此處略去更多內容，僅為演示。`, vernacular: `（白話文）第 ${chapterNum} 回白話示例段落二。又說到了 [其他事情]。` },
+      ]
+    };
+  })
 ];
 
 type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
@@ -62,7 +77,8 @@ export default function ReadPage() {
   const [columnLayout, setColumnLayout] = useState<ColumnLayout>('single');
   
   const [isKnowledgeGraphSheetOpen, setIsKnowledgeGraphSheetOpen] = useState(false);
-  
+  const [isTocSheetOpen, setIsTocSheetOpen] = useState(false);
+
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
   
@@ -83,11 +99,11 @@ export default function ReadPage() {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
-      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen) { // Only hide if no sheets are open
+      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen) { 
         setIsToolbarVisible(false);
       }
     }, 5000);
-  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen]);
+  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen]);
 
   const handleInteraction = useCallback(() => {
     setIsToolbarVisible(true);
@@ -103,7 +119,7 @@ export default function ReadPage() {
         clearTimeout(toolbarTimeoutRef.current);
       }
     };
-  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen]);
+  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen]);
 
   useEffect(() => {
     setSelectedTextInfo(null);
@@ -113,17 +129,19 @@ export default function ReadPage() {
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
+    setIsKnowledgeGraphSheetOpen(false);
+    setIsTocSheetOpen(false);
     setIsToolbarVisible(true); 
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
-
+    
     if (targetElement?.closest('[data-radix-dialog-content]') || targetElement?.closest('[data-selection-action-button="true"]')) {
       setTimeout(() => handleInteraction(), 0);
       return;
     }
-
+  
     if (targetElement?.closest('[data-no-selection="true"]')) {
       setSelectedTextInfo(null);
       setTimeout(() => handleInteraction(), 0);
@@ -132,7 +150,7 @@ export default function ReadPage() {
     
     const selection = window.getSelection();
     const text = selection?.toString().trim() || '';
-
+  
     if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
@@ -143,9 +161,9 @@ export default function ReadPage() {
         
         const top = rect.bottom + scrollTop + 5;
         const left = rect.left + scrollLeft + (rect.width / 2);
-
+  
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAiSheetOpen(false);
+        setIsAiSheetOpen(false); 
         setIsNoteSheetOpen(false);
       } else {
         setSelectedTextInfo(null);
@@ -212,14 +230,6 @@ export default function ReadPage() {
     }
     setIsLoadingExplanation(false);
   };
-
-  const goToNextChapter = () => {
-    setCurrentChapterIndex((prev) => Math.min(prev + 1, chapters.length - 1));
-  };
-
-  const goToPrevChapter = () => {
-    setCurrentChapterIndex((prev) => Math.max(prev - 1, 0));
-  };
   
   const getColumnClass = () => {
     switch (columnLayout) {
@@ -230,8 +240,14 @@ export default function ReadPage() {
     }
   };
 
+  const handleSelectChapterFromToc = (index: number) => {
+    setCurrentChapterIndex(index);
+    setIsTocSheetOpen(false);
+    handleInteraction(); // Keep toolbar visible after selection
+  };
+
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" onClickCapture={handleInteraction} onMouseMoveCapture={handleInteraction}>
       {/* Top Toolbar */}
       <div
         className={cn(
@@ -250,7 +266,7 @@ export default function ReadPage() {
             <Button variant={columnLayout === 'triple' ? 'default' : 'ghost'} size="icon" onClick={() => setColumnLayout('triple')} title="三欄"><AlignJustify className="h-5 w-5"/></Button>
           </div>
           
-          <div className="text-center overflow-hidden">
+          <div className="text-center overflow-hidden flex-grow px-2">
             <h1 className="text-sm md:text-base font-semibold text-primary truncate">{currentChapter.title}</h1>
             {currentChapter.subtitle && <p className="text-xs text-muted-foreground truncate">{currentChapter.subtitle}</p>}
           </div>
@@ -260,27 +276,15 @@ export default function ReadPage() {
               {showVernacular ? <EyeOff className="h-5 w-5"/> : <Eye className="h-5 w-5"/>}
             </Button>
             <Button variant="ghost" size="icon" onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜"><Map className="h-5 w-5"/></Button>
-            <Button variant="ghost" size="icon" title="目錄" disabled><List className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄"><List className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="書內搜尋" disabled><SearchIcon className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="全螢幕" disabled><Maximize className="h-5 w-5" /></Button>
           </div>
         </div>
-         <div className="container mx-auto flex items-center justify-between max-w-screen-xl mt-1 px-2" data-no-selection="true">
-            <Button variant="ghost" size="sm" onClick={goToPrevChapter} disabled={currentChapterIndex === 0}>
-                <ChevronLeft className="h-4 w-4 mr-1" /> 上一回
-            </Button>
-            {/* Removed Accordion for chapter summary */}
-            <div className="flex-grow text-center px-2">
-                {/* Placeholder for potential future content if needed, or can be removed for more space for title */}
-            </div>
-            <Button variant="ghost" size="sm" onClick={goToNextChapter} disabled={currentChapterIndex === chapters.length - 1}>
-                下一回 <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-        </div>
       </div>
 
       {/* Main Reading Area */}
-      <ScrollArea className="flex-grow pt-28 pb-10 px-4 md:px-8" id="chapter-content-scroll-area">
+      <ScrollArea className="flex-grow pt-20 pb-10 px-4 md:px-8" id="chapter-content-scroll-area">
         <div
           ref={chapterContentRef}
           className={cn(
@@ -328,7 +332,7 @@ export default function ReadPage() {
                 onClick={handleOpenAiSheet}
                 data-selection-action-button="true"
                 >
-                <MessageSquare className="h-4 w-4 mr-1" /> 問AI
+                <MessageSquare className="h-4 w-4 mr-1" /> 問 AI
             </Button>
         </div>
       )}
@@ -351,7 +355,45 @@ export default function ReadPage() {
             <SimulatedKnowledgeGraph className="w-full min-h-[300px]" />
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border">
-            <Button variant="outline" onClick={() => setIsKnowledgeGraphSheetOpen(false)}>關閉</Button>
+            <SheetClose asChild>
+              <Button variant="outline">關閉</Button>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* Table of Contents Sheet */}
+      <Sheet open={isTocSheetOpen} onOpenChange={setIsTocSheetOpen}>
+        <SheetContent 
+            side="left" 
+            className="w-[300px] sm:w-[350px] bg-card text-card-foreground p-0 flex flex-col" 
+            data-no-selection="true" 
+            onClick={(e) => e.stopPropagation()}
+        >
+          <SheetHeader className="p-4 border-b border-border">
+            <SheetTitle className="text-primary text-xl font-artistic">目錄</SheetTitle>
+            <SheetDescription>
+              選擇章回以快速跳轉。
+            </SheetDescription>
+          </SheetHeader>
+          <ScrollArea className="flex-grow">
+            <div className="p-2 space-y-1">
+            {chapters.map((chapter, index) => (
+              <Button
+                key={chapter.id}
+                variant={currentChapterIndex === index ? "default" : "ghost"}
+                className="w-full justify-start text-left h-auto py-1.5 px-3 text-sm"
+                onClick={() => handleSelectChapterFromToc(index)}
+              >
+                {chapter.title}
+              </Button>
+            ))}
+            </div>
+          </ScrollArea>
+          <SheetFooter className="p-4 border-t border-border">
+             <SheetClose asChild>
+                <Button variant="outline">關閉</Button>
+             </SheetClose>
           </SheetFooter>
         </SheetContent>
       </Sheet>
@@ -390,14 +432,15 @@ export default function ReadPage() {
             </div>
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border flex justify-between">
-            <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null);}}>取消</Button>
+            <SheetClose asChild>
+              <Button variant="outline" onClick={() => {/*setSelectedTextInfo(null);*/}}>取消</Button>
+            </SheetClose>
             <Button
               onClick={() => {
                 console.log("Saving note for text:", selectedTextInfo?.text);
                 console.log("Note content:", currentNote);
-                // Actual save logic to be implemented
                 setIsNoteSheetOpen(false);
-                setSelectedTextInfo(null); 
+                // setSelectedTextInfo(null); // Consider if selection should be cleared after saving
               }}
               className="bg-primary hover:bg-primary/90"
             >
@@ -447,7 +490,10 @@ export default function ReadPage() {
                     </div>
                 )}
                 {(aiInteractionState === 'answering') && (
-                    <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
+                     <div className="p-4 flex flex-col items-center justify-center text-muted-foreground">
+                        <Lightbulb className="h-8 w-8 mb-2 animate-pulse text-primary" />
+                        AI 思考中...
+                    </div>
                 )}
                 {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
                     <div>
@@ -464,7 +510,9 @@ export default function ReadPage() {
                 )}
             </ScrollArea>
             <SheetFooter className="p-4 border-t border-border">
-                <Button variant="outline" onClick={() => {setIsAiSheetOpen(false); setSelectedTextInfo(null);}}>關閉</Button>
+                 <SheetClose asChild>
+                    <Button variant="outline" onClick={() => {/*setSelectedTextInfo(null);*/}}>關閉</Button>
+                 </SheetClose>
             </SheetFooter>
         </SheetContent>
       </Sheet>
