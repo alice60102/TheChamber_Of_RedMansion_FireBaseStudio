@@ -1,6 +1,6 @@
 
 "use client";
-import React, { useState, useEffect, useRef, MouseEvent as ReactMouseEvent, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
 import {
@@ -8,9 +8,6 @@ import {
   BookOpen as BookOpenIcon, Columns, Type, Plus, Brain, List, ZoomIn, Maximize, FileText, MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, Map
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { connectThemesToModernContexts } from '@/ai/flows/connect-themes-to-modern-contexts';
-import type { ConnectThemesToModernContextsInput, ConnectThemesToModernContextsOutput } from '@/ai/flows/connect-themes-to-modern-contexts';
-import { analyzeContext } from '@/ai/flows/context-aware-analysis';
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -112,33 +109,33 @@ export default function ReadPage() {
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
-    const selection = window.getSelection();
-    const text = selection?.toString().trim() || '';
     const targetElement = event.target as HTMLElement;
 
-    // If click is on the action buttons themselves, preserve selection and interact with toolbar
+    // If click is on action buttons or AI popover, let them handle it.
+    // Call handleInteraction to ensure toolbar stays visible during these interactions.
     if (targetElement?.closest('[data-selection-action-button="true"]')) {
-        handleInteraction();
+        setTimeout(() => handleInteraction(), 0);
         return;
     }
 
-    // If click is on an area marked as no-selection (e.g., toolbar), clear selection
+    // If click is on areas that should clear selection (like main toolbar, marked with data-no-selection).
     if (targetElement?.closest('[data-no-selection="true"]')) {
         setSelectedTextInfo(null);
-        setIsAIPopoverOpen(false); // Close AI Q&A popover if it was open
-        handleInteraction();
+        setIsAIPopoverOpen(false);
+        setTimeout(() => handleInteraction(), 0);
         return;
     }
     
+    const selection = window.getSelection();
+    const text = selection?.toString().trim() || '';
     let newSelectedTextInfo = null;
 
-    if (text.length > 1 && chapterContentRef.current && chapterContentRef.current.contains(targetElement) && selection && selection.rangeCount > 0) {
+    if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
         const range = selection.getRangeAt(0);
-        // Double check selection is truly within the content area
         if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
             const rect = range.getBoundingClientRect();
-            const top = rect.bottom + window.scrollY + 5;
-            const left = rect.left + window.scrollX + (rect.width / 2);
+            const top = rect.bottom + 5; 
+            const left = rect.left + (rect.width / 2);
             newSelectedTextInfo = { text, position: { top, left }, range: range.cloneRange() };
         }
     }
@@ -146,17 +143,12 @@ export default function ReadPage() {
     setSelectedTextInfo(newSelectedTextInfo);
     
     if (newSelectedTextInfo) {
-      setIsAIPopoverOpen(false); // Close Q&A popover for new selection
+      setIsAIPopoverOpen(false); 
     }
     
-    // Only call handleInteraction if not on selection buttons (already handled)
-    // and not on no-selection areas (already handled)
-    // This ensures toolbar appears for general clicks in content area too.
-    if (!targetElement?.closest('[data-selection-action-button="true"]') && !targetElement?.closest('[data-no-selection="true"]')) {
-        handleInteraction();
-    }
+    setTimeout(() => handleInteraction(), 0);
 
-}, [handleInteraction]);
+  }, [handleInteraction]); 
   
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
@@ -176,7 +168,6 @@ export default function ReadPage() {
       setUserQuestionInput('');
       setAiInteractionState('asking');
       setIsAIPopoverOpen(true);
-      // Toolbar interaction is implicitly handled by PopoverTrigger click
     }
   };
 
@@ -200,7 +191,6 @@ export default function ReadPage() {
       setAiInteractionState('error');
     }
     setIsLoadingExplanation(false);
-    // handleInteraction(); // Keep toolbar visible - not needed, popover interaction does this
   };
 
   const goToNextChapter = () => {
@@ -214,10 +204,10 @@ export default function ReadPage() {
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
       console.log("Opening note sheet for:", selectedTextInfo.text);
-      // setShowNoteSheet(true); // Re-enable or implement note functionality
-      // setSelectedTextInfo(null); // DO NOT clear selection here if note sheet is a non-modal overlay
+      // setShowNoteSheet(true); // Implement note functionality
       // setIsAIPopoverOpen(false); 
-      handleInteraction(); // Keep toolbar visible for note taking interaction
+      // It's okay for selection buttons to remain if note sheet is a non-modal overlay or side panel.
+      // If it's a full modal, then perhaps clear selectedTextInfo on note sheet close.
     }
   };
   
@@ -231,18 +221,15 @@ export default function ReadPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" onClick={(e) => { 
-      // General click on background should trigger interaction if not on text itself
-      if (e.target === e.currentTarget) handleInteraction();
-     }} data-no-selection="true">
+    <div className="h-full flex flex-col" data-no-selection="false"> {/* Removed data-no-selection and onClick from root */}
       {/* Top Toolbar */}
       <div 
         className={cn(
           "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-md p-2 transition-all duration-300 ease-in-out",
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
-        data-no-selection="true" // Toolbar itself should not trigger text selection
-        onClick={(e) => e.stopPropagation()} // Prevent clicks on toolbar from bubbling to main div's onClick
+        data-no-selection="true" 
+        onClick={(e) => e.stopPropagation()} 
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-1">
@@ -295,11 +282,10 @@ export default function ReadPage() {
         <div 
           ref={chapterContentRef}
           className={cn(
-            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto leading-relaxed whitespace-pre-line text-foreground select-text", // Ensure text is selectable
+            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto leading-relaxed whitespace-pre-line text-foreground select-text", 
             getColumnClass()
           )}
           style={{ fontFamily: "'Noto Serif SC', serif", position: 'relative' }}
-          // No onClick here, rely on document mouseup
         >
           {currentChapter.paragraphs.map((para, index) => (
             <div key={index} className="mb-4 break-inside-avoid-column">
@@ -322,14 +308,14 @@ export default function ReadPage() {
                 transform: 'translateX(-50%)',
                 zIndex: 60, 
             }}
-            data-selection-action-button="true" // This div contains the action buttons
+            data-selection-action-button="true" 
           >
             <Button
                 variant="default"
                 size="sm"
                 className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
                 onClick={handleOpenNoteSheet}
-                data-selection-action-button="true" // Individual button
+                data-selection-action-button="true" 
                 >
                 <FileText className="h-4 w-4 mr-1" /> 記筆記
             </Button>
@@ -340,7 +326,7 @@ export default function ReadPage() {
                     size="sm"
                     className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
                     onClick={handleOpenAIPopover}
-                    data-selection-action-button="true" // Individual button
+                    data-selection-action-button="true" 
                     >
                     <MessageSquare className="h-4 w-4 mr-1" /> 問AI
                     </Button>
@@ -351,8 +337,8 @@ export default function ReadPage() {
                     align="center"
                     onOpenAutoFocus={(e) => e.preventDefault()} 
                     onCloseAutoFocus={(e) => e.preventDefault()}
-                    data-selection-action-button="true" // The popover content itself
-                    onClick={(e) => e.stopPropagation()} // Prevent clicks inside popover from clearing selection via main div's onClick
+                    data-selection-action-button="true" 
+                    onClick={(e) => e.stopPropagation()} 
                 >
                     <div className="space-y-3 p-2">
                     {aiInteractionState === 'asking' && (
@@ -418,3 +404,5 @@ export default function ReadPage() {
     </div>
   );
 }
+
+    
