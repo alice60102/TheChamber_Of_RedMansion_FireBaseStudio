@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
 import {
   ChevronLeft, ChevronRight, Settings, Book, Search as SearchIcon, DownloadCloud, CornerUpLeft,
-  BookOpen as BookOpenIcon, Columns, Type, Plus, Brain, List, ZoomIn, Maximize, FileText, MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, Map
+  BookOpen as BookOpenIcon, Columns, Type, Plus, Brain, List, ZoomIn, Maximize, FileText, MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, Map, X
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -62,6 +62,8 @@ export default function ReadPage() {
   const [showVernacular, setShowVernacular] = useState(false);
   const [columnLayout, setColumnLayout] = useState<ColumnLayout>('single');
   const [isKnowledgeGraphSheetOpen, setIsKnowledgeGraphSheetOpen] = useState(false);
+  const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
+  const [currentNote, setCurrentNote] = useState("");
   
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
   const [isAIPopoverOpen, setIsAIPopoverOpen] = useState(false);
@@ -102,52 +104,55 @@ export default function ReadPage() {
   useEffect(() => {
     setSelectedTextInfo(null);
     setIsAIPopoverOpen(false);
+    setIsNoteSheetOpen(false);
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
     setIsToolbarVisible(true); 
+    setCurrentNote("");
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
 
-    // If click is on action buttons or AI popover, let them handle it.
-    // Call handleInteraction to ensure toolbar stays visible during these interactions.
-    if (targetElement?.closest('[data-selection-action-button="true"]')) {
-        setTimeout(() => handleInteraction(), 0);
-        return;
+    if (targetElement?.closest('[data-selection-action-button="true"]') || 
+        targetElement?.closest('[data-radix-popover-content-wrapper]') ||
+        targetElement?.closest('[data-radix-dialog-content]')) { // Prevents clearing selection if clicking on actions/popovers/sheets
+      setTimeout(() => handleInteraction(), 0);
+      return;
     }
-
-    // If click is on areas that should clear selection (like main toolbar, marked with data-no-selection).
+    
     if (targetElement?.closest('[data-no-selection="true"]')) {
-        setSelectedTextInfo(null);
-        setIsAIPopoverOpen(false);
-        setTimeout(() => handleInteraction(), 0);
-        return;
+      setSelectedTextInfo(null);
+      setIsAIPopoverOpen(false);
+      setIsNoteSheetOpen(false); 
+      setTimeout(() => handleInteraction(), 0);
+      return;
     }
     
     const selection = window.getSelection();
     const text = selection?.toString().trim() || '';
-    let newSelectedTextInfo = null;
-
+    
     if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
-            const rect = range.getBoundingClientRect();
-            const top = rect.bottom + 5; 
-            const left = rect.left + (rect.width / 2);
-            newSelectedTextInfo = { text, position: { top, left }, range: range.cloneRange() };
-        }
+      const range = selection.getRangeAt(0);
+      if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
+        const rect = range.getBoundingClientRect();
+        const top = rect.bottom + 5; 
+        const left = rect.left + (rect.width / 2);
+        setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
+        setIsAIPopoverOpen(false); 
+        setIsNoteSheetOpen(false);
+      } else {
+        setSelectedTextInfo(null);
+      }
+    } else {
+      if (!targetElement?.closest('[data-selection-action-button]') && 
+          !targetElement?.closest('[data-radix-popover-content-wrapper]') &&
+          !targetElement?.closest('[data-radix-dialog-content]')) {
+        setSelectedTextInfo(null);
+      }
     }
-    
-    setSelectedTextInfo(newSelectedTextInfo);
-    
-    if (newSelectedTextInfo) {
-      setIsAIPopoverOpen(false); 
-    }
-    
     setTimeout(() => handleInteraction(), 0);
-
   }, [handleInteraction]); 
   
   useEffect(() => {
@@ -168,6 +173,8 @@ export default function ReadPage() {
       setUserQuestionInput('');
       setAiInteractionState('asking');
       setIsAIPopoverOpen(true);
+      setIsNoteSheetOpen(false); // Close note sheet if AI popover is opened
+      handleInteraction();
     }
   };
 
@@ -204,10 +211,10 @@ export default function ReadPage() {
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
       console.log("Opening note sheet for:", selectedTextInfo.text);
-      // setShowNoteSheet(true); // Implement note functionality
-      // setIsAIPopoverOpen(false); 
-      // It's okay for selection buttons to remain if note sheet is a non-modal overlay or side panel.
-      // If it's a full modal, then perhaps clear selectedTextInfo on note sheet close.
+      setCurrentNote(""); // Clear previous note
+      setIsNoteSheetOpen(true);
+      setIsAIPopoverOpen(false); // Close AI popover if note sheet is opened
+      handleInteraction();
     }
   };
   
@@ -221,7 +228,7 @@ export default function ReadPage() {
   };
 
   return (
-    <div className="h-full flex flex-col" data-no-selection="false"> {/* Removed data-no-selection and onClick from root */}
+    <div className="h-full flex flex-col">
       {/* Top Toolbar */}
       <div 
         className={cn(
@@ -233,7 +240,7 @@ export default function ReadPage() {
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => window.history.back()} title="返回"><CornerUpLeft className="h-5 w-5" /></Button>
+            <Button variant="ghost" size="icon" onClick={() => router.push('/dashboard')} title="返回首頁"><CornerUpLeft className="h-5 w-5" /></Button>
             <Button variant="ghost" size="icon" title="設定" disabled><Settings className="h-5 w-5" /></Button>
             <Button variant={columnLayout === 'single' ? 'default' : 'ghost'} size="icon" onClick={() => setColumnLayout('single')} title="單欄"><AlignLeft className="h-5 w-5"/></Button>
             <Button variant={columnLayout === 'double' ? 'default' : 'ghost'} size="icon" onClick={() => setColumnLayout('double')} title="雙欄"><AlignCenter className="h-5 w-5"/></Button>
@@ -298,8 +305,8 @@ export default function ReadPage() {
         </div>
       </ScrollArea>
 
-      {/* AI Popover for selected text */}
-      {selectedTextInfo?.text && selectedTextInfo.position && (
+      {/* Floating Action Buttons for selected text */}
+      {selectedTextInfo?.text && selectedTextInfo.position && !isAIPopoverOpen && !isNoteSheetOpen && (
         <div 
             className="fixed flex gap-2" 
             style={{ 
@@ -336,8 +343,13 @@ export default function ReadPage() {
                     side="top" 
                     align="center"
                     onOpenAutoFocus={(e) => e.preventDefault()} 
-                    onCloseAutoFocus={(e) => e.preventDefault()}
-                    data-selection-action-button="true" 
+                    onCloseAutoFocus={(e) => {
+                       e.preventDefault();
+                       // When AI popover closes, ensure selection buttons might reappear if text is still selected.
+                       // But handleMouseUp should manage the selectedTextInfo state.
+                       // For now, just handleInteraction to ensure toolbar logic is fine.
+                       handleInteraction();
+                    }}
                     onClick={(e) => e.stopPropagation()} 
                 >
                     <div className="space-y-3 p-2">
@@ -392,12 +404,55 @@ export default function ReadPage() {
             </SheetDescription>
           </SheetHeader>
           <ScrollArea className="flex-grow p-4">
-            <SimulatedKnowledgeGraph className="w-full" />
+            <SimulatedKnowledgeGraph className="w-full min-h-[300px]" />
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border">
-            <SheetClose asChild>
-              <Button variant="outline">關閉</Button>
-            </SheetClose>
+            <Button variant="outline" onClick={() => setIsKnowledgeGraphSheetOpen(false)}>關閉</Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      {/* Note Taking Sheet */}
+      <Sheet open={isNoteSheetOpen} onOpenChange={setIsNoteSheetOpen}>
+        <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true">
+          <SheetHeader className="p-4 border-b border-border">
+            <SheetTitle className="text-primary text-xl font-artistic">撰寫筆記</SheetTitle>
+            <SheetDescription>
+              針對您選取的內容記錄您的想法。
+            </SheetDescription>
+          </SheetHeader>
+          <ScrollArea className="flex-grow p-4 space-y-4">
+            <div>
+              <Label className="text-sm text-muted-foreground">選取內容:</Label>
+              <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm">
+                {selectedTextInfo?.text || "未選取任何內容。"}
+              </blockquote>
+            </div>
+            <div>
+              <Label htmlFor="noteTextarea" className="text-sm text-muted-foreground">您的筆記:</Label>
+              <Textarea
+                id="noteTextarea"
+                value={currentNote}
+                onChange={(e) => setCurrentNote(e.target.value)}
+                placeholder="在此輸入您的筆記..."
+                className="min-h-[200px] bg-background/70 mt-1"
+                rows={8}
+              />
+            </div>
+          </ScrollArea>
+          <SheetFooter className="p-4 border-t border-border flex justify-between">
+            <Button variant="outline" onClick={() => setIsNoteSheetOpen(false)}>取消</Button>
+            <Button 
+              onClick={() => {
+                // TODO: Implement actual note saving logic
+                console.log("Selected Text:", selectedTextInfo?.text);
+                console.log("Note:", currentNote);
+                setIsNoteSheetOpen(false);
+              }}
+              className="bg-primary hover:bg-primary/90"
+            >
+              保存筆記
+            </Button>
           </SheetFooter>
         </SheetContent>
       </Sheet>
