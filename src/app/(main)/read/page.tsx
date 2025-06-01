@@ -2,26 +2,26 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; 
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChevronLeft, ChevronRight, Settings, Book, Search as SearchIcon, DownloadCloud, CornerUpLeft,
-  BookOpen as BookOpenIcon, Columns, Type, Plus, Brain, List, ZoomIn, Maximize, FileText, MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, Map, X
+  BookOpen as BookOpenIcon, Columns, Type, Plus, Brain, List, ZoomIn, Maximize, FileText, MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, Map, X, Edit3
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
+import { useRouter } from 'next/navigation';
 
 interface Paragraph {
   original: string;
-  vernacular?: string; 
+  vernacular?: string;
 }
 
 interface Chapter {
@@ -57,21 +57,25 @@ type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
 type ColumnLayout = 'single' | 'double' | 'triple';
 
 export default function ReadPage() {
+  const router = useRouter();
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
   const [showVernacular, setShowVernacular] = useState(false);
   const [columnLayout, setColumnLayout] = useState<ColumnLayout>('single');
+  
   const [isKnowledgeGraphSheetOpen, setIsKnowledgeGraphSheetOpen] = useState(false);
+  
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
   
-  const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
-  const [isAIPopoverOpen, setIsAIPopoverOpen] = useState(false);
+  const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
   const [textExplanation, setTextExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
   const [aiInteractionState, setAiInteractionState] = useState<AIInteractionState>('asking');
 
+  const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
+  
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const toolbarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentChapter = chapters[currentChapterIndex];
@@ -82,7 +86,7 @@ export default function ReadPage() {
     }
     toolbarTimeoutRef.current = setTimeout(() => {
       setIsToolbarVisible(false);
-    }, 5000); 
+    }, 5000);
   }, []);
 
   const handleInteraction = useCallback(() => {
@@ -100,81 +104,99 @@ export default function ReadPage() {
       }
     };
   }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex]);
-  
+
   useEffect(() => {
     setSelectedTextInfo(null);
-    setIsAIPopoverOpen(false);
     setIsNoteSheetOpen(false);
+    setIsAiSheetOpen(false);
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
-    setIsToolbarVisible(true); 
     setCurrentNote("");
+    setIsToolbarVisible(true); 
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
 
-    if (targetElement?.closest('[data-selection-action-button="true"]') || 
-        targetElement?.closest('[data-radix-popover-content-wrapper]') ||
-        targetElement?.closest('[data-radix-dialog-content]')) { // Prevents clearing selection if clicking on actions/popovers/sheets
-      setTimeout(() => handleInteraction(), 0);
+    if (
+      targetElement?.closest('[data-selection-action-button="true"]') ||
+      targetElement?.closest('[data-radix-dialog-content]') 
+    ) {
+      // setTimeout(() => handleInteraction(), 0); // handleInteraction is now called by document listeners
       return;
     }
-    
+
     if (targetElement?.closest('[data-no-selection="true"]')) {
       setSelectedTextInfo(null);
-      setIsAIPopoverOpen(false);
-      setIsNoteSheetOpen(false); 
-      setTimeout(() => handleInteraction(), 0);
+      // setTimeout(() => handleInteraction(), 0);
       return;
     }
-    
+
     const selection = window.getSelection();
     const text = selection?.toString().trim() || '';
-    
+
     if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
         const rect = range.getBoundingClientRect();
-        const top = rect.bottom + 5; 
-        const left = rect.left + (rect.width / 2);
+        const viewportScrollY = window.scrollY || document.documentElement.scrollTop;
+        const viewportScrollX = window.scrollX || document.documentElement.scrollLeft;
+        
+        // Ensure position is relative to the document, not just viewport
+        const top = rect.bottom + viewportScrollY + 5;
+        const left = rect.left + viewportScrollX + (rect.width / 2);
+
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAIPopoverOpen(false); 
+        setIsAiSheetOpen(false); 
         setIsNoteSheetOpen(false);
       } else {
         setSelectedTextInfo(null);
       }
     } else {
-      if (!targetElement?.closest('[data-selection-action-button]') && 
-          !targetElement?.closest('[data-radix-popover-content-wrapper]') &&
-          !targetElement?.closest('[data-radix-dialog-content]')) {
-        setSelectedTextInfo(null);
-      }
+      setSelectedTextInfo(null);
     }
-    setTimeout(() => handleInteraction(), 0);
-  }, [handleInteraction]); 
-  
+    // setTimeout(() => handleInteraction(), 0);
+  }, [/* handleInteraction removed as it's handled by global listeners now */]);
+
   useEffect(() => {
-    document.addEventListener('mouseup', handleMouseUp);
+    // Global listeners for toolbar interaction
+    document.addEventListener('mouseup', handleInteraction); // Re-add for general interaction
     document.addEventListener('scroll', handleInteraction, { passive: true });
     document.addEventListener('mousemove', handleInteraction);
+    
+    // Specific listener for text selection
+    document.addEventListener('mouseup', handleMouseUp);
+
+
     return () => {
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseup', handleInteraction);
       document.removeEventListener('scroll', handleInteraction);
       document.removeEventListener('mousemove', handleInteraction);
+      document.removeEventListener('mouseup', handleMouseUp);
       if (toolbarTimeoutRef.current) clearTimeout(toolbarTimeoutRef.current);
     };
-  }, [handleMouseUp, handleInteraction]);
+  }, [handleMouseUp, handleInteraction]); // handleInteraction added back
 
-  const handleOpenAIPopover = () => {
+  const handleOpenAiSheet = () => {
     if (selectedTextInfo?.text) {
       setTextExplanation(null);
       setUserQuestionInput('');
       setAiInteractionState('asking');
-      setIsAIPopoverOpen(true);
-      setIsNoteSheetOpen(false); // Close note sheet if AI popover is opened
-      handleInteraction();
+      setIsAiSheetOpen(true);
+      setIsNoteSheetOpen(false);
+      // setSelectedTextInfo(null); // Keep selectedTextInfo for the sheet
+      handleInteraction(); 
+    }
+  };
+  
+  const handleOpenNoteSheet = () => {
+    if (selectedTextInfo?.text) {
+      setCurrentNote(""); 
+      setIsNoteSheetOpen(true);
+      setIsAiSheetOpen(false);
+      // setSelectedTextInfo(null); // Keep selectedTextInfo for the sheet
+      handleInteraction(); 
     }
   };
 
@@ -186,7 +208,7 @@ export default function ReadPage() {
     try {
       const input: ExplainTextSelectionInput = {
         selectedText: selectedTextInfo.text,
-        chapterContext: currentChapter.paragraphs.map(p => p.original).join('\n').substring(0, 1000), 
+        chapterContext: currentChapter.paragraphs.map(p => p.original).join('\n').substring(0, 1000),
         userQuestion: userQuestionInput,
       };
       const result = await explainTextSelection(input);
@@ -207,16 +229,6 @@ export default function ReadPage() {
   const goToPrevChapter = () => {
     setCurrentChapterIndex((prev) => Math.max(prev - 1, 0));
   };
-
-  const handleOpenNoteSheet = () => {
-    if (selectedTextInfo?.text) {
-      console.log("Opening note sheet for:", selectedTextInfo.text);
-      setCurrentNote(""); // Clear previous note
-      setIsNoteSheetOpen(true);
-      setIsAIPopoverOpen(false); // Close AI popover if note sheet is opened
-      handleInteraction();
-    }
-  };
   
   const getColumnClass = () => {
     switch (columnLayout) {
@@ -230,13 +242,13 @@ export default function ReadPage() {
   return (
     <div className="h-full flex flex-col">
       {/* Top Toolbar */}
-      <div 
+      <div
         className={cn(
           "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-md p-2 transition-all duration-300 ease-in-out",
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
-        data-no-selection="true" 
-        onClick={(e) => e.stopPropagation()} 
+        data-no-selection="true"
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-1">
@@ -286,10 +298,10 @@ export default function ReadPage() {
 
       {/* Main Reading Area */}
       <ScrollArea className="flex-grow pt-28 pb-10 px-4 md:px-8" id="chapter-content-scroll-area">
-        <div 
+        <div
           ref={chapterContentRef}
           className={cn(
-            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto leading-relaxed whitespace-pre-line text-foreground select-text", 
+            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto leading-relaxed whitespace-pre-line text-foreground select-text",
             getColumnClass()
           )}
           style={{ fontFamily: "'Noto Serif SC', serif", position: 'relative' }}
@@ -306,97 +318,41 @@ export default function ReadPage() {
       </ScrollArea>
 
       {/* Floating Action Buttons for selected text */}
-      {selectedTextInfo?.text && selectedTextInfo.position && !isAIPopoverOpen && !isNoteSheetOpen && (
-        <div 
-            className="fixed flex gap-2" 
-            style={{ 
-                top: `${selectedTextInfo.position.top}px`, 
-                left: `${selectedTextInfo.position.left}px`, 
+      {selectedTextInfo?.text && selectedTextInfo.position && !isAiSheetOpen && !isNoteSheetOpen && (
+        <div
+            className="fixed flex gap-2"
+            style={{
+                top: `${selectedTextInfo.position.top}px`,
+                left: `${selectedTextInfo.position.left}px`,
                 transform: 'translateX(-50%)',
-                zIndex: 60, 
+                zIndex: 60,
             }}
-            data-selection-action-button="true" 
+            data-selection-action-button="true"
           >
             <Button
                 variant="default"
                 size="sm"
                 className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
                 onClick={handleOpenNoteSheet}
-                data-selection-action-button="true" 
+                data-selection-action-button="true"
                 >
-                <FileText className="h-4 w-4 mr-1" /> 記筆記
+                <Edit3 className="h-4 w-4 mr-1" /> 記筆記
             </Button>
-            <Popover open={isAIPopoverOpen} onOpenChange={setIsAIPopoverOpen}>
-                <PopoverTrigger asChild>
-                    <Button
-                    variant="default"
-                    size="sm"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
-                    onClick={handleOpenAIPopover}
-                    data-selection-action-button="true" 
-                    >
-                    <MessageSquare className="h-4 w-4 mr-1" /> 問AI
-                    </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                    className="w-96 bg-card text-card-foreground shadow-xl border-border z-70"
-                    side="top" 
-                    align="center"
-                    onOpenAutoFocus={(e) => e.preventDefault()} 
-                    onCloseAutoFocus={(e) => {
-                       e.preventDefault();
-                       // When AI popover closes, ensure selection buttons might reappear if text is still selected.
-                       // But handleMouseUp should manage the selectedTextInfo state.
-                       // For now, just handleInteraction to ensure toolbar logic is fine.
-                       handleInteraction();
-                    }}
-                    onClick={(e) => e.stopPropagation()} 
+            <Button
+                variant="default"
+                size="sm"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
+                onClick={handleOpenAiSheet}
+                data-selection-action-button="true"
                 >
-                    <div className="space-y-3 p-2">
-                    {aiInteractionState === 'asking' && (
-                        <>
-                        <p className="text-sm text-muted-foreground">
-                            您選取的文字： "<strong className="text-primary">{selectedTextInfo.text.length > 50 ? selectedTextInfo.text.substring(0, 50) + '...' : selectedTextInfo.text}</strong>"
-                        </p>
-                        <Label htmlFor="userQuestion" className="text-base font-semibold">您的問題：</Label>
-                        <Textarea 
-                            id="userQuestion"
-                            value={userQuestionInput}
-                            onChange={(e) => setUserQuestionInput(e.target.value)}
-                            placeholder="請輸入您想問的問題..."
-                            className="min-h-[80px] text-sm bg-background/70"
-                            rows={3}
-                        />
-                        <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full">
-                            {isLoadingExplanation ? "傳送中..." : "送出問題"}
-                        </Button>
-                        </>
-                    )}
-                    {(aiInteractionState === 'answering') && (
-                        <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
-                    )}
-                    {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
-                      <div>
-                        <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
-                        <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
-                           <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line p-2 text-white">
-                            {textExplanation}
-                          </ReactMarkdown>
-                        </ScrollArea>
-                        <Button variant="ghost" onClick={() => {setAiInteractionState('asking'); handleInteraction();}} className="mt-2 text-sm">
-                          返回提問
-                        </Button>
-                      </div>
-                    )}
-                    </div>
-                </PopoverContent>
-            </Popover>
+                <MessageSquare className="h-4 w-4 mr-1" /> 問AI
+            </Button>
         </div>
       )}
       
       {/* Knowledge Graph Sheet */}
       <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={setIsKnowledgeGraphSheetOpen}>
-        <SheetContent side="bottom" className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true">
+        <SheetContent side="bottom" className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true" onClick={(e) => e.stopPropagation()}>
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
             <SheetDescription>
@@ -414,7 +370,7 @@ export default function ReadPage() {
 
       {/* Note Taking Sheet */}
       <Sheet open={isNoteSheetOpen} onOpenChange={setIsNoteSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true">
+        <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true" onClick={(e) => e.stopPropagation()}>
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">撰寫筆記</SheetTitle>
             <SheetDescription>
@@ -424,7 +380,7 @@ export default function ReadPage() {
           <ScrollArea className="flex-grow p-4 space-y-4">
             <div>
               <Label className="text-sm text-muted-foreground">選取內容:</Label>
-              <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm">
+              <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
                 {selectedTextInfo?.text || "未選取任何內容。"}
               </blockquote>
             </div>
@@ -441,13 +397,14 @@ export default function ReadPage() {
             </div>
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border flex justify-between">
-            <Button variant="outline" onClick={() => setIsNoteSheetOpen(false)}>取消</Button>
-            <Button 
+            <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null);}}>取消</Button>
+            <Button
               onClick={() => {
-                // TODO: Implement actual note saving logic
-                console.log("Selected Text:", selectedTextInfo?.text);
-                console.log("Note:", currentNote);
+                console.log("Saving note for text:", selectedTextInfo?.text);
+                console.log("Note content:", currentNote);
+                // Actual save logic to be implemented
                 setIsNoteSheetOpen(false);
+                setSelectedTextInfo(null); // Clear selection after note is "saved"
               }}
               className="bg-primary hover:bg-primary/90"
             >
@@ -456,8 +413,66 @@ export default function ReadPage() {
           </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      {/* AI Interaction Sheet */}
+      <Sheet open={isAiSheetOpen} onOpenChange={setIsAiSheetOpen}>
+        <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true" onClick={(e) => e.stopPropagation()}>
+            <SheetHeader className="p-4 border-b border-border">
+                <SheetTitle className="text-primary text-xl font-artistic">與 AI 互動</SheetTitle>
+                <SheetDescription>針對選取的文本提出您的疑問。</SheetDescription>
+            </SheetHeader>
+            <ScrollArea className="flex-grow p-4 space-y-3">
+                {selectedTextInfo?.text && (
+                    <div>
+                        <Label className="text-sm text-muted-foreground">選取內容:</Label>
+                        <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
+                            {selectedTextInfo.text.length > 150 ? selectedTextInfo.text.substring(0, 150) + '...' : selectedTextInfo.text}
+                        </blockquote>
+                    </div>
+                )}
+                {aiInteractionState === 'asking' && (
+                    <>
+                        <div>
+                            <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">您的問題：</Label>
+                            <Textarea
+                                id="userQuestionAiSheet"
+                                value={userQuestionInput}
+                                onChange={(e) => setUserQuestionInput(e.target.value)}
+                                placeholder="請輸入您想問的問題..."
+                                className="min-h-[100px] text-sm bg-background/70 mt-1"
+                                rows={4}
+                            />
+                        </div>
+                        <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full">
+                            {isLoadingExplanation ? "傳送中..." : "送出問題"}
+                        </Button>
+                    </>
+                )}
+                {(aiInteractionState === 'answering') && (
+                    <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
+                )}
+                {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
+                    <div>
+                        <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
+                        <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
+                           <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line p-2 text-white">
+                            {textExplanation}
+                          </ReactMarkdown>
+                        </ScrollArea>
+                        <Button variant="ghost" onClick={() => {setAiInteractionState('asking'); handleInteraction();}} className="mt-2 text-sm">
+                          返回提問
+                        </Button>
+                    </div>
+                )}
+            </ScrollArea>
+            <SheetFooter className="p-4 border-t border-border">
+                <Button variant="outline" onClick={() => {setIsAiSheetOpen(false); setSelectedTextInfo(null);}}>關閉</Button>
+            </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
-
     
+
+      
