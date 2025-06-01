@@ -1,7 +1,7 @@
 
 "use client";
 import type { DetailedHTMLProps, HTMLAttributes } from 'react';
-import { cn } from "@/lib/utils"; // Added import
+import { cn } from "@/lib/utils"; 
 
 interface Node {
   id: string;
@@ -49,20 +49,21 @@ const simulatedChapter1Data: SimulatedGraphData = {
 
 const NODE_WIDTH = 100;
 const NODE_HEIGHT = 40;
-const TEXT_OFFSET_Y = 5; // Fine-tune text vertical alignment inside node
+const TEXT_OFFSET_Y = 5; 
 
 export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>) {
   const data = simulatedChapter1Data;
   const nodesMap = new Map(data.nodes.map(node => [node.id, node]));
 
   return (
-    <div data-ai-hint="knowledge graph svg simulation" className={cn("space-y-2 p-1 flex flex-col items-center", className)} {...props}>
-      <h3 className="text-lg font-artistic font-semibold text-center text-primary mb-2">{data.chapterTitle} - 主要概念關聯 (SVG模擬)</h3>
+    <div data-ai-hint="knowledge graph svg simulation" className={cn("space-y-2 p-1 flex flex-col items-center h-full", className)} {...props}>
+      {/* Title removed from here, will be in SheetHeader */}
       <svg 
         width="100%" 
-        height="auto"
+        height="100%" // Make SVG take full height of its container
         viewBox={`0 0 ${data.viewBoxWidth} ${data.viewBoxHeight}`} 
-        className="border rounded-md bg-card/50 shadow-inner"
+        className="border rounded-md bg-card/50 shadow-inner flex-grow" // flex-grow to take available space
+        preserveAspectRatio="xMidYMid meet" // Ensures graph scales nicely
         style={{ minHeight: `${data.viewBoxHeight}px`}}
       >
         {/* Edges */}
@@ -81,13 +82,13 @@ export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLPro
                 y1={fromNode.y}
                 x2={toNode.x}
                 y2={toNode.y}
-                stroke="hsl(var(--accent))" // Use accent color for lines
+                stroke="hsl(var(--accent))" 
                 strokeWidth="1.5"
                 markerEnd="url(#arrowhead)"
               />
               <text
                 x={midX}
-                y={midY - 5} // Adjust label position slightly above the line
+                y={midY - 5} 
                 fill="hsl(var(--muted-foreground))"
                 fontSize="10"
                 textAnchor="middle"
@@ -99,13 +100,12 @@ export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLPro
           );
         })}
 
-        {/* Arrowhead Definition */}
         <defs>
           <marker
             id="arrowhead"
             markerWidth="8"
             markerHeight="6"
-            refX="8" // Adjusted for better arrow appearance on line end
+            refX="8" 
             refY="3"
             orient="auto"
             markerUnits="strokeWidth"
@@ -114,13 +114,12 @@ export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLPro
           </marker>
         </defs>
 
-        {/* Nodes */}
         {data.nodes.map((node) => (
           <g key={node.id} transform={`translate(${node.x - NODE_WIDTH / 2}, ${node.y - NODE_HEIGHT / 2})`}>
             <rect
               width={NODE_WIDTH}
               height={NODE_HEIGHT}
-              rx="5" // Rounded corners
+              rx="5" 
               ry="5"
               fill="hsl(var(--card))"
               stroke="hsl(var(--primary))"
@@ -132,16 +131,16 @@ export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLPro
               textAnchor="middle"
               fill="hsl(var(--card-foreground))"
               fontSize="12"
-              className="font-semibold font-sans" // Ensure sans-serif for readability
+              className="font-semibold font-sans" 
             >
               {node.label}
             </text>
           </g>
         ))}
       </svg>
-      <p className="text-xs text-muted-foreground text-center mt-2">
-        (此為基於用戶學習第一回內容之後，模擬前端SVG模擬知識圖譜，展示點線連接概念。未來可擴展為更複雜的交互式圖譜。)
-      </p>
+      {/* Description removed from here, will be in SheetDescription */}
     </div>
   );
 }
+
+    
