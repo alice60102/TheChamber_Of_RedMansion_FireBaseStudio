@@ -108,31 +108,33 @@ export default function ReadPage() {
   useEffect(() => {
     setSelectedTextInfo(null);
     setIsNoteSheetOpen(false);
+    setCurrentNote("");
     setIsAiSheetOpen(false);
     setTextExplanation(null);
     setUserQuestionInput('');
     setAiInteractionState('asking');
-    setCurrentNote("");
     setIsToolbarVisible(true); 
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
 
+    // If click is inside a sheet or on the action buttons, do nothing here
     if (
-      targetElement?.closest('[data-selection-action-button="true"]') ||
-      targetElement?.closest('[data-radix-dialog-content]') 
+      targetElement?.closest('[data-radix-dialog-content]') ||
+      targetElement?.closest('[data-selection-action-button="true"]')
     ) {
-      // setTimeout(() => handleInteraction(), 0); // handleInteraction is now called by document listeners
+      setTimeout(() => handleInteraction(), 0);
       return;
     }
 
+    // If click is on an area marked to ignore selection (like toolbar)
     if (targetElement?.closest('[data-no-selection="true"]')) {
       setSelectedTextInfo(null);
-      // setTimeout(() => handleInteraction(), 0);
+      setTimeout(() => handleInteraction(), 0);
       return;
     }
-
+    
     const selection = window.getSelection();
     const text = selection?.toString().trim() || '';
 
@@ -140,43 +142,40 @@ export default function ReadPage() {
       const range = selection.getRangeAt(0);
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
         const rect = range.getBoundingClientRect();
-        const viewportScrollY = window.scrollY || document.documentElement.scrollTop;
-        const viewportScrollX = window.scrollX || document.documentElement.scrollLeft;
+        const scrollArea = document.getElementById('chapter-content-scroll-area');
+        const scrollTop = scrollArea?.scrollTop || window.scrollY || document.documentElement.scrollTop;
+        const scrollLeft = scrollArea?.scrollLeft || window.scrollX || document.documentElement.scrollLeft;
         
-        // Ensure position is relative to the document, not just viewport
-        const top = rect.bottom + viewportScrollY + 5;
-        const left = rect.left + viewportScrollX + (rect.width / 2);
+        const top = rect.bottom + scrollTop + 5;
+        const left = rect.left + scrollLeft + (rect.width / 2);
 
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAiSheetOpen(false); 
-        setIsNoteSheetOpen(false);
+        setIsAiSheetOpen(false); // Close AI sheet if a new selection is made
+        setIsNoteSheetOpen(false); // Close Note sheet if a new selection is made
       } else {
         setSelectedTextInfo(null);
       }
     } else {
-      setSelectedTextInfo(null);
+        // If no text is selected (e.g., click on empty space), clear selection info
+        setSelectedTextInfo(null);
     }
-    // setTimeout(() => handleInteraction(), 0);
-  }, [/* handleInteraction removed as it's handled by global listeners now */]);
+    setTimeout(() => handleInteraction(), 0);
+  }, [handleInteraction]);
+
 
   useEffect(() => {
-    // Global listeners for toolbar interaction
-    document.addEventListener('mouseup', handleInteraction); // Re-add for general interaction
     document.addEventListener('scroll', handleInteraction, { passive: true });
     document.addEventListener('mousemove', handleInteraction);
-    
-    // Specific listener for text selection
     document.addEventListener('mouseup', handleMouseUp);
 
-
     return () => {
-      document.removeEventListener('mouseup', handleInteraction);
       document.removeEventListener('scroll', handleInteraction);
       document.removeEventListener('mousemove', handleInteraction);
       document.removeEventListener('mouseup', handleMouseUp);
       if (toolbarTimeoutRef.current) clearTimeout(toolbarTimeoutRef.current);
     };
-  }, [handleMouseUp, handleInteraction]); // handleInteraction added back
+  }, [handleInteraction, handleMouseUp]);
+
 
   const handleOpenAiSheet = () => {
     if (selectedTextInfo?.text) {
@@ -184,9 +183,9 @@ export default function ReadPage() {
       setUserQuestionInput('');
       setAiInteractionState('asking');
       setIsAiSheetOpen(true);
-      setIsNoteSheetOpen(false);
-      // setSelectedTextInfo(null); // Keep selectedTextInfo for the sheet
-      handleInteraction(); 
+      setIsNoteSheetOpen(false); 
+      // Keep selectedTextInfo for the sheet
+      handleInteraction();
     }
   };
   
@@ -195,8 +194,8 @@ export default function ReadPage() {
       setCurrentNote(""); 
       setIsNoteSheetOpen(true);
       setIsAiSheetOpen(false);
-      // setSelectedTextInfo(null); // Keep selectedTextInfo for the sheet
-      handleInteraction(); 
+      // Keep selectedTextInfo for the sheet
+      handleInteraction();
     }
   };
 
@@ -248,7 +247,7 @@ export default function ReadPage() {
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
         )}
         data-no-selection="true"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()} // Prevent clicks on toolbar from closing selection popups
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-1">
@@ -352,7 +351,12 @@ export default function ReadPage() {
       
       {/* Knowledge Graph Sheet */}
       <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={setIsKnowledgeGraphSheetOpen}>
-        <SheetContent side="bottom" className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true" onClick={(e) => e.stopPropagation()}>
+        <SheetContent 
+            side="bottom" 
+            className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" 
+            data-no-selection="true" 
+            onClick={(e) => e.stopPropagation()} // Prevent closing selection popups
+        >
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
             <SheetDescription>
@@ -370,7 +374,12 @@ export default function ReadPage() {
 
       {/* Note Taking Sheet */}
       <Sheet open={isNoteSheetOpen} onOpenChange={setIsNoteSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true" onClick={(e) => e.stopPropagation()}>
+        <SheetContent 
+            side="right" 
+            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" 
+            data-no-selection="true" 
+            onClick={(e) => e.stopPropagation()} // Prevent closing selection popups
+        >
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">撰寫筆記</SheetTitle>
             <SheetDescription>
@@ -416,9 +425,14 @@ export default function ReadPage() {
 
       {/* AI Interaction Sheet */}
       <Sheet open={isAiSheetOpen} onOpenChange={setIsAiSheetOpen}>
-        <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" data-no-selection="true" onClick={(e) => e.stopPropagation()}>
+        <SheetContent 
+            side="right" 
+            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" 
+            data-no-selection="true" 
+            onClick={(e) => e.stopPropagation()} // Prevent closing selection popups
+        >
             <SheetHeader className="p-4 border-b border-border">
-                <SheetTitle className="text-primary text-xl font-artistic">與 AI 互動</SheetTitle>
+                <SheetTitle className="text-primary text-xl font-artistic">問 AI</SheetTitle>
                 <SheetDescription>針對選取的文本提出您的疑問。</SheetDescription>
             </SheetHeader>
             <ScrollArea className="flex-grow p-4 space-y-3">
@@ -431,7 +445,7 @@ export default function ReadPage() {
                     </div>
                 )}
                 {aiInteractionState === 'asking' && (
-                    <>
+                    <div className="space-y-4"> {/* Added space-y-4 here */}
                         <div>
                             <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">您的問題：</Label>
                             <Textarea
@@ -446,7 +460,7 @@ export default function ReadPage() {
                         <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full">
                             {isLoadingExplanation ? "傳送中..." : "送出問題"}
                         </Button>
-                    </>
+                    </div>
                 )}
                 {(aiInteractionState === 'answering') && (
                     <div className="p-4 text-center text-muted-foreground">AI 思考中...</div>
@@ -459,7 +473,7 @@ export default function ReadPage() {
                             {textExplanation}
                           </ReactMarkdown>
                         </ScrollArea>
-                        <Button variant="ghost" onClick={() => {setAiInteractionState('asking'); handleInteraction();}} className="mt-2 text-sm">
+                        <Button variant="ghost" onClick={() => {setAiInteractionState('asking'); setUserQuestionInput(''); setTextExplanation(null); handleInteraction();}} className="mt-2 text-sm">
                           返回提問
                         </Button>
                     </div>
@@ -476,3 +490,5 @@ export default function ReadPage() {
     
 
       
+
+    
