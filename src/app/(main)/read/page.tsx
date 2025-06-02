@@ -961,14 +961,12 @@ export default function ReadPage() {
       {/* Read Aloud Button */}
       <Button
         variant="default"
-        size="icon"
-        className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg z-40 bg-primary text-primary-foreground hover:bg-primary/90"
+        className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg z-40 bg-primary text-primary-foreground hover:bg-primary/90 p-0 flex items-center justify-center"
         onClick={handleReadAloudClick}
         title="朗讀"
         data-no-selection="true"
       >
-        {/* Using Font Awesome 4.7.0 compatible icon for outlined play circle */}
-        <i className="fa fa-play-circle-o text-5xl" aria-hidden="true"></i>
+        <i className="fa fa-play-circle-o text-[50px]" aria-hidden="true"></i>
       </Button>
     </div>
   );
