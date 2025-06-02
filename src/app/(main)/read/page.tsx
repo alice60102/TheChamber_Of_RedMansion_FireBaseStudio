@@ -19,9 +19,9 @@ import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
 
 interface Annotation {
-  text: string; 
-  note: string; 
-  id: string;   
+  text: string;
+  note: string;
+  id: string;
 }
 
 interface Paragraph {
@@ -45,17 +45,17 @@ const chapters: Chapter[] = [
     summary: "本回主要講述了甄士隱夢遇一僧一道談論石頭下凡歷劫，以及賈雨村的落魄與發跡。甄士隱因女兒英蓮被拐、家遭火災而看破紅塵，隨跛足道人出家，點出了小說「真事隱去，假語存焉」的創作主旨和「夢幻」的基調。",
     paragraphs: [
       { content: ["此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！当此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。"], vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以至於今天一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提並論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
-      { 
+      {
         content: [
           "你道此書從何而起？說來雖近荒唐，細玩頗有趣味。卻說那",
-          { 
-            text: "女媧氏煉石補天", 
+          {
+            text: "女媧氏煉石補天",
             note: "女媧氏煉石補天——古代神話：天原來不整齊，女媧氏煉五色石把它修補起來。後又被共工氏闖壞，天塌了西北角，地陷了東南角。見《列子》。《列子》注說女媧氏是「古天子」，「風」姓。所以又稱「媧皇」。",
-            id: "ch1-p2-anno-nuwa" 
+            id: "ch1-p2-anno-nuwa"
           },
           "之時，於大荒山無稽崖煉成高十二丈、見方二十四丈大的頑石三萬六千五百零一塊。那媧皇只用了三萬六千五百塊，單單剩下一塊未用，棄在此山青埂峰下。誰知此石自經鍛煉之後，靈性已通，自去自來，可大可小。因見眾石俱得補天，獨自己無才不堪入選，遂自怨自愧，日夜悲哀。"
-        ], 
-        vernacular: "（白話文）你說這本書是從哪裡開始的呢？說起來雖然近乎荒誕，但仔細品味卻很有趣味。話說那女媧娘娘煉石補天的時候，在大荒山無稽崖煉成了高十二丈、寬二十四丈的石頭三萬六千五百零一塊。女媧娘娘只用了三萬六千五百塊，偏偏剩下一塊沒用，丟棄在這座山的青埂峰下。誰知道這塊石頭經過鍛煉之後，已經有了靈性，能夠自己來去，可大可小。因為看見所有的石頭都能補天，只有自己沒有才能不能入選，於是自己埋怨自己慚愧，日夜悲傷。" 
+        ],
+        vernacular: "（白話文）你說這本書是從哪裡開始的呢？說起來雖然近乎荒誕，但仔細品味卻很有趣味。話說那女媧娘娘煉石補天的時候，在大荒山無稽崖煉成了高十二丈、寬二十四丈的石頭三萬六千五百零一塊。女媧娘娘只用了三萬六千五百塊，偏偏剩下一塊沒用，丟棄在這座山的青埂峰下。誰知道這塊石頭經過鍛煉之後，已經有了靈性，能夠自己來去，可大可小。因為看見所有的石頭都能補天，只有自己沒有才能不能入選，於是自己埋怨自己慚愧，日夜悲傷。"
       },
       { content: ["一日，正当嗟悼之際，俄見一僧一道，遠遠而來，生得骨格不凡，豐神迥異，來到這青埂峰下，席地而坐，長談闊論。見到這塊鮮瑩明潔的石頭，左瞧右看，先是嘆息，後又大笑，攜手問道：「你這蠢物，有何好處？倒是把你的形狀，出身，來歷，明白寫在那上面，待我帶你到那花柳繁華地，溫柔富貴鄉去走一遭。」石頭聽了大喜，因答道：「我師何必勞神？弟子願隨二師前去。」那僧道：「你是不中用的。況且，你這本體也過大了些，須得再鐫上幾個字，使人一見便知你是件奇物，然後攜你到那經歷富貴的所在，受用一番。再把你送回來，豈不兩全？」石頭聽了，益發歡喜，忙叩頭拜謝。"], vernacular: "（白話文）有一天，正當它傷心感嘆的時候，忽然看見一個和尚和一個道士，遠遠地走過來，長得骨骼不凡，神采與眾不同，來到這青埂峰下，就地坐下，高談闊論。看到這塊光潔明亮的石頭，左看右看，先是嘆息，後來又大笑起來，拉著手問道：「你這個笨東西，有什麼好處？不如把你的形狀、出身、來歷，清楚地寫在上面，等我帶你到那花紅柳綠的繁華地方，溫柔富貴的去處去走一趟。」石頭聽了非常高興，於是回答說：「師父何必勞神？弟子願意跟隨兩位師父前去。」那和尚道士說：「你是不中用的。況且，你這本來的形體也太大了些，必須再刻上幾個字，讓人一看就知道你是件奇物，然後帶你到那經歷富貴的地方，享受一番。再把你送回來，豈不是兩全其美？」石頭聽了，更加高興，連忙磕頭拜謝。" },
       { content: ["那僧便念咒書符，大展幻術，將一塊大石登時變成一塊鮮明瑩潔的美玉，又縮成扇墜一般大小，托在掌上。笑道：「形體倒也是個寶物了！還只沒有實在的好處。」因回頭問道士：「你道這一番塵世，何處為樂？」道士道：「此事說來話長，一時難以说完。不過，歷來風流儻灑之輩，多情好色之徒，悉皆生成在東南地界。那裡雖好，然斷不可久居。況且，目今正值太平盛世，文章顯赫之時，我輩正可借此機會，到那繁華昌盛之處，訪幾位仙友，也不枉此一行。」那僧道：「妙哉，妙哉！正合吾意。」二人遂相攜飄然而去，不知所蹤。"], vernacular: "（白話文）那和尚便念起咒語，畫起符籙，施展出高超的幻術，把一塊大石頭立刻變成一塊鮮明光潔的美玉，又縮小成扇墜一般大小，托在手掌上。笑著說：「形體倒也是個寶物了！還只是沒有實際的好處。」於是回頭問道士：「你說這人世間，什麼地方最快樂？」道士說：「這件事說來話長，一時難以說完。不過，歷來風流倜傥的人，多情好色的人，大多都出生在東南地區。那裡雖然好，但是決不能長久居住。況且，現在正是太平盛世，文章顯赫的時候，我們正好可以藉此機會，到那繁華昌盛的地方，拜訪幾位仙友，也不枉此行。」那和尚說：「好啊，好啊！正合我的意思。」於是兩個人便互相攙扶著飄然離去，不知道去了哪裡。" },
@@ -67,8 +67,8 @@ const chapters: Chapter[] = [
       { content: ["此回中，甄士隱夢見一僧一道，談論石頭下凡歷劫之事。賈雨村寄居甄家，中秋與甄士隱賞月吟詩，後得甄家資助，上京赴考。甄士隱之女英蓮元宵燈節被拐，甄家隨後又遭火災，家道中落。甄士隱看破紅塵，隨跛足道人出家。"], vernacular: "（白話文）這一回裡，甄士隱夢見一個和尚和一個道士，談論石頭下凡間歷劫的事情。賈雨村寄住在甄家，中秋節和甄士隱一起賞月作詩，後來得到甄家的資助，到京城參加科舉考試。甄士隱的女兒英蓮在元宵節看花燈時被人拐走，甄家隨後又遭遇火災，家境衰落。甄士隱看破紅塵，跟著一個跛腳的道士出家了。" }
     ]
   },
-  ...Array.from({ length: 24 }, (_, i) => { 
-    const chapterNum = i + 2; 
+  ...Array.from({ length: 24 }, (_, i) => {
+    const chapterNum = i + 2;
     return {
       id: chapterNum,
       title: `第 ${chapterNum} 回 示例標題 ${chapterNum}`,
@@ -93,7 +93,7 @@ const themes = {
     swatchClass: 'bg-white border-neutral-300',
     toolbarBgClass: 'bg-neutral-100/90',
     toolbarTextClass: 'text-neutral-700',
-    toolbarAccentTextClass: 'text-primary', 
+    toolbarAccentTextClass: 'text-primary',
     toolbarBorderClass: 'border-neutral-300/50'
   },
   yellow: {
@@ -105,7 +105,7 @@ const themes = {
     toolbarAccentTextClass: 'text-amber-600',
     toolbarBorderClass: 'border-yellow-300/50'
   },
-  green: { 
+  green: {
     key: 'green', name: '護眼',
     readingBgClass: 'bg-green-100', readingTextClass: 'text-green-900',
     swatchClass: 'bg-green-500 border-green-700',
@@ -120,7 +120,7 @@ const themes = {
     swatchClass: 'bg-black border-neutral-500',
     toolbarBgClass: 'bg-neutral-900/90',
     toolbarTextClass: 'text-neutral-300',
-    toolbarAccentTextClass: 'text-primary', 
+    toolbarAccentTextClass: 'text-primary',
     toolbarBorderClass: 'border-neutral-700/50'
   },
 };
@@ -144,13 +144,13 @@ export default function ReadPage() {
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
   const [showVernacular, setShowVernacular] = useState(false);
   const [columnLayout, setColumnLayout] = useState<ColumnLayout>('single');
-  
+
   const [isKnowledgeGraphSheetOpen, setIsKnowledgeGraphSheetOpen] = useState(false);
   const [isTocSheetOpen, setIsTocSheetOpen] = useState(false);
 
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
-  
+
   const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
   const [textExplanation, setTextExplanation] = useState<string | null>(null);
@@ -158,7 +158,7 @@ export default function ReadPage() {
   const [aiInteractionState, setAiInteractionState] = useState<AIInteractionState>('asking');
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
-  
+
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const toolbarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentChapter = chapters[currentChapterIndex];
@@ -186,7 +186,7 @@ export default function ReadPage() {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
-      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen && !popoverOpen) { 
+      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen && !popoverOpen) {
         setIsToolbarVisible(false);
       }
     }, 5000);
@@ -219,28 +219,28 @@ export default function ReadPage() {
     setAiInteractionState('asking');
     setIsKnowledgeGraphSheetOpen(false);
     setIsTocSheetOpen(false);
-    setIsToolbarVisible(true); 
+    setIsToolbarVisible(true);
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
-  
-    if (targetElement?.closest('[data-radix-dialog-content]') || 
+
+    if (targetElement?.closest('[data-radix-dialog-content]') ||
         targetElement?.closest('[data-radix-popover-content]') ||
         targetElement?.closest('[data-selection-action-button="true"]')) {
       setTimeout(() => handleInteraction(), 0);
       return;
     }
-  
+
     if (targetElement?.closest('[data-no-selection="true"]')) {
       setSelectedTextInfo(null);
       setTimeout(() => handleInteraction(), 0);
       return;
     }
-    
+
     const selection = window.getSelection();
     const text = selection?.toString().trim() || '';
-  
+
     if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
@@ -248,12 +248,12 @@ export default function ReadPage() {
         const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
         const scrollTop = scrollAreaElement?.scrollTop || window.scrollY || 0;
         const scrollLeft = scrollAreaElement?.scrollLeft || window.scrollX || 0;
-        
-        const top = rect.bottom + scrollTop + 8; 
-        const left = rect.left + scrollLeft + (rect.width / 2); 
-  
+
+        const top = rect.bottom + scrollTop + 8;
+        const left = rect.left + scrollLeft + (rect.width / 2);
+
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAiSheetOpen(false); 
+        setIsAiSheetOpen(false);
         setIsNoteSheetOpen(false);
       } else {
         setSelectedTextInfo(null);
@@ -267,7 +267,7 @@ export default function ReadPage() {
 
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('scroll', handleInteraction, { passive: true, capture: true }); 
+    document.addEventListener('scroll', handleInteraction, { passive: true, capture: true });
     document.addEventListener('mousemove', handleInteraction, { passive: true, capture: true });
 
     return () => {
@@ -285,11 +285,11 @@ export default function ReadPage() {
       setUserQuestionInput('');
       setAiInteractionState('asking');
       setIsAiSheetOpen(true);
-      setIsNoteSheetOpen(false); 
+      setIsNoteSheetOpen(false);
       handleInteraction();
     }
   };
-  
+
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
       setIsNoteSheetOpen(true);
@@ -319,7 +319,7 @@ export default function ReadPage() {
     }
     setIsLoadingExplanation(false);
   };
-  
+
   const getColumnClass = () => {
     switch (columnLayout) {
       case 'single': return 'columns-1';
@@ -331,12 +331,12 @@ export default function ReadPage() {
 
   const handleSelectChapterFromToc = (index: number) => {
     setCurrentChapterIndex(index);
-    setIsTocSheetOpen(false); 
-    handleInteraction(); 
+    setIsTocSheetOpen(false);
+    handleInteraction();
   };
 
   const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-2";
-  const toolbarIconClass = "h-6 w-6"; 
+  const toolbarIconClass = "h-6 w-6";
   const toolbarLabelClass = "mt-1 text-xs leading-none";
 
   return (
@@ -347,8 +347,8 @@ export default function ReadPage() {
           isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full",
           selectedTheme.toolbarBgClass
         )}
-        data-no-selection="true" 
-        onClick={(e) => { e.stopPropagation(); handleInteraction(); }} 
+        data-no-selection="true"
+        onClick={(e) => { e.stopPropagation(); handleInteraction(); }}
       >
         <div className={cn("container mx-auto flex items-center justify-between max-w-screen-xl")}>
           <div className="flex items-center gap-2 md:gap-3">
@@ -356,7 +356,7 @@ export default function ReadPage() {
               <CornerUpLeft className={toolbarIconClass} />
               <span className={toolbarLabelClass}>返回</span>
             </Button>
-            
+
             <Popover open={popoverOpen} onOpenChange={(isOpen) => {setPopoverOpen(isOpen); handleInteraction();}}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="閱讀設定">
@@ -364,9 +364,9 @@ export default function ReadPage() {
                   <span className={toolbarLabelClass}>設定</span>
                 </Button>
               </PopoverTrigger>
-              <PopoverContent 
-                className="w-80 bg-card text-card-foreground p-4 space-y-6" 
-                data-no-selection="true" 
+              <PopoverContent
+                className="w-80 bg-card text-card-foreground p-4 space-y-6"
+                data-no-selection="true"
                 onClick={(e) => e.stopPropagation()}
                 onInteractOutside={() => {setPopoverOpen(false); handleInteraction();}}
                 side="bottom"
@@ -437,45 +437,45 @@ export default function ReadPage() {
               </PopoverContent>
             </Popover>
 
-            <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div> 
-            <Button 
-              variant={columnLayout === 'single' ? 'secondary' : 'ghost'} 
+            <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
+            <Button
+              variant={columnLayout === 'single' ? 'secondary' : 'ghost'}
               className={cn(
-                toolbarButtonBaseClass, 
+                toolbarButtonBaseClass,
                 columnLayout !== 'single' && selectedTheme.toolbarTextClass
-              )} 
-              onClick={() => setColumnLayout('single')} 
+              )}
+              onClick={() => setColumnLayout('single')}
               title="單欄"
             >
               <AlignLeft className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>單欄</span>
             </Button>
-            <Button 
-              variant={columnLayout === 'double' ? 'secondary' : 'ghost'} 
+            <Button
+              variant={columnLayout === 'double' ? 'secondary' : 'ghost'}
               className={cn(
-                toolbarButtonBaseClass, 
+                toolbarButtonBaseClass,
                 columnLayout !== 'double' && selectedTheme.toolbarTextClass
-              )} 
-              onClick={() => setColumnLayout('double')} 
+              )}
+              onClick={() => setColumnLayout('double')}
               title="雙欄"
             >
               <AlignCenter className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>雙欄</span>
             </Button>
-            <Button 
-              variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} 
+            <Button
+              variant={columnLayout === 'triple' ? 'secondary' : 'ghost'}
               className={cn(
-                toolbarButtonBaseClass, 
+                toolbarButtonBaseClass,
                 columnLayout !== 'triple' && selectedTheme.toolbarTextClass
-              )} 
-              onClick={() => setColumnLayout('triple')} 
+              )}
+              onClick={() => setColumnLayout('triple')}
               title="三欄"
             >
               <AlignJustify className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>三欄</span>
             </Button>
           </div>
-          
+
           <div className="text-center overflow-hidden flex-grow px-2 mx-2 md:mx-4">
             <h1 className={cn("text-base md:text-lg font-semibold truncate", selectedTheme.toolbarAccentTextClass)}>{currentChapter.title}</h1>
             {currentChapter.subtitle && <p className={cn("text-sm truncate", selectedTheme.toolbarTextClass)}>{currentChapter.subtitle}</p>}
@@ -494,7 +494,7 @@ export default function ReadPage() {
               <List className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>目錄</span>
             </Button>
-            <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div> 
+            <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
             <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="書內搜尋" disabled>
               <SearchIcon className={toolbarIconClass} />
               <span className={toolbarLabelClass}>搜尋</span>
@@ -507,8 +507,8 @@ export default function ReadPage() {
         </div>
       </div>
 
-      <ScrollArea 
-        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8", selectedTheme.readingBgClass, selectedTheme.readingTextClass)} 
+      <ScrollArea
+        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8", selectedTheme.readingBgClass)}
         id="chapter-content-scroll-area"
       >
         <div
@@ -516,9 +516,10 @@ export default function ReadPage() {
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : ''
+            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '',
+            selectedTheme.readingTextClass
           )}
-          style={{ 
+          style={{
             fontSize: `${currentNumericFontSize}px`,
             position: 'relative',
             fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class
@@ -549,7 +550,7 @@ export default function ReadPage() {
                             align="center"
                             sideOffset={5}
                             className="w-full max-w-md p-4 text-sm shadow-xl bg-card text-card-foreground border border-border rounded-md"
-                            onClick={(e) => e.stopPropagation()} 
+                            onClick={(e) => e.stopPropagation()}
                             onInteractOutside={() => handleInteraction()}
                           >
                             <div className="relative">
@@ -604,12 +605,12 @@ export default function ReadPage() {
             </Button>
         </div>
       )}
-      
+
       <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={(open) => {setIsKnowledgeGraphSheetOpen(open); if (!open) handleInteraction();}}>
-        <SheetContent 
-            side="bottom" 
-            className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" 
-            data-no-selection="true" 
+        <SheetContent
+            side="bottom"
+            className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col"
+            data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
           <SheetHeader className="p-4 border-b border-border">
@@ -630,10 +631,10 @@ export default function ReadPage() {
       </Sheet>
 
       <Sheet open={isTocSheetOpen} onOpenChange={(open) => {setIsTocSheetOpen(open); if (!open) handleInteraction();}}>
-        <SheetContent 
-            side="left" 
-            className="w-[300px] sm:w-[350px] bg-card text-card-foreground p-0 flex flex-col" 
-            data-no-selection="true" 
+        <SheetContent
+            side="left"
+            className="w-[300px] sm:w-[350px] bg-card text-card-foreground p-0 flex flex-col"
+            data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
           <SheetHeader className="p-4 border-b border-border">
@@ -665,10 +666,10 @@ export default function ReadPage() {
       </Sheet>
 
       <Sheet open={isNoteSheetOpen} onOpenChange={(open) => {setIsNoteSheetOpen(open); if (!open) setSelectedTextInfo(null); handleInteraction(); }}>
-        <SheetContent 
-            side="right" 
-            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" 
-            data-no-selection="true" 
+        <SheetContent
+            side="right"
+            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col"
+            data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
           <SheetHeader className="p-4 border-b border-border">
@@ -705,7 +706,7 @@ export default function ReadPage() {
                 console.log("Saving note for text:", selectedTextInfo?.text);
                 console.log("Note content:", currentNote);
                 setIsNoteSheetOpen(false);
-                setSelectedTextInfo(null); 
+                setSelectedTextInfo(null);
                 handleInteraction();
               }}
               className="bg-primary hover:bg-primary/90"
@@ -717,10 +718,10 @@ export default function ReadPage() {
       </Sheet>
 
       <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) setSelectedTextInfo(null); handleInteraction(); }}>
-        <SheetContent 
-            side="right" 
-            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col" 
-            data-no-selection="true" 
+        <SheetContent
+            side="right"
+            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col"
+            data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
             <SheetHeader className="p-4 border-b border-border">
@@ -736,8 +737,8 @@ export default function ReadPage() {
                         </blockquote>
                     </div>
                 )}
-                
-                <div className="space-y-4"> 
+
+                <div className="space-y-4">
                     <div>
                         <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">您的問題：</Label>
                         <Textarea
@@ -787,12 +788,3 @@ export default function ReadPage() {
     </div>
   );
 }
-    
-
-    
-
-
-
-
-
-
