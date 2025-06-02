@@ -93,7 +93,7 @@ const themes = {
     swatchClass: 'bg-white border-neutral-300',
     toolbarBgClass: 'bg-neutral-100/90',
     toolbarTextClass: 'text-neutral-700',
-    toolbarAccentTextClass: 'text-primary',
+    toolbarAccentTextClass: 'text-primary', // primary here is the app's primary, not reading theme
     toolbarBorderClass: 'border-neutral-300/50'
   },
   yellow: {
@@ -120,7 +120,7 @@ const themes = {
     swatchClass: 'bg-black border-neutral-500',
     toolbarBgClass: 'bg-neutral-900/90',
     toolbarTextClass: 'text-neutral-300',
-    toolbarAccentTextClass: 'text-primary',
+    toolbarAccentTextClass: 'text-primary', // primary here is the app's primary
     toolbarBorderClass: 'border-neutral-700/50'
   },
 };
@@ -350,7 +350,7 @@ export default function ReadPage() {
         data-no-selection="true" 
         onClick={(e) => { e.stopPropagation(); handleInteraction(); }} 
       >
-        <div className={cn("container mx-auto flex items-center justify-between max-w-screen-xl", selectedTheme.toolbarTextClass)}>
+        <div className={cn("container mx-auto flex items-center justify-between max-w-screen-xl")}>
           <div className="flex items-center gap-2 md:gap-3">
             <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => router.push('/dashboard')} title="返回">
               <CornerUpLeft className={toolbarIconClass} />
@@ -438,15 +438,39 @@ export default function ReadPage() {
             </Popover>
 
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div> 
-            <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setColumnLayout('single')} title="單欄">
+            <Button 
+              variant={columnLayout === 'single' ? 'secondary' : 'ghost'} 
+              className={cn(
+                toolbarButtonBaseClass, 
+                columnLayout !== 'single' && selectedTheme.toolbarTextClass
+              )} 
+              onClick={() => setColumnLayout('single')} 
+              title="單欄"
+            >
               <AlignLeft className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>單欄</span>
             </Button>
-            <Button variant={columnLayout === 'double' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setColumnLayout('double')} title="雙欄">
+            <Button 
+              variant={columnLayout === 'double' ? 'secondary' : 'ghost'} 
+              className={cn(
+                toolbarButtonBaseClass, 
+                columnLayout !== 'double' && selectedTheme.toolbarTextClass
+              )} 
+              onClick={() => setColumnLayout('double')} 
+              title="雙欄"
+            >
               <AlignCenter className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>雙欄</span>
             </Button>
-            <Button variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setColumnLayout('triple')} title="三欄">
+            <Button 
+              variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} 
+              className={cn(
+                toolbarButtonBaseClass, 
+                columnLayout !== 'triple' && selectedTheme.toolbarTextClass
+              )} 
+              onClick={() => setColumnLayout('triple')} 
+              title="三欄"
+            >
               <AlignJustify className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>三欄</span>
             </Button>
@@ -484,7 +508,7 @@ export default function ReadPage() {
       </div>
 
       <ScrollArea 
-        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8", selectedTheme.readingBgClass)} 
+        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8", selectedTheme.readingBgClass, selectedTheme.readingTextClass)} 
         id="chapter-content-scroll-area"
       >
         <div
@@ -492,7 +516,6 @@ export default function ReadPage() {
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedTheme.readingTextClass,
             selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : ''
           )}
           style={{ 
@@ -767,6 +790,7 @@ export default function ReadPage() {
     
 
     
+
 
 
 
