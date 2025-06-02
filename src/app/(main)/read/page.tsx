@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Search as SearchIcon, Maximize, Map, X, Edit3,
-  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb, Minus, Plus, Check
+  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb, Minus, Plus, Check, Minimize, Trash2 as ClearSearchIcon
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
 import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input"; // Added for Search Input
 
 interface Annotation {
   text: string;
@@ -85,7 +86,6 @@ const chapters: Chapter[] = [
 type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
 type ColumnLayout = 'single' | 'double' | 'triple';
 
-// Reading Settings
 const themes = {
   white: {
     key: 'white', name: '白色',
@@ -137,6 +137,34 @@ const FONT_SIZE_MAX = 32;
 const FONT_SIZE_STEP = 2;
 const FONT_SIZE_INITIAL = 20;
 
+// Helper function to highlight search term
+const highlightText = (text: string, highlight: string): React.ReactNode[] => {
+  if (!highlight.trim()) {
+    return [text];
+  }
+  const searchTerm = highlight.trim();
+  if (searchTerm === "") return [text];
+
+  const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  let lastIndex = 0;
+  const result: React.ReactNode[] = [];
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      result.push(text.substring(lastIndex, match.index));
+    }
+    result.push(<mark key={`mark-${lastIndex}-${match.index}`} className="bg-yellow-300 text-black px-0.5 rounded-sm">{match[0]}</mark>);
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    result.push(text.substring(lastIndex));
+  }
+
+  return result.length > 0 ? result : [text];
+};
+
 
 export default function ReadPage() {
   const router = useRouter();
@@ -164,10 +192,18 @@ export default function ReadPage() {
   const currentChapter = chapters[currentChapterIndex];
 
   // Reading settings state
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = useState(false);
   const [activeThemeKey, setActiveThemeKey] = useState<keyof typeof themes>('white');
   const [currentNumericFontSize, setCurrentNumericFontSize] = useState<number>(FONT_SIZE_INITIAL);
   const [activeFontFamilyKey, setActiveFontFamilyKey] = useState<keyof typeof fontFamilies>('notoSerifSC');
+
+  // Search state
+  const [isSearchPopoverOpen, setIsSearchPopoverOpen] = useState(false);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState("");
+
+  // Fullscreen state
+  const [isFullscreenActive, setIsFullscreenActive] = useState(false);
+
 
   const selectedTheme = themes[activeThemeKey];
   const selectedFontFamily = fontFamilies[activeFontFamilyKey];
@@ -186,11 +222,12 @@ export default function ReadPage() {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
-      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen && !popoverOpen) {
+      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen && !isSettingsPopoverOpen && !isSearchPopoverOpen) {
         setIsToolbarVisible(false);
       }
     }, 5000);
-  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, popoverOpen]);
+  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, isSettingsPopoverOpen, isSearchPopoverOpen]);
+
 
   const handleInteraction = useCallback(() => {
     setIsToolbarVisible(true);
@@ -206,7 +243,7 @@ export default function ReadPage() {
         clearTimeout(toolbarTimeoutRef.current);
       }
     };
-  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, popoverOpen]);
+  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, isSettingsPopoverOpen, isSearchPopoverOpen]);
 
 
   useEffect(() => {
@@ -219,6 +256,9 @@ export default function ReadPage() {
     setAiInteractionState('asking');
     setIsKnowledgeGraphSheetOpen(false);
     setIsTocSheetOpen(false);
+    // Reset search when chapter changes
+    setCurrentSearchTerm("");
+    setIsSearchPopoverOpen(false);
     setIsToolbarVisible(true);
   }, [currentChapterIndex]);
 
@@ -335,6 +375,28 @@ export default function ReadPage() {
     handleInteraction();
   };
 
+  // Fullscreen toggle logic
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreenActive(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+
   const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-2";
   const toolbarIconClass = "h-6 w-6";
   const toolbarLabelClass = "mt-1 text-xs leading-none";
@@ -357,7 +419,7 @@ export default function ReadPage() {
               <span className={toolbarLabelClass}>返回</span>
             </Button>
 
-            <Popover open={popoverOpen} onOpenChange={(isOpen) => {setPopoverOpen(isOpen); handleInteraction();}}>
+            <Popover open={isSettingsPopoverOpen} onOpenChange={(isOpen) => {setIsSettingsPopoverOpen(isOpen); handleInteraction();}}>
               <PopoverTrigger asChild>
                 <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="閱讀設定">
                    <i className={cn("fa fa-font", toolbarIconClass)} aria-hidden="true" style={{fontSize: '24px'}}></i>
@@ -368,7 +430,7 @@ export default function ReadPage() {
                 className="w-80 bg-card text-card-foreground p-4 space-y-6"
                 data-no-selection="true"
                 onClick={(e) => e.stopPropagation()}
-                onInteractOutside={() => {setPopoverOpen(false); handleInteraction();}}
+                onInteractOutside={() => {setIsSettingsPopoverOpen(false); handleInteraction();}}
                 side="bottom"
                 align="start"
               >
@@ -379,7 +441,7 @@ export default function ReadPage() {
                     {Object.values(themes).map((theme) => (
                       <div key={theme.key} className="flex flex-col items-center gap-1.5">
                         <button
-                          onClick={() => {setActiveThemeKey(theme.key as keyof typeof themes); setPopoverOpen(false);}}
+                          onClick={() => {setActiveThemeKey(theme.key as keyof typeof themes); setIsSettingsPopoverOpen(false);}}
                           className={cn(
                             "h-8 w-8 rounded-full border-2 flex items-center justify-center",
                             theme.swatchClass,
@@ -426,7 +488,7 @@ export default function ReadPage() {
                       <Button
                         key={font.key}
                         variant={activeFontFamilyKey === font.key ? "default" : "outline"}
-                        onClick={() => {setActiveFontFamilyKey(font.key as keyof typeof fontFamilies); setPopoverOpen(false);}}
+                        onClick={() => {setActiveFontFamilyKey(font.key as keyof typeof fontFamilies); setIsSettingsPopoverOpen(false);}}
                         className={cn("w-full h-10 text-sm justify-center", activeFontFamilyKey === font.key ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background/70 hover:bg-accent/50")}
                       >
                         {font.name}
@@ -454,7 +516,7 @@ export default function ReadPage() {
               variant={columnLayout === 'double' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'double' && selectedTheme.toolbarTextClass
+                 columnLayout !== 'double' && selectedTheme.toolbarTextClass
               )}
               onClick={() => setColumnLayout('double')}
               title="雙欄"
@@ -495,13 +557,40 @@ export default function ReadPage() {
               <span className={toolbarLabelClass}>目錄</span>
             </Button>
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="書內搜尋" disabled>
-              <SearchIcon className={toolbarIconClass} />
-              <span className={toolbarLabelClass}>搜尋</span>
-            </Button>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="全螢幕" disabled>
-              <Maximize className={toolbarIconClass} />
-              <span className={toolbarLabelClass}>全螢幕</span>
+            
+            <Popover open={isSearchPopoverOpen} onOpenChange={(isOpen) => { setIsSearchPopoverOpen(isOpen); handleInteraction(); if (!isOpen) setCurrentSearchTerm(""); }}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="書內搜尋">
+                  <SearchIcon className={toolbarIconClass} />
+                  <span className={toolbarLabelClass}>搜尋</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                side="bottom" 
+                align="end" 
+                className="w-72 p-2 bg-card border-border shadow-xl"
+                data-no-selection="true"
+                onClick={(e) => e.stopPropagation()}
+                onInteractOutside={() => {setIsSearchPopoverOpen(false); handleInteraction(); if (!currentSearchTerm) setCurrentSearchTerm("");}}
+              >
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    placeholder="輸入搜尋詞..."
+                    value={currentSearchTerm}
+                    onChange={(e) => setCurrentSearchTerm(e.target.value)}
+                    className="h-9 text-sm bg-background/80 focus:ring-primary"
+                  />
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => setCurrentSearchTerm("")} title="清除搜尋">
+                    <ClearSearchIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title={isFullscreenActive ? "退出全螢幕" : "全螢幕"} onClick={toggleFullscreen}>
+              {isFullscreenActive ? <Minimize className={toolbarIconClass} /> : <Maximize className={toolbarIconClass} />}
+              <span className={toolbarLabelClass}>{isFullscreenActive ? "退出" : "全螢幕"}</span>
             </Button>
           </div>
         </div>
@@ -516,8 +605,8 @@ export default function ReadPage() {
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '',
-            selectedTheme.readingTextClass
+            selectedTheme.readingTextClass, 
+            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : ''
           )}
           style={{
             fontSize: `${currentNumericFontSize}px`,
@@ -529,12 +618,13 @@ export default function ReadPage() {
             <div key={paraIndex} className="mb-4 break-inside-avoid-column">
               <p>
                 {para.content.map((item, itemIndex) => {
+                  const key = `para-${paraIndex}-item-${itemIndex}`;
                   if (typeof item === 'string') {
-                    return <React.Fragment key={itemIndex}>{item}</React.Fragment>;
+                    return <React.Fragment key={key}>{highlightText(item, currentSearchTerm)}</React.Fragment>;
                   } else {
                     return (
-                      <React.Fragment key={item.id}>
-                        {item.text}
+                      <React.Fragment key={item.id || key}>
+                        {highlightText(item.text, currentSearchTerm)}
                         <Popover>
                           <PopoverTrigger asChild>
                             <button
@@ -567,7 +657,9 @@ export default function ReadPage() {
                 })}
               </p>
               {showVernacular && para.vernacular && (
-                <p className={cn("italic mt-1 text-sm", selectedTheme.readingTextClass === themes.night.readingTextClass ? "text-neutral-400" : "text-muted-foreground")}>{para.vernacular}</p>
+                <p className={cn("italic mt-1 text-sm", selectedTheme.readingTextClass === themes.night.readingTextClass ? "text-neutral-400" : "text-muted-foreground")}>
+                  {highlightText(para.vernacular, currentSearchTerm)}
+                </p>
               )}
             </div>
           ))}
@@ -788,3 +880,4 @@ export default function ReadPage() {
     </div>
   );
 }
+
