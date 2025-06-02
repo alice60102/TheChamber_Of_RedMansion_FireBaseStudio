@@ -8,7 +8,7 @@ import {
   Baseline, 
   Volume2,  
   Copy,     
-  Quote     
+  // Quote - No longer used directly for selection toolbar, Lightbulb is used instead
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -339,8 +339,8 @@ export default function ReadPage() {
     if (selectedTextInfo?.text) {
       setIsAiSheetOpen(true);
       setAiInteractionState('asking');
-      setUserQuestionInput(''); // Clear previous question
-      setTextExplanation(null); // Clear previous explanation
+      setUserQuestionInput(''); 
+      setTextExplanation(null); 
       handleInteraction();
     }
   };
@@ -374,10 +374,10 @@ export default function ReadPage() {
 
     try {
       const chapterContextSnippet = currentChapter.paragraphs
-        .slice(0, 5) // Take first 5 paragraphs as context example
+        .slice(0, 5) 
         .map(p => p.content.map(c => typeof c === 'string' ? c : c.text).join(''))
         .join('\n')
-        .substring(0, 1000); // Limit context length
+        .substring(0, 1000); 
 
       const input: ExplainTextSelectionInput = {
         selectedText: selectedTextInfo.text,
@@ -430,6 +430,13 @@ export default function ReadPage() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  const handleReadAloudClick = () => {
+    toast({
+      title: "功能提示",
+      description: "朗讀功能尚未實現。",
+    });
+    handleInteraction();
+  };
 
   const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-2";
   const toolbarIconClass = "h-6 w-6";
@@ -533,37 +540,37 @@ export default function ReadPage() {
               variant={columnLayout === 'single' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'single' ? selectedTheme.toolbarTextClass : '' // Apply theme text color only if not active
+                columnLayout !== 'single' ? selectedTheme.toolbarTextClass : '' 
               )}
               onClick={() => setColumnLayout('single')}
               title="單欄"
             >
-              <AlignLeft className={toolbarIconClass}/>
-              <span className={toolbarLabelClass}>單欄</span>
+              <AlignLeft className={cn(toolbarIconClass, columnLayout === 'single' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
+              <span className={cn(toolbarLabelClass, columnLayout === 'single' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>單欄</span>
             </Button>
             <Button
               variant={columnLayout === 'double' ? 'secondary' : 'ghost'}
                className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'double' ? selectedTheme.toolbarTextClass : '' // Apply theme text color only if not active
+                columnLayout !== 'double' ? selectedTheme.toolbarTextClass : '' 
               )}
               onClick={() => setColumnLayout('double')}
               title="雙欄"
             >
-              <AlignCenter className={toolbarIconClass}/>
-              <span className={toolbarLabelClass}>雙欄</span>
+              <AlignCenter className={cn(toolbarIconClass, columnLayout === 'double' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
+              <span className={cn(toolbarLabelClass, columnLayout === 'double' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>雙欄</span>
             </Button>
             <Button
               variant={columnLayout === 'triple' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'triple' ? selectedTheme.toolbarTextClass : '' // Apply theme text color only if not active
+                columnLayout !== 'triple' ? selectedTheme.toolbarTextClass : ''
               )}
               onClick={() => setColumnLayout('triple')}
               title="三欄"
             >
-              <AlignJustify className={toolbarIconClass}/>
-              <span className={toolbarLabelClass}>三欄</span>
+              <AlignJustify className={cn(toolbarIconClass, columnLayout === 'triple' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
+              <span className={cn(toolbarLabelClass, columnLayout === 'triple' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>三欄</span>
             </Button>
           </div>
 
@@ -634,8 +641,8 @@ export default function ReadPage() {
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedTheme.readingTextClass, 
-            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : ''
+            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '',
+            selectedTheme.readingTextClass // Moved here
           )}
           style={{
             fontSize: `${currentNumericFontSize}px`,
@@ -759,7 +766,7 @@ export default function ReadPage() {
               height: 0,
               borderLeft: '6px solid transparent',
               borderRight: '6px solid transparent',
-              borderTop: '6px solid #262626', 
+              borderTop: '6px solid #262626', // bg-neutral-800
             }}
             data-selection-action-toolbar="true"
           />
@@ -950,6 +957,20 @@ export default function ReadPage() {
             </SheetFooter>
         </SheetContent>
       </Sheet>
+
+      {/* Read Aloud Button */}
+      <Button
+        variant="default"
+        size="icon"
+        className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg z-40 bg-primary text-primary-foreground hover:bg-primary/90"
+        onClick={handleReadAloudClick}
+        title="朗讀"
+        data-no-selection="true"
+      >
+        {/* Using Font Awesome 4.7.0 compatible icon for outlined play circle */}
+        <i className="fa fa-play-circle-o text-2xl" aria-hidden="true"></i>
+      </Button>
     </div>
   );
 }
+
