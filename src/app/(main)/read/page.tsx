@@ -8,7 +8,6 @@ import {
   Baseline, 
   Volume2,  
   Copy,     
-  // Quote - No longer used directly for selection toolbar, Lightbulb is used instead
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -641,8 +640,8 @@ export default function ReadPage() {
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
+            selectedTheme.readingTextClass,
             selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '',
-            selectedTheme.readingTextClass
           )}
           style={{
             fontSize: `${currentNumericFontSize}px`,
@@ -966,7 +965,7 @@ export default function ReadPage() {
         title="朗讀"
         data-no-selection="true"
       >
-        <i className="fa fa-play-circle-o text-[50px]" aria-hidden="true"></i>
+        <i className="fa fa-play-circle-o text-[54px]" aria-hidden="true"></i>
       </Button>
     </div>
   );
