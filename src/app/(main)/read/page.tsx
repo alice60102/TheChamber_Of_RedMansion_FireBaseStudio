@@ -87,17 +87,49 @@ type ColumnLayout = 'single' | 'double' | 'triple';
 
 // Reading Settings
 const themes = {
-  white: { key: 'white', bgClass: 'bg-white', textClass: 'text-neutral-800', swatchClass: 'bg-white border-neutral-300', name: '白色' },
-  yellow: { key: 'yellow', bgClass: 'bg-yellow-50', textClass: 'text-yellow-950', swatchClass: 'bg-yellow-200 border-yellow-400', name: '黃色' },
-  green: { key: 'green', bgClass: 'bg-green-50', textClass: 'text-green-950', swatchClass: 'bg-green-400 border-green-600', name: '護眼' },
-  night: { key: 'night', bgClass: 'bg-neutral-800', textClass: 'text-neutral-200', swatchClass: 'bg-black border-neutral-500', name: '夜間' },
+  white: {
+    key: 'white', name: '白色',
+    readingBgClass: 'bg-white', readingTextClass: 'text-neutral-800',
+    swatchClass: 'bg-white border-neutral-300',
+    toolbarBgClass: 'bg-neutral-100/90',
+    toolbarTextClass: 'text-neutral-700',
+    toolbarAccentTextClass: 'text-primary',
+    toolbarBorderClass: 'border-neutral-300/50'
+  },
+  yellow: {
+    key: 'yellow', name: '黃色',
+    readingBgClass: 'bg-yellow-50', readingTextClass: 'text-yellow-950',
+    swatchClass: 'bg-yellow-200 border-yellow-400',
+    toolbarBgClass: 'bg-yellow-100/90',
+    toolbarTextClass: 'text-yellow-800',
+    toolbarAccentTextClass: 'text-amber-600',
+    toolbarBorderClass: 'border-yellow-300/50'
+  },
+  green: { // Adjusted green
+    key: 'green', name: '護眼',
+    readingBgClass: 'bg-green-100', readingTextClass: 'text-green-900',
+    swatchClass: 'bg-green-500 border-green-700',
+    toolbarBgClass: 'bg-green-200/90',
+    toolbarTextClass: 'text-green-700',
+    toolbarAccentTextClass: 'text-emerald-600',
+    toolbarBorderClass: 'border-green-400/50'
+  },
+  night: {
+    key: 'night', name: '夜間',
+    readingBgClass: 'bg-neutral-800', readingTextClass: 'text-neutral-200',
+    swatchClass: 'bg-black border-neutral-500',
+    toolbarBgClass: 'bg-neutral-900/90',
+    toolbarTextClass: 'text-neutral-300',
+    toolbarAccentTextClass: 'text-primary',
+    toolbarBorderClass: 'border-neutral-700/50'
+  },
 };
 
 const fontFamilies = {
   notoSerifSC: { key: 'notoSerifSC', class: "font-['Noto_Serif_SC',_serif]", name: '思源宋體' },
   system: { key: 'system', class: 'font-sans', name: '系統字體' },
-  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", name: '得到今楷' },
-  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", name: '汉仪旗黑' },
+  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", name: '楷體' }, // Changed name
+  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", name: '粗黑體' }, // Changed name
 };
 
 const FONT_SIZE_MIN = 12;
@@ -303,7 +335,7 @@ export default function ReadPage() {
     handleInteraction(); 
   };
 
-  const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-2 text-muted-foreground hover:text-primary";
+  const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-2";
   const toolbarIconClass = "h-6 w-6"; 
   const toolbarLabelClass = "mt-1 text-xs leading-none";
 
@@ -311,22 +343,23 @@ export default function ReadPage() {
     <div className="h-full flex flex-col">
       <div
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md shadow-lg p-2 transition-all duration-300 ease-in-out",
-          isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full"
+          "fixed top-0 left-0 right-0 z-50 backdrop-blur-md shadow-lg p-2 transition-all duration-300 ease-in-out",
+          isToolbarVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full",
+          selectedTheme.toolbarBgClass
         )}
         data-no-selection="true" 
         onClick={(e) => { e.stopPropagation(); handleInteraction(); }} 
       >
-        <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
+        <div className={cn("container mx-auto flex items-center justify-between max-w-screen-xl", selectedTheme.toolbarTextClass)}>
           <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => router.push('/dashboard')} title="返回">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => router.push('/dashboard')} title="返回">
               <CornerUpLeft className={toolbarIconClass} />
               <span className={toolbarLabelClass}>返回</span>
             </Button>
             
-            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+            <Popover open={popoverOpen} onOpenChange={(isOpen) => {setPopoverOpen(isOpen); handleInteraction();}}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" className={toolbarButtonBaseClass} title="閱讀設定" onClick={() => {setPopoverOpen(o => !o); handleInteraction();}}>
+                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} title="閱讀設定">
                    <i className={cn("fa fa-font", toolbarIconClass)} aria-hidden="true" style={{fontSize: '24px'}}></i>
                   <span className={toolbarLabelClass}>設定</span>
                 </Button>
@@ -346,7 +379,7 @@ export default function ReadPage() {
                     {Object.values(themes).map((theme) => (
                       <div key={theme.key} className="flex flex-col items-center gap-1.5">
                         <button
-                          onClick={() => setActiveThemeKey(theme.key as keyof typeof themes)}
+                          onClick={() => {setActiveThemeKey(theme.key as keyof typeof themes); setPopoverOpen(false);}}
                           className={cn(
                             "h-8 w-8 rounded-full border-2 flex items-center justify-center",
                             theme.swatchClass,
@@ -388,13 +421,12 @@ export default function ReadPage() {
 
                 {/* Font Family Selection */}
                 <div className="space-y-3">
-                  {/* <h4 className="text-sm font-medium text-foreground">字體</h4> */}
                   <div className="grid grid-cols-2 gap-2">
                     {Object.values(fontFamilies).map((font) => (
                       <Button
                         key={font.key}
                         variant={activeFontFamilyKey === font.key ? "default" : "outline"}
-                        onClick={() => setActiveFontFamilyKey(font.key as keyof typeof fontFamilies)}
+                        onClick={() => {setActiveFontFamilyKey(font.key as keyof typeof fontFamilies); setPopoverOpen(false);}}
                         className={cn("w-full h-10 text-sm justify-center", activeFontFamilyKey === font.key ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background/70 hover:bg-accent/50")}
                       >
                         {font.name}
@@ -405,45 +437,45 @@ export default function ReadPage() {
               </PopoverContent>
             </Popover>
 
-            <div className="h-10 border-l border-border/50 mx-2 md:mx-3"></div> 
-            <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} className={toolbarButtonBaseClass} onClick={() => setColumnLayout('single')} title="單欄">
+            <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div> 
+            <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setColumnLayout('single')} title="單欄">
               <AlignLeft className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>單欄</span>
             </Button>
-            <Button variant={columnLayout === 'double' ? 'secondary' : 'ghost'} className={toolbarButtonBaseClass} onClick={() => setColumnLayout('double')} title="雙欄">
+            <Button variant={columnLayout === 'double' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setColumnLayout('double')} title="雙欄">
               <AlignCenter className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>雙欄</span>
             </Button>
-            <Button variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} className={toolbarButtonBaseClass} onClick={() => setColumnLayout('triple')} title="三欄">
+            <Button variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setColumnLayout('triple')} title="三欄">
               <AlignJustify className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>三欄</span>
             </Button>
           </div>
           
           <div className="text-center overflow-hidden flex-grow px-2 mx-2 md:mx-4">
-            <h1 className="text-base md:text-lg font-semibold text-primary truncate">{currentChapter.title}</h1>
-            {currentChapter.subtitle && <p className="text-sm text-muted-foreground truncate">{currentChapter.subtitle}</p>}
+            <h1 className={cn("text-base md:text-lg font-semibold truncate", selectedTheme.toolbarAccentTextClass)}>{currentChapter.title}</h1>
+            {currentChapter.subtitle && <p className={cn("text-sm truncate", selectedTheme.toolbarTextClass)}>{currentChapter.subtitle}</p>}
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
               {showVernacular ? <EyeOff className={toolbarIconClass}/> : <Eye className={toolbarIconClass}/>}
               <span className={toolbarLabelClass}>{showVernacular ? "隱藏白話" : "顯示白話"}</span>
             </Button>
-            <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜">
               <Map className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>圖譜</span>
             </Button>
-            <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄">
               <List className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>目錄</span>
             </Button>
-            <div className="h-10 border-l border-border/50 mx-2 md:mx-3"></div> 
-            <Button variant="ghost" className={toolbarButtonBaseClass} title="書內搜尋" disabled>
+            <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div> 
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} title="書內搜尋" disabled>
               <SearchIcon className={toolbarIconClass} />
               <span className={toolbarLabelClass}>搜尋</span>
             </Button>
-            <Button variant="ghost" className={toolbarButtonBaseClass} title="全螢幕" disabled>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} title="全螢幕" disabled>
               <Maximize className={toolbarIconClass} />
               <span className={toolbarLabelClass}>全螢幕</span>
             </Button>
@@ -452,22 +484,20 @@ export default function ReadPage() {
       </div>
 
       <ScrollArea 
-        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8", selectedTheme.bgClass)} 
+        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8", selectedTheme.readingBgClass)} 
         id="chapter-content-scroll-area"
-        style={{ fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class }}
       >
         <div
           ref={chapterContentRef}
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedTheme.textClass, // Apply text color for the theme
-            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '' // Apply font family class if it's a Tailwind utility
+            selectedTheme.readingTextClass,
+            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : ''
           )}
           style={{ 
             fontSize: `${currentNumericFontSize}px`,
             position: 'relative',
-             // Apply specific font family if not a Tailwind utility
             fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class
           }}
         >
@@ -513,7 +543,7 @@ export default function ReadPage() {
                 })}
               </p>
               {showVernacular && para.vernacular && (
-                <p className={cn("italic mt-1 text-sm", selectedTheme.textClass === themes.night.textClass ? "text-neutral-400" : "text-muted-foreground")}>{para.vernacular}</p>
+                <p className={cn("italic mt-1 text-sm", selectedTheme.readingTextClass === themes.night.readingTextClass ? "text-neutral-400" : "text-muted-foreground")}>{para.vernacular}</p>
               )}
             </div>
           ))}
@@ -737,5 +767,6 @@ export default function ReadPage() {
     
 
     
+
 
 
