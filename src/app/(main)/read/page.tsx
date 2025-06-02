@@ -105,7 +105,7 @@ const themes = {
     toolbarAccentTextClass: 'text-amber-600',
     toolbarBorderClass: 'border-yellow-300/50'
   },
-  green: { // Adjusted green
+  green: { 
     key: 'green', name: '護眼',
     readingBgClass: 'bg-green-100', readingTextClass: 'text-green-900',
     swatchClass: 'bg-green-500 border-green-700',
@@ -128,8 +128,8 @@ const themes = {
 const fontFamilies = {
   notoSerifSC: { key: 'notoSerifSC', class: "font-['Noto_Serif_SC',_serif]", name: '思源宋體' },
   system: { key: 'system', class: 'font-sans', name: '系統字體' },
-  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", name: '楷體' }, // Changed name
-  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", name: '粗黑體' }, // Changed name
+  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", name: '楷體' },
+  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", name: '粗黑體' },
 };
 
 const FONT_SIZE_MIN = 12;
@@ -352,14 +352,14 @@ export default function ReadPage() {
       >
         <div className={cn("container mx-auto flex items-center justify-between max-w-screen-xl", selectedTheme.toolbarTextClass)}>
           <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => router.push('/dashboard')} title="返回">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => router.push('/dashboard')} title="返回">
               <CornerUpLeft className={toolbarIconClass} />
               <span className={toolbarLabelClass}>返回</span>
             </Button>
             
             <Popover open={popoverOpen} onOpenChange={(isOpen) => {setPopoverOpen(isOpen); handleInteraction();}}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} title="閱讀設定">
+                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="閱讀設定">
                    <i className={cn("fa fa-font", toolbarIconClass)} aria-hidden="true" style={{fontSize: '24px'}}></i>
                   <span className={toolbarLabelClass}>設定</span>
                 </Button>
@@ -438,15 +438,15 @@ export default function ReadPage() {
             </Popover>
 
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div> 
-            <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setColumnLayout('single')} title="單欄">
+            <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setColumnLayout('single')} title="單欄">
               <AlignLeft className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>單欄</span>
             </Button>
-            <Button variant={columnLayout === 'double' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setColumnLayout('double')} title="雙欄">
+            <Button variant={columnLayout === 'double' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setColumnLayout('double')} title="雙欄">
               <AlignCenter className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>雙欄</span>
             </Button>
-            <Button variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setColumnLayout('triple')} title="三欄">
+            <Button variant={columnLayout === 'triple' ? 'secondary' : 'ghost'} className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setColumnLayout('triple')} title="三欄">
               <AlignJustify className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>三欄</span>
             </Button>
@@ -458,24 +458,24 @@ export default function ReadPage() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
               {showVernacular ? <EyeOff className={toolbarIconClass}/> : <Eye className={toolbarIconClass}/>}
               <span className={toolbarLabelClass}>{showVernacular ? "隱藏白話" : "顯示白話"}</span>
             </Button>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜">
               <Map className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>圖譜</span>
             </Button>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄">
               <List className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>目錄</span>
             </Button>
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div> 
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} title="書內搜尋" disabled>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="書內搜尋" disabled>
               <SearchIcon className={toolbarIconClass} />
               <span className={toolbarLabelClass}>搜尋</span>
             </Button>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass, "hover:bg-black/5 dark:hover:bg-white/5")} title="全螢幕" disabled>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="全螢幕" disabled>
               <Maximize className={toolbarIconClass} />
               <span className={toolbarLabelClass}>全螢幕</span>
             </Button>
@@ -767,6 +767,7 @@ export default function ReadPage() {
     
 
     
+
 
 
 
