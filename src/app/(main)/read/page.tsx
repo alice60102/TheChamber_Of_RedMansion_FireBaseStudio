@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Search as SearchIcon, Maximize, Map, X, Edit3,
-  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb
+  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb, Minus, Plus
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -85,6 +85,27 @@ const chapters: Chapter[] = [
 type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
 type ColumnLayout = 'single' | 'double' | 'triple';
 
+// Reading Settings
+const themes = {
+  white: { key: 'white', bgClass: 'bg-white', textClass: 'text-neutral-800', swatchClass: 'bg-white border-neutral-300', name: '白色' },
+  yellow: { key: 'yellow', bgClass: 'bg-yellow-50', textClass: 'text-yellow-950', swatchClass: 'bg-yellow-200 border-yellow-400', name: '黃色' },
+  green: { key: 'green', bgClass: 'bg-green-50', textClass: 'text-green-950', swatchClass: 'bg-green-400 border-green-600', name: '護眼' },
+  night: { key: 'night', bgClass: 'bg-neutral-800', textClass: 'text-neutral-200', swatchClass: 'bg-black border-neutral-500', name: '夜間' },
+};
+
+const fontFamilies = {
+  notoSerifSC: { key: 'notoSerifSC', class: "font-['Noto_Serif_SC',_serif]", name: '思源宋體' },
+  system: { key: 'system', class: 'font-sans', name: '系統字體' },
+  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", name: '得到今楷' },
+  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", name: '汉仪旗黑' },
+};
+
+const FONT_SIZE_MIN = 12;
+const FONT_SIZE_MAX = 32;
+const FONT_SIZE_STEP = 2;
+const FONT_SIZE_INITIAL = 20;
+
+
 export default function ReadPage() {
   const router = useRouter();
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
@@ -110,16 +131,34 @@ export default function ReadPage() {
   const toolbarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentChapter = chapters[currentChapterIndex];
 
+  // Reading settings state
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [activeThemeKey, setActiveThemeKey] = useState<keyof typeof themes>('white');
+  const [currentNumericFontSize, setCurrentNumericFontSize] = useState<number>(FONT_SIZE_INITIAL);
+  const [activeFontFamilyKey, setActiveFontFamilyKey] = useState<keyof typeof fontFamilies>('notoSerifSC');
+
+  const selectedTheme = themes[activeThemeKey];
+  const selectedFontFamily = fontFamilies[activeFontFamilyKey];
+
+  const changeFontSize = (delta: number) => {
+    setCurrentNumericFontSize(prev => {
+      const newSize = prev + delta;
+      if (newSize < FONT_SIZE_MIN) return FONT_SIZE_MIN;
+      if (newSize > FONT_SIZE_MAX) return FONT_SIZE_MAX;
+      return newSize;
+    });
+  };
+
   const hideToolbarAfterDelay = useCallback(() => {
     if (toolbarTimeoutRef.current) {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
-      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen) { 
+      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen && !popoverOpen) { 
         setIsToolbarVisible(false);
       }
     }, 5000);
-  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen]);
+  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, popoverOpen]);
 
   const handleInteraction = useCallback(() => {
     setIsToolbarVisible(true);
@@ -135,7 +174,7 @@ export default function ReadPage() {
         clearTimeout(toolbarTimeoutRef.current);
       }
     };
-  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen]);
+  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, popoverOpen]);
 
 
   useEffect(() => {
@@ -280,18 +319,92 @@ export default function ReadPage() {
       >
         <div className="container mx-auto flex items-center justify-between max-w-screen-xl">
           <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => router.push('/dashboard')} title="返回首頁">
+            <Button variant="ghost" className={toolbarButtonBaseClass} onClick={() => router.push('/dashboard')} title="返回">
               <CornerUpLeft className={toolbarIconClass} />
               <span className={toolbarLabelClass}>返回</span>
             </Button>
-            <Button variant="ghost" className={toolbarButtonBaseClass} title="閱讀設定" disabled>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={toolbarIconClass}>
-                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-                <path d="M15 12c0 2.21-1.79 4-4 4s-4-1.79-4-4 1.79-4 4-4 4 1.79 4 4Z"/>
-                <path d="M15 7.5c0 1.38-.89 2.5-2 2.5"/>
-              </svg>
-              <span className={toolbarLabelClass}>設定</span>
-            </Button>
+            
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" className={toolbarButtonBaseClass} title="閱讀設定" onClick={() => {setPopoverOpen(o => !o); handleInteraction();}}>
+                   <i className={cn("fa fa-font", toolbarIconClass)} aria-hidden="true" style={{fontSize: '24px'}}></i>
+                  <span className={toolbarLabelClass}>設定</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-80 bg-card text-card-foreground p-4 space-y-6" 
+                data-no-selection="true" 
+                onClick={(e) => e.stopPropagation()}
+                onInteractOutside={() => {setPopoverOpen(false); handleInteraction();}}
+                side="bottom"
+                align="start"
+              >
+                {/* Theme Selection */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-foreground">主題</h4>
+                  <div className="flex justify-around items-center">
+                    {Object.values(themes).map((theme) => (
+                      <div key={theme.key} className="flex flex-col items-center gap-1.5">
+                        <button
+                          onClick={() => setActiveThemeKey(theme.key as keyof typeof themes)}
+                          className={cn(
+                            "h-8 w-8 rounded-full border-2 flex items-center justify-center",
+                            theme.swatchClass,
+                            activeThemeKey === theme.key ? 'ring-2 ring-primary ring-offset-2 ring-offset-card' : 'border-transparent'
+                          )}
+                          title={theme.name}
+                          aria-label={theme.name}
+                        >
+                           {activeThemeKey === theme.key && theme.key === 'white' && <Check className="h-4 w-4 text-neutral-600"/>}
+                           {activeThemeKey === theme.key && theme.key !== 'white' && <Check className="h-4 w-4 text-white"/>}
+                        </button>
+                        <span className="text-xs text-muted-foreground">{theme.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Font Size Control */}
+                <div className="space-y-3">
+                  <h4 className="text-sm font-medium text-foreground">文字</h4>
+                  <div className="flex items-center justify-between gap-3">
+                    <Button variant="outline" size="icon" onClick={() => changeFontSize(-FONT_SIZE_STEP)} className="h-10 w-10 rounded-full p-0">
+                      <Minus className="h-5 w-5" />
+                      <span className="sr-only">減小字號</span>
+                    </Button>
+                    <div className="text-center">
+                      <div className="text-2xl font-semibold text-primary">{currentNumericFontSize}</div>
+                      <div className="text-xs text-muted-foreground">當前字號</div>
+                    </div>
+                    <Button variant="outline" size="icon" onClick={() => changeFontSize(FONT_SIZE_STEP)} className="h-10 w-10 rounded-full p-0">
+                      <Plus className="h-5 w-5" />
+                      <span className="sr-only">放大字號</span>
+                    </Button>
+                  </div>
+                  <div className="mt-2 p-2 bg-muted/50 rounded-md text-xs text-muted-foreground text-center">
+                    支援快速鍵 Ctrl + Alt + “+” 放大字號, Ctrl + Alt + “-” 縮小字號
+                  </div>
+                </div>
+
+                {/* Font Family Selection */}
+                <div className="space-y-3">
+                  {/* <h4 className="text-sm font-medium text-foreground">字體</h4> */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.values(fontFamilies).map((font) => (
+                      <Button
+                        key={font.key}
+                        variant={activeFontFamilyKey === font.key ? "default" : "outline"}
+                        onClick={() => setActiveFontFamilyKey(font.key as keyof typeof fontFamilies)}
+                        className={cn("w-full h-10 text-sm justify-center", activeFontFamilyKey === font.key ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background/70 hover:bg-accent/50")}
+                      >
+                        {font.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <div className="h-10 border-l border-border/50 mx-2 md:mx-3"></div> 
             <Button variant={columnLayout === 'single' ? 'secondary' : 'ghost'} className={toolbarButtonBaseClass} onClick={() => setColumnLayout('single')} title="單欄">
               <AlignLeft className={toolbarIconClass}/>
@@ -338,23 +451,33 @@ export default function ReadPage() {
         </div>
       </div>
 
-      <ScrollArea className="flex-grow pt-24 pb-10 px-4 md:px-8" id="chapter-content-scroll-area">
+      <ScrollArea 
+        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8", selectedTheme.bgClass)} 
+        id="chapter-content-scroll-area"
+        style={{ fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class }}
+      >
         <div
           ref={chapterContentRef}
           className={cn(
-            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto leading-relaxed whitespace-pre-line text-foreground select-text",
-            getColumnClass()
+            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
+            getColumnClass(),
+            selectedTheme.textClass, // Apply text color for the theme
+            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '' // Apply font family class if it's a Tailwind utility
           )}
-          style={{ fontFamily: "'Noto Serif SC', serif", position: 'relative' }}
+          style={{ 
+            fontSize: `${currentNumericFontSize}px`,
+            position: 'relative',
+             // Apply specific font family if not a Tailwind utility
+            fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class
+          }}
         >
           {currentChapter.paragraphs.map((para, paraIndex) => (
             <div key={paraIndex} className="mb-4 break-inside-avoid-column">
-              <p className="text-white">
+              <p>
                 {para.content.map((item, itemIndex) => {
                   if (typeof item === 'string') {
                     return <React.Fragment key={itemIndex}>{item}</React.Fragment>;
                   } else {
-                    // Item is an Annotation object
                     return (
                       <React.Fragment key={item.id}>
                         {item.text}
@@ -374,6 +497,7 @@ export default function ReadPage() {
                             sideOffset={5}
                             className="w-full max-w-md p-4 text-sm shadow-xl bg-card text-card-foreground border border-border rounded-md"
                             onClick={(e) => e.stopPropagation()} 
+                            onInteractOutside={() => handleInteraction()}
                           >
                             <div className="relative">
                               <PopoverClose className="absolute top-1 right-1 rounded-full p-0.5 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
@@ -389,7 +513,7 @@ export default function ReadPage() {
                 })}
               </p>
               {showVernacular && para.vernacular && (
-                <p className="italic text-muted-foreground mt-1 text-sm">{para.vernacular}</p>
+                <p className={cn("italic mt-1 text-sm", selectedTheme.textClass === themes.night.textClass ? "text-neutral-400" : "text-muted-foreground")}>{para.vernacular}</p>
               )}
             </div>
           ))}
@@ -428,7 +552,7 @@ export default function ReadPage() {
         </div>
       )}
       
-      <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={setIsKnowledgeGraphSheetOpen}>
+      <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={(open) => {setIsKnowledgeGraphSheetOpen(open); if (!open) handleInteraction();}}>
         <SheetContent 
             side="bottom" 
             className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col" 
@@ -452,7 +576,7 @@ export default function ReadPage() {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={isTocSheetOpen} onOpenChange={setIsTocSheetOpen}>
+      <Sheet open={isTocSheetOpen} onOpenChange={(open) => {setIsTocSheetOpen(open); if (!open) handleInteraction();}}>
         <SheetContent 
             side="left" 
             className="w-[300px] sm:w-[350px] bg-card text-card-foreground p-0 flex flex-col" 
@@ -613,3 +737,4 @@ export default function ReadPage() {
     
 
     
+
