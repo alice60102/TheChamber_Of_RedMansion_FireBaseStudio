@@ -4,7 +4,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import {
   Search as SearchIcon, Maximize, Map, X, Edit3,
-  MessageSquare, Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb, Minus, Plus, Check, Minimize, Trash2 as ClearSearchIcon
+  Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb, Minus, Plus, Check, Minimize, Trash2 as ClearSearchIcon,
+  Baseline, // For 划线 (Highlight)
+  Volume2,  // For 听当前 (Listen)
+  Copy,     // For 复制 (Copy)
+  Quote     // For 引用 (Quote)
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -17,7 +21,9 @@ import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
 import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input"; // Added for Search Input
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+
 
 interface Annotation {
   text: string;
@@ -63,7 +69,7 @@ const chapters: Chapter[] = [
       { content: ["卻說姑蘇城關外，有個葫蘆廟，廟旁住着一家鄉宦，姓甄名費，字士隱。嫡妻封氏，情性賢淑，深明禮義。家中雖不甚富貴，然本地便也推為望族了。因這甄士隱稟性恬淡，不以功名為念，每日只以觀花種竹、酌酒吟詩為樂，倒是神仙一流人物。只是一件不足：年過半百，膝下無兒，只有一女，乳名英蓮，年方三歲。"], vernacular: "（白話文）再說姑蘇城外，有個葫蘆廟，廟旁邊住著一家鄉紳，姓甄名費，字士隱。他的正妻封氏，性情賢淑，深明禮儀。家裡雖然不算非常富貴，但在當地也被推崇為有聲望的家族。因為這甄士隱生性恬靜淡泊，不把功名利祿放在心上，每天只是以觀賞花草、種植竹子、飲酒賦詩為樂，倒像是神仙一般的人物。只有一件不如意的事：年紀過了五十，膝下沒有兒子，只有一個女兒，乳名叫英蓮，才三歲。" },
       { content: ["這日，甄士隱炎夏永晝，閒坐書齋，手拈素珠，默默無言。忽聞窗外鼓樂之聲，回頭一看，只見一人，方面大耳，形狀魁梧，布衣草履，醉步而來。士隱認得，是本地的一個窮儒，姓賈名化，表字時飛，別號雨村。這賈雨村原系湖州人氏，亦系讀書人，因他生於末世，父母祖宗根基已盡，人口衰喪，只剩下他一身一口，在家鄉無益，因進京求取功名，再整基業。自前歲來此，又淹蹇住了，暫寄姑蘇城關外葫蘆廟內安身，每日賣文作字為生，故士隱常與他交接。"], vernacular: "（白話文）這一天，甄士隱因為夏天白晝長，閒坐在書房裡，手裡捻著佛珠，默默無言。忽然聽到窗外傳來鼓樂的聲音，回頭一看，只見一個人，方臉大耳，身材魁梧，穿著布衣草鞋，醉醺醺地走來。士隱認得，是本地的一個窮書生，姓賈名化，表字時飛，別號雨村。這賈雨村原是湖州人，也是讀書人出身，因為他生在末世，父母祖宗的基業已經敗光，家裡人口也稀少了，只剩下他孤身一人，在家鄉沒有什麼出路，於是進京謀求功名，想再重振家業。從前年來到這裡，又因時運不濟而滯留下來，暫時寄居在姑蘇城外的葫蘆廟裡安身，每天靠賣文章、寫字為生，所以士隱常常和他來往。" },
       { content: ["雨村見士隱，忙施禮陪笑道：「適聞老先生在家，故來一會，不想老先生早已知道了。」士隱笑道：「是，才聽得外面鼓樂喧鬧，想是老兄到了。」雨村道：「正是。小弟此來，一則為賀喜，二則也為告辭。目今小弟正該力圖進取，怎奈囊中羞澀，行止兩難。適蒙老先生厚贈，又承嚴老爺情，許以盤費，兼以薦函，進京鄉試，倘僥倖得中，他日回家拜望，不忘今日之德。」士隱忙笑道：「何出此言！弟少時不知檢束，如今寸心已灰。況且，我輩相交，原無這些俗套。老兄此去，一路順風，高奏凱歌。弟在此靜候佳音便了。」二人敘了些寒溫，雨村便起身作別。士隱直送出門，又囑咐了些言語，方回來。"], vernacular: "（白話文）雨村見到士隱，連忙行禮陪笑說：「剛才聽說老先生在家，所以特地來拜會，沒想到老先生早就知道了。」士隱笑著說：「是的，剛才聽到外面鼓樂喧鬧，想必是兄台到了。」雨村說：「正是。小弟這次來，一是為了道賀，二也是為了告辭。現在小弟正應該努力上進，無奈口袋裡沒錢，去留兩難。剛才承蒙老先生厚贈，又承蒙嚴老爺的情分，答應給予路費，並且還有推薦信，讓我可以進京參加鄉試，如果僥倖考中，將來回家拜望，決不會忘記今天的恩德。」士隱連忙笑著說：「說這些客氣話幹什麼！我年輕時不知道约束自己，如今已經心灰意冷了。況且，我們交往，本來就沒有這些俗套。兄台這次去，一路順風，馬到成功。我就在這裡靜候佳音了。」兩人說了些客套話，雨村便起身告辞。士隱一直把他送到門外，又叮囑了幾句話，才回來。" },
-      { content: ["一日，士隱在書房中閒坐，看見一個跛足道人，瘋狂落拓，麻鞋鶉衣，口內念着幾句言詞，道是：「世人都曉神仙好，惟有功名忘不了！古今將相在何方？荒塚一堆草沒了。世人都曉神仙好，只有金銀忘不了！終朝只恨聚無多，及到多時眼閉了。世人都曉神仙好，只有嬌妻忘不了！君生日日說恩情，君死又隨人去了。世人都曉神仙好，只有兒孫忘不了！痴心父母古來多，孝順兒孫誰見了？」士隱聽了，心下早已悟徹，因笑道：「你滿口說些什麼？只聽見些『好了』，『好了』。」那道人笑道：「你若果聽見『好了』二字，還算你明白。可知世上萬般，好便是了，了便是好。若不了，便不好；若要好，須是了。我這歌兒，便名《好了歌》。」"], vernacular: "（白話文）有一天，士隱閒坐在書房裡，看見一個跛腳的道士，瘋瘋癲癲，不修邊幅，穿著麻鞋破衣，嘴裡念叨著幾句話，說的是：「世上的人都知道神仙好，只有功名利祿忘不了！從古到今的將軍宰相在哪裡？只剩下荒墳一堆，長滿了野草。世上的人都知道神仙好，只有金銀財寶忘不了！整天只怨恨聚集得不夠多，等到錢財多了的時候，眼睛卻閉上了。世上的人都知道神仙好，只有漂亮的妻子忘不了！你活著的時候天天說恩愛，你死了之後她又跟別人跑了。世上的人都知道神仙好，只有兒孫後代忘不了！痴心的父母自古以來就很多，孝順的兒孫誰見過呢？」士隱聽了，心裡早已完全明白了，於是笑著說：「你滿口說些什麼？只聽到一些『好了』，『好了』。」那道人笑著說：「你如果真的聽見『好了』兩個字，還算你明白。要知道世上的萬事萬物，好就是了結，了結就是好。如果不能了結，就不好；如果要好，必須了結。我這首歌，就叫《好了歌》。」" },
+      { content: ["一日，士隱在書房中閒坐，看見一個跛足道人，瘋狂落拓，麻鞋鶉衣，口內念着幾句言詞，道是：「世人都曉神仙好，惟有功名忘不了！古今將相在何方？荒塚一堆草沒了。世人都曉神仙好，只有金銀忘不了！終朝只恨聚無多，及到多時眼閉了。世人都曉神仙好，只有嬌妻忘不了！君生日日說恩情，君死又隨人去了。世人都曉神仙好，只有兒孫忘不了！痴心父母古來多，孝順兒孫誰見了？」士隱聽了，心下早已悟徹，因笑道：「你滿口說些什麼？只聽見些『好了』，『好了』。」那道人笑道：「你若果聽見『好了』二字，還算你明白。可知世上萬般，好便是了，了便是好。若不了，便不好；若要好，須是了。我這歌兒，便名《好了歌》。」"], vernacular: "（白話文）有一天，士隱閒坐在書房裡，看見一個跛脚的道士，瘋瘋癲癲，不修邊幅，穿著麻鞋破衣，嘴裡念叨著幾句話，說的是：「世上的人都知道神仙好，只有功名利祿忘不了！從古到今的將軍宰相在哪裡？只剩下荒墳一堆，長滿了野草。世上的人都知道神仙好，只有金銀財寶忘不了！整天只怨恨聚集得不夠多，等到錢財多了的時候，眼睛卻閉上了。世上的人都知道神仙好，只有漂亮的妻子忘不了！你活著的時候天天說恩愛，你死了之後她又跟別人跑了。世上的人都知道神仙好，只有兒孫後代忘不了！痴心的父母自古以來就很多，孝順的兒孫誰見過呢？」士隱聽了，心裡早已完全明白了，於是笑著說：「你滿口說些什麼？只聽到一些『好了』，『好了』。」那道人笑著說：「你如果真的聽見『好了』兩個字，還算你明白。要知道世上的萬事萬物，好就是了結，了結就是好。如果不能了結，就不好；如果要好，必須了結。我這首歌，就叫《好了歌》。」" },
       { content: ["士隱本是有宿慧的，一聞此言，心中早已徹悟。便走上前道：「這位禪師，請問你從何而來，到何處去？」道人道：「你問我從何而來，我並無來處；你問我到何處去，我亦無去處。天地廣大，我自遨遊。」士隱聽了，點頭稱善。那道人便將葫蘆中之藥，傾入士隱掌中，道：「你將此藥敷在眼上，便可看破一切。」士隱依言，將藥敷上，頓覺神清氣爽，心明眼亮，回頭再看那道人時，已渺無蹤跡。士隱心下感歎不已，遂將家中所有，盡數施捨。隨後便尋訪那跛足道人，不知所之。"], vernacular: "（白話文）士隱本來就有天生的悟性，一聽到這話，心裡早已徹底醒悟。便走上前說：「這位禪師，請問您從哪裡來，要到哪裡去？」道士說：「你問我從哪裡來，我並沒有來處；你問我到哪裡去，我也沒有去處。天地廣大，我自由自在地遨遊。」士隱聽了，點頭稱好。那道士便將葫蘆裡的藥，倒在士隱的手掌中，說：「你把這藥敷在眼睛上，就可以看破一切了。」士隱依照他的話，把藥敷上，頓時覺得神清氣爽，心明眼亮，回頭再看那道士時，已經不見蹤影了。士隱心裡感慨不已，於是將家裡所有的財產，全部施捨出去。隨後便去尋訪那個跛腳的道士，卻不知道他去了哪裡。" },
       { content: ["此回中，甄士隱夢見一僧一道，談論石頭下凡歷劫之事。賈雨村寄居甄家，中秋與甄士隱賞月吟詩，後得甄家資助，上京赴考。甄士隱之女英蓮元宵燈節被拐，甄家隨後又遭火災，家道中落。甄士隱看破紅塵，隨跛足道人出家。"], vernacular: "（白話文）這一回裡，甄士隱夢見一個和尚和一個道士，談論石頭下凡間歷劫的事情。賈雨村寄住在甄家，中秋節和甄士隱一起賞月作詩，後來得到甄家的資助，到京城參加科舉考試。甄士隱的女兒英蓮在元宵節看花燈時被人拐走，甄家隨後又遭遇火災，家境衰落。甄士隱看破紅塵，跟著一個跛腳的道士出家了。" }
     ]
@@ -137,7 +143,6 @@ const FONT_SIZE_MAX = 32;
 const FONT_SIZE_STEP = 2;
 const FONT_SIZE_INITIAL = 20;
 
-// Helper function to highlight search term
 const highlightText = (text: string, highlight: string): React.ReactNode[] => {
   if (!highlight.trim()) {
     return [text];
@@ -168,6 +173,7 @@ const highlightText = (text: string, highlight: string): React.ReactNode[] => {
 
 export default function ReadPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
   const [showVernacular, setShowVernacular] = useState(false);
@@ -179,7 +185,7 @@ export default function ReadPage() {
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
 
-  const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
+  const [isAiSheetOpen, setIsAiSheetOpen] = useState(false); // Kept for potential future use, but not triggered by new selection toolbar
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
   const [textExplanation, setTextExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
@@ -191,19 +197,15 @@ export default function ReadPage() {
   const toolbarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentChapter = chapters[currentChapterIndex];
 
-  // Reading settings state
   const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = useState(false);
   const [activeThemeKey, setActiveThemeKey] = useState<keyof typeof themes>('white');
   const [currentNumericFontSize, setCurrentNumericFontSize] = useState<number>(FONT_SIZE_INITIAL);
   const [activeFontFamilyKey, setActiveFontFamilyKey] = useState<keyof typeof fontFamilies>('notoSerifSC');
 
-  // Search state
   const [isSearchPopoverOpen, setIsSearchPopoverOpen] = useState(false);
   const [currentSearchTerm, setCurrentSearchTerm] = useState("");
 
-  // Fullscreen state
   const [isFullscreenActive, setIsFullscreenActive] = useState(false);
-
 
   const selectedTheme = themes[activeThemeKey];
   const selectedFontFamily = fontFamilies[activeFontFamilyKey];
@@ -222,11 +224,11 @@ export default function ReadPage() {
       clearTimeout(toolbarTimeoutRef.current);
     }
     toolbarTimeoutRef.current = setTimeout(() => {
-      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen && !isSettingsPopoverOpen && !isSearchPopoverOpen) {
+      if (!isAiSheetOpen && !isNoteSheetOpen && !isKnowledgeGraphSheetOpen && !isTocSheetOpen && !isSettingsPopoverOpen && !isSearchPopoverOpen && !selectedTextInfo) {
         setIsToolbarVisible(false);
       }
     }, 5000);
-  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, isSettingsPopoverOpen, isSearchPopoverOpen]);
+  }, [isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, isSettingsPopoverOpen, isSearchPopoverOpen, selectedTextInfo]);
 
 
   const handleInteraction = useCallback(() => {
@@ -243,20 +245,19 @@ export default function ReadPage() {
         clearTimeout(toolbarTimeoutRef.current);
       }
     };
-  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, isSettingsPopoverOpen, isSearchPopoverOpen]);
+  }, [isToolbarVisible, hideToolbarAfterDelay, currentChapterIndex, isAiSheetOpen, isNoteSheetOpen, isKnowledgeGraphSheetOpen, isTocSheetOpen, isSettingsPopoverOpen, isSearchPopoverOpen, selectedTextInfo]);
 
 
   useEffect(() => {
     setSelectedTextInfo(null);
     setIsNoteSheetOpen(false);
     setCurrentNote("");
-    setIsAiSheetOpen(false);
-    setTextExplanation(null);
-    setUserQuestionInput('');
-    setAiInteractionState('asking');
+    // setIsAiSheetOpen(false); // Not linked to selection toolbar anymore
+    // setTextExplanation(null);
+    // setUserQuestionInput('');
+    // setAiInteractionState('asking');
     setIsKnowledgeGraphSheetOpen(false);
     setIsTocSheetOpen(false);
-    // Reset search when chapter changes
     setCurrentSearchTerm("");
     setIsSearchPopoverOpen(false);
     setIsToolbarVisible(true);
@@ -267,7 +268,7 @@ export default function ReadPage() {
 
     if (targetElement?.closest('[data-radix-dialog-content]') ||
         targetElement?.closest('[data-radix-popover-content]') ||
-        targetElement?.closest('[data-selection-action-button="true"]')) {
+        targetElement?.closest('[data-selection-action-toolbar="true"]')) { // Check for new toolbar
       setTimeout(() => handleInteraction(), 0);
       return;
     }
@@ -286,15 +287,15 @@ export default function ReadPage() {
       if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
         const rect = range.getBoundingClientRect();
         const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
-        const scrollTop = scrollAreaElement?.scrollTop || window.scrollY || 0;
-        const scrollLeft = scrollAreaElement?.scrollLeft || window.scrollX || 0;
+        const scrollTop = scrollAreaElement?.scrollTop || 0;
+        const scrollLeft = scrollAreaElement?.scrollLeft || 0;
 
-        const top = rect.bottom + scrollTop + 8;
-        const left = rect.left + scrollLeft + (rect.width / 2);
+        const top = rect.top + scrollTop; // Anchor point for toolbar (top of selection)
+        const left = rect.left + scrollLeft + (rect.width / 2); // Center of selection
 
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsAiSheetOpen(false);
-        setIsNoteSheetOpen(false);
+        setIsNoteSheetOpen(false); // Close note sheet if open
+        // setIsAiSheetOpen(false); // AI sheet not tied to selection toolbar
       } else {
         setSelectedTextInfo(null);
       }
@@ -304,61 +305,60 @@ export default function ReadPage() {
     setTimeout(() => handleInteraction(), 0);
   }, [handleInteraction]);
 
+  const handleScroll = useCallback(() => {
+    if (selectedTextInfo) {
+      setSelectedTextInfo(null); // Hide selection toolbar on scroll
+    }
+    handleInteraction();
+  }, [selectedTextInfo, handleInteraction]);
+
 
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('scroll', handleInteraction, { passive: true, capture: true });
+    const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
+    scrollAreaElement?.addEventListener('scroll', handleScroll, { passive: true, capture: true });
     document.addEventListener('mousemove', handleInteraction, { passive: true, capture: true });
 
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('scroll', handleInteraction, { capture: true });
+      scrollAreaElement?.removeEventListener('scroll', handleScroll, { capture: true });
       document.removeEventListener('mousemove', handleInteraction, { capture: true });
       if (toolbarTimeoutRef.current) clearTimeout(toolbarTimeoutRef.current);
     };
-  }, [handleInteraction, handleMouseUp]);
+  }, [handleInteraction, handleMouseUp, handleScroll]);
 
-
-  const handleOpenAiSheet = () => {
-    if (selectedTextInfo?.text) {
-      setTextExplanation(null);
-      setUserQuestionInput('');
-      setAiInteractionState('asking');
-      setIsAiSheetOpen(true);
-      setIsNoteSheetOpen(false);
-      handleInteraction();
-    }
-  };
 
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
       setIsNoteSheetOpen(true);
-      setIsAiSheetOpen(false);
-      handleInteraction();
+      handleInteraction(); // Keep main toolbar visible
     }
   };
 
-  const handleUserSubmitQuestion = async () => {
-    if (!selectedTextInfo?.text || !userQuestionInput.trim() || !currentChapter) return;
-    setIsLoadingExplanation(true);
-    setAiInteractionState('answering');
-    setTextExplanation(null);
-    try {
-      const input: ExplainTextSelectionInput = {
-        selectedText: selectedTextInfo.text,
-        chapterContext: currentChapter.paragraphs.flatMap(p => p.content).filter(item => typeof item === 'string').join(' ').substring(0, 1000),
-        userQuestion: userQuestionInput,
-      };
-      const result = await explainTextSelection(input);
-      setTextExplanation(result.explanation);
-      setAiInteractionState('answered');
-    } catch (error) {
-      console.error("Error explaining selected text:", error);
-      setTextExplanation(error instanceof Error ? error.message : "抱歉，回答您的問題時發生錯誤。");
-      setAiInteractionState('error');
+  const handleCopySelectedText = () => {
+    if (selectedTextInfo?.text) {
+      navigator.clipboard.writeText(selectedTextInfo.text)
+        .then(() => {
+          toast({ title: "已複製", description: "選取內容已複製到剪貼簿。" });
+        })
+        .catch(err => {
+          console.error("Failed to copy text: ", err);
+          toast({ variant: "destructive", title: "複製失敗", description: "無法複製內容到剪貼簿。" });
+        });
+      setSelectedTextInfo(null); // Optionally hide toolbar after action
     }
-    setIsLoadingExplanation(false);
   };
+
+  const handlePlaceholderAction = (actionName: string) => {
+    toast({ title: "功能提示", description: `${actionName} 功能尚未實現。` });
+    setSelectedTextInfo(null); // Optionally hide toolbar after action
+  };
+
+
+  // const handleUserSubmitQuestion = async () => { // No longer used by selection toolbar
+  //   if (!selectedTextInfo?.text || !userQuestionInput.trim() || !currentChapter) return;
+  //   // ... AI logic remains here if needed elsewhere
+  // };
 
   const getColumnClass = () => {
     switch (columnLayout) {
@@ -375,7 +375,6 @@ export default function ReadPage() {
     handleInteraction();
   };
 
-  // Fullscreen toggle logic
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(err => {
@@ -434,7 +433,6 @@ export default function ReadPage() {
                 side="bottom"
                 align="start"
               >
-                {/* Theme Selection */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-foreground">主題</h4>
                   <div className="flex justify-around items-center">
@@ -458,8 +456,6 @@ export default function ReadPage() {
                     ))}
                   </div>
                 </div>
-
-                {/* Font Size Control */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-foreground">文字</h4>
                   <div className="flex items-center justify-between gap-3">
@@ -480,8 +476,6 @@ export default function ReadPage() {
                     支援快速鍵 Ctrl + Alt + “+” 放大字號, Ctrl + Alt + “-” 縮小字號
                   </div>
                 </div>
-
-                {/* Font Family Selection */}
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     {Object.values(fontFamilies).map((font) => (
@@ -504,7 +498,7 @@ export default function ReadPage() {
               variant={columnLayout === 'single' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'single' && selectedTheme.toolbarTextClass
+                columnLayout !== 'single' ? selectedTheme.toolbarTextClass : ''
               )}
               onClick={() => setColumnLayout('single')}
               title="單欄"
@@ -516,7 +510,7 @@ export default function ReadPage() {
               variant={columnLayout === 'double' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                 columnLayout !== 'double' && selectedTheme.toolbarTextClass
+                 columnLayout !== 'double' ? selectedTheme.toolbarTextClass : ''
               )}
               onClick={() => setColumnLayout('double')}
               title="雙欄"
@@ -528,7 +522,7 @@ export default function ReadPage() {
               variant={columnLayout === 'triple' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'triple' && selectedTheme.toolbarTextClass
+                columnLayout !== 'triple' ? selectedTheme.toolbarTextClass : ''
               )}
               onClick={() => setColumnLayout('triple')}
               title="三欄"
@@ -666,35 +660,74 @@ export default function ReadPage() {
         </div>
       </ScrollArea>
 
-      {selectedTextInfo?.text && selectedTextInfo.position && !isAiSheetOpen && !isNoteSheetOpen && (
+      {selectedTextInfo?.text && selectedTextInfo.position && (
         <div
-            className="fixed flex gap-2"
-            style={{
-                top: `${selectedTextInfo.position.top}px`,
-                left: `${selectedTextInfo.position.left}px`,
-                transform: 'translateX(-50%)',
-                zIndex: 60,
-            }}
-            data-selection-action-button="true"
+          className="fixed flex items-center gap-1 p-1.5 rounded-md shadow-xl bg-neutral-800 text-white"
+          style={{
+            top: `${selectedTextInfo.position.top - 10}px`, // Position above selection
+            left: `${selectedTextInfo.position.left}px`,
+            transform: 'translateX(-50%) translateY(-100%)', // Center horizontally, shift up
+            zIndex: 60,
+          }}
+          data-selection-action-toolbar="true" // Attribute to prevent deselection on click
+        >
+          <button
+            className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
+            onClick={handleOpenNoteSheet}
+            data-selection-action-toolbar="true"
+            title="写笔记"
           >
-            <Button
-                variant="default"
-                size="sm"
-                className="bg-amber-500 text-white hover:bg-amber-600 shadow-lg flex items-center"
-                onClick={handleOpenNoteSheet}
-                data-selection-action-button="true"
-                >
-                <Edit3 className="h-4 w-4 mr-1" /> 記筆記
-            </Button>
-            <Button
-                variant="default"
-                size="sm"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg flex items-center"
-                onClick={handleOpenAiSheet}
-                data-selection-action-button="true"
-                >
-                <MessageSquare className="h-4 w-4 mr-1" /> 問 AI
-            </Button>
+            <Edit3 className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">写笔记</span>
+          </button>
+          <button
+            className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
+            onClick={() => handlePlaceholderAction("划线")}
+            data-selection-action-toolbar="true"
+            title="划线"
+          >
+            <Baseline className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">划线</span>
+          </button>
+          <button
+            className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
+            onClick={() => handlePlaceholderAction("听当前")}
+            data-selection-action-toolbar="true"
+            title="听当前"
+          >
+            <Volume2 className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">听当前</span>
+          </button>
+          <button
+            className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
+            onClick={handleCopySelectedText}
+            data-selection-action-toolbar="true"
+            title="复制"
+          >
+            <Copy className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">复制</span>
+          </button>
+          <button
+            className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
+            onClick={() => handlePlaceholderAction("引用")}
+            data-selection-action-toolbar="true"
+            title="引用"
+          >
+            <Quote className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">引用</span>
+          </button>
+           {/* Arrow pointing down */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 top-full"
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '6px solid #262626', // Matches bg-neutral-800
+            }}
+            data-selection-action-toolbar="true"
+          />
         </div>
       )}
 
@@ -704,6 +737,8 @@ export default function ReadPage() {
             className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
+            onCloseAutoFocus={(e) => e.preventDefault()} // Prevent focus shift on close
+            onInteractOutside={(e) => e.preventDefault()} // Prevent closing on outside click while interacting with graph
         >
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
@@ -799,6 +834,7 @@ export default function ReadPage() {
                 console.log("Note content:", currentNote);
                 setIsNoteSheetOpen(false);
                 setSelectedTextInfo(null);
+                toast({ title: "筆記已保存", description: "您的筆記已成功保存（模擬）。" });
                 handleInteraction();
               }}
               className="bg-primary hover:bg-primary/90"
@@ -809,6 +845,7 @@ export default function ReadPage() {
         </SheetContent>
       </Sheet>
 
+      {/* AI Sheet - Retained for now, but not triggered by selection toolbar */}
       <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) setSelectedTextInfo(null); handleInteraction(); }}>
         <SheetContent
             side="right"
@@ -843,11 +880,12 @@ export default function ReadPage() {
                             disabled={aiInteractionState === 'answering' || aiInteractionState === 'answered'}
                         />
                     </div>
+                    {/* Button for AI submission is removed from selection toolbar context
                     {aiInteractionState === 'asking' && (
                         <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full mt-4">
                             {isLoadingExplanation ? "傳送中..." : "送出問題"}
                         </Button>
-                    )}
+                    )} */}
                 </div>
 
                 {(aiInteractionState === 'answering') && (
