@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import {
   Search as SearchIcon, Maximize, Map, X, Edit3,
   Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb, Minus, Plus, Check, Minimize, Trash2 as ClearSearchIcon,
-  Baseline, // For 划线 (Highlight)
-  Volume2,  // For 听当前 (Listen)
-  Copy,     // For 复制 (Copy)
-  Quote     // For 引用 (Quote)
+  Baseline, 
+  Volume2,  
+  Copy,     
+  Quote     
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -185,7 +185,7 @@ export default function ReadPage() {
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
 
-  const [isAiSheetOpen, setIsAiSheetOpen] = useState(false); // Kept for potential future use, but not triggered by new selection toolbar
+  const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
   const [textExplanation, setTextExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
@@ -252,10 +252,10 @@ export default function ReadPage() {
     setSelectedTextInfo(null);
     setIsNoteSheetOpen(false);
     setCurrentNote("");
-    // setIsAiSheetOpen(false); // Not linked to selection toolbar anymore
-    // setTextExplanation(null);
-    // setUserQuestionInput('');
-    // setAiInteractionState('asking');
+    setIsAiSheetOpen(false); 
+    setTextExplanation(null);
+    setUserQuestionInput('');
+    setAiInteractionState('asking');
     setIsKnowledgeGraphSheetOpen(false);
     setIsTocSheetOpen(false);
     setCurrentSearchTerm("");
@@ -268,7 +268,7 @@ export default function ReadPage() {
 
     if (targetElement?.closest('[data-radix-dialog-content]') ||
         targetElement?.closest('[data-radix-popover-content]') ||
-        targetElement?.closest('[data-selection-action-toolbar="true"]')) { // Check for new toolbar
+        targetElement?.closest('[data-selection-action-toolbar="true"]')) { 
       setTimeout(() => handleInteraction(), 0);
       return;
     }
@@ -290,12 +290,12 @@ export default function ReadPage() {
         const scrollTop = scrollAreaElement?.scrollTop || 0;
         const scrollLeft = scrollAreaElement?.scrollLeft || 0;
 
-        const top = rect.top + scrollTop; // Anchor point for toolbar (top of selection)
-        const left = rect.left + scrollLeft + (rect.width / 2); // Center of selection
+        const top = rect.top + scrollTop; 
+        const left = rect.left + scrollLeft + (rect.width / 2); 
 
         setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsNoteSheetOpen(false); // Close note sheet if open
-        // setIsAiSheetOpen(false); // AI sheet not tied to selection toolbar
+        setIsNoteSheetOpen(false); 
+        setIsAiSheetOpen(false); 
       } else {
         setSelectedTextInfo(null);
       }
@@ -307,7 +307,7 @@ export default function ReadPage() {
 
   const handleScroll = useCallback(() => {
     if (selectedTextInfo) {
-      setSelectedTextInfo(null); // Hide selection toolbar on scroll
+      setSelectedTextInfo(null); 
     }
     handleInteraction();
   }, [selectedTextInfo, handleInteraction]);
@@ -331,7 +331,17 @@ export default function ReadPage() {
   const handleOpenNoteSheet = () => {
     if (selectedTextInfo?.text) {
       setIsNoteSheetOpen(true);
-      handleInteraction(); // Keep main toolbar visible
+      handleInteraction(); 
+    }
+  };
+
+  const handleOpenAiSheet = () => {
+    if (selectedTextInfo?.text) {
+      setIsAiSheetOpen(true);
+      setAiInteractionState('asking');
+      setUserQuestionInput(''); // Clear previous question
+      setTextExplanation(null); // Clear previous explanation
+      handleInteraction();
     }
   };
 
@@ -345,20 +355,45 @@ export default function ReadPage() {
           console.error("Failed to copy text: ", err);
           toast({ variant: "destructive", title: "複製失敗", description: "無法複製內容到剪貼簿。" });
         });
-      setSelectedTextInfo(null); // Optionally hide toolbar after action
+      setSelectedTextInfo(null); 
     }
   };
 
   const handlePlaceholderAction = (actionName: string) => {
     toast({ title: "功能提示", description: `${actionName} 功能尚未實現。` });
-    setSelectedTextInfo(null); // Optionally hide toolbar after action
+    setSelectedTextInfo(null); 
   };
 
 
-  // const handleUserSubmitQuestion = async () => { // No longer used by selection toolbar
-  //   if (!selectedTextInfo?.text || !userQuestionInput.trim() || !currentChapter) return;
-  //   // ... AI logic remains here if needed elsewhere
-  // };
+  const handleUserSubmitQuestion = async () => { 
+    if (!selectedTextInfo?.text || !userQuestionInput.trim() || !currentChapter) return;
+
+    setIsLoadingExplanation(true);
+    setAiInteractionState('answering');
+    setTextExplanation(null);
+
+    try {
+      const chapterContextSnippet = currentChapter.paragraphs
+        .slice(0, 5) // Take first 5 paragraphs as context example
+        .map(p => p.content.map(c => typeof c === 'string' ? c : c.text).join(''))
+        .join('\n')
+        .substring(0, 1000); // Limit context length
+
+      const input: ExplainTextSelectionInput = {
+        selectedText: selectedTextInfo.text,
+        userQuestion: userQuestionInput,
+        chapterContext: chapterContextSnippet,
+      };
+      const result = await explainTextSelection(input);
+      setTextExplanation(result.explanation);
+      setAiInteractionState('answered');
+    } catch (error) {
+      console.error("Error explaining text selection:", error);
+      setTextExplanation(error instanceof Error ? error.message : "向 AI 提問時發生錯誤。");
+      setAiInteractionState('error');
+    }
+    setIsLoadingExplanation(false);
+  };
 
   const getColumnClass = () => {
     switch (columnLayout) {
@@ -498,7 +533,7 @@ export default function ReadPage() {
               variant={columnLayout === 'single' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'single' ? selectedTheme.toolbarTextClass : ''
+                columnLayout !== 'single' ? selectedTheme.toolbarTextClass : '' // Apply theme text color only if not active
               )}
               onClick={() => setColumnLayout('single')}
               title="單欄"
@@ -508,9 +543,9 @@ export default function ReadPage() {
             </Button>
             <Button
               variant={columnLayout === 'double' ? 'secondary' : 'ghost'}
-              className={cn(
+               className={cn(
                 toolbarButtonBaseClass,
-                 columnLayout !== 'double' ? selectedTheme.toolbarTextClass : ''
+                columnLayout !== 'double' ? selectedTheme.toolbarTextClass : '' // Apply theme text color only if not active
               )}
               onClick={() => setColumnLayout('double')}
               title="雙欄"
@@ -522,7 +557,7 @@ export default function ReadPage() {
               variant={columnLayout === 'triple' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'triple' ? selectedTheme.toolbarTextClass : ''
+                columnLayout !== 'triple' ? selectedTheme.toolbarTextClass : '' // Apply theme text color only if not active
               )}
               onClick={() => setColumnLayout('triple')}
               title="三欄"
@@ -664,59 +699,59 @@ export default function ReadPage() {
         <div
           className="fixed flex items-center gap-1 p-1.5 rounded-md shadow-xl bg-neutral-800 text-white"
           style={{
-            top: `${selectedTextInfo.position.top - 10}px`, // Position above selection
+            top: `${selectedTextInfo.position.top - 10}px`, 
             left: `${selectedTextInfo.position.left}px`,
-            transform: 'translateX(-50%) translateY(-100%)', // Center horizontally, shift up
+            transform: 'translateX(-50%) translateY(-100%)', 
             zIndex: 60,
           }}
-          data-selection-action-toolbar="true" // Attribute to prevent deselection on click
+          data-selection-action-toolbar="true" 
         >
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
             onClick={handleOpenNoteSheet}
             data-selection-action-toolbar="true"
-            title="写笔记"
+            title="寫筆記"
           >
             <Edit3 className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">写笔记</span>
+            <span className="text-[10px] leading-none">寫筆記</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
-            onClick={() => handlePlaceholderAction("划线")}
+            onClick={() => handlePlaceholderAction("劃線")}
             data-selection-action-toolbar="true"
-            title="划线"
+            title="劃線"
           >
             <Baseline className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">划线</span>
+            <span className="text-[10px] leading-none">劃線</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
-            onClick={() => handlePlaceholderAction("听当前")}
+            onClick={() => handlePlaceholderAction("聽當前")}
             data-selection-action-toolbar="true"
-            title="听当前"
+            title="聽當前"
           >
             <Volume2 className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">听当前</span>
+            <span className="text-[10px] leading-none">聽當前</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
             onClick={handleCopySelectedText}
             data-selection-action-toolbar="true"
-            title="复制"
+            title="複製"
           >
             <Copy className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">复制</span>
+            <span className="text-[10px] leading-none">複製</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
-            onClick={() => handlePlaceholderAction("引用")}
+            onClick={handleOpenAiSheet}
             data-selection-action-toolbar="true"
-            title="引用"
+            title="問 AI"
           >
-            <Quote className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">引用</span>
+            <Lightbulb className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">問 AI</span>
           </button>
-           {/* Arrow pointing down */}
+           
           <div
             className="absolute left-1/2 -translate-x-1/2 top-full"
             style={{
@@ -724,7 +759,7 @@ export default function ReadPage() {
               height: 0,
               borderLeft: '6px solid transparent',
               borderRight: '6px solid transparent',
-              borderTop: '6px solid #262626', // Matches bg-neutral-800
+              borderTop: '6px solid #262626', 
             }}
             data-selection-action-toolbar="true"
           />
@@ -737,8 +772,8 @@ export default function ReadPage() {
             className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
-            onCloseAutoFocus={(e) => e.preventDefault()} // Prevent focus shift on close
-            onInteractOutside={(e) => e.preventDefault()} // Prevent closing on outside click while interacting with graph
+            onCloseAutoFocus={(e) => e.preventDefault()} 
+            onInteractOutside={(e) => e.preventDefault()} 
         >
           <SheetHeader className="p-4 border-b border-border">
             <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
@@ -845,7 +880,7 @@ export default function ReadPage() {
         </SheetContent>
       </Sheet>
 
-      {/* AI Sheet - Retained for now, but not triggered by selection toolbar */}
+      
       <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) setSelectedTextInfo(null); handleInteraction(); }}>
         <SheetContent
             side="right"
@@ -880,12 +915,12 @@ export default function ReadPage() {
                             disabled={aiInteractionState === 'answering' || aiInteractionState === 'answered'}
                         />
                     </div>
-                    {/* Button for AI submission is removed from selection toolbar context
-                    {aiInteractionState === 'asking' && (
-                        <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full mt-4">
+                    
+                    {(aiInteractionState === 'asking' || aiInteractionState === 'error') && (
+                        <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim() || !selectedTextInfo?.text} className="w-full mt-4">
                             {isLoadingExplanation ? "傳送中..." : "送出問題"}
                         </Button>
-                    )} */}
+                    )}
                 </div>
 
                 {(aiInteractionState === 'answering') && (
@@ -902,8 +937,8 @@ export default function ReadPage() {
                             {textExplanation}
                           </ReactMarkdown>
                         </ScrollArea>
-                        <Button variant="ghost" onClick={() => {setAiInteractionState('asking'); setUserQuestionInput(''); setTextExplanation(null); setSelectedTextInfo(null); handleInteraction();}} className="mt-2 text-sm">
-                          返回提問
+                        <Button variant="link" onClick={() => {setAiInteractionState('asking'); setUserQuestionInput(''); setTextExplanation(null);}} className="mt-2 text-sm text-primary hover:text-primary/80 px-0">
+                          再問一題
                         </Button>
                     </div>
                 )}
@@ -918,4 +953,3 @@ export default function ReadPage() {
     </div>
   );
 }
-
