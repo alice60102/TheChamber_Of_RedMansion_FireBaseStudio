@@ -540,7 +540,7 @@ export default function ReadPage() {
               variant={columnLayout === 'single' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'single' ? selectedTheme.toolbarTextClass : '' 
+                columnLayout === 'single' ? '' : selectedTheme.toolbarTextClass 
               )}
               onClick={() => setColumnLayout('single')}
               title="單欄"
@@ -552,7 +552,7 @@ export default function ReadPage() {
               variant={columnLayout === 'double' ? 'secondary' : 'ghost'}
                className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'double' ? selectedTheme.toolbarTextClass : '' 
+                columnLayout === 'double' ? '' : selectedTheme.toolbarTextClass
               )}
               onClick={() => setColumnLayout('double')}
               title="雙欄"
@@ -564,7 +564,7 @@ export default function ReadPage() {
               variant={columnLayout === 'triple' ? 'secondary' : 'ghost'}
               className={cn(
                 toolbarButtonBaseClass,
-                columnLayout !== 'triple' ? selectedTheme.toolbarTextClass : ''
+                columnLayout === 'triple' ? '' : selectedTheme.toolbarTextClass
               )}
               onClick={() => setColumnLayout('triple')}
               title="三欄"
@@ -642,7 +642,7 @@ export default function ReadPage() {
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
             selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '',
-            selectedTheme.readingTextClass // Moved here
+            selectedTheme.readingTextClass
           )}
           style={{
             fontSize: `${currentNumericFontSize}px`,
@@ -968,7 +968,7 @@ export default function ReadPage() {
         data-no-selection="true"
       >
         {/* Using Font Awesome 4.7.0 compatible icon for outlined play circle */}
-        <i className="fa fa-play-circle-o text-2xl" aria-hidden="true"></i>
+        <i className="fa fa-play-circle-o text-5xl" aria-hidden="true"></i>
       </Button>
     </div>
   );
