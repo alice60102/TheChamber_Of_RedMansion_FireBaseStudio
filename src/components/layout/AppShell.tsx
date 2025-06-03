@@ -11,6 +11,13 @@ import {
   LayoutDashboard,
   LogOut,
   Users,
+  Search, // Added for search
+  BarChart3, // For '研讀' (Research)
+  Sparkles, // For '情境連結' (Modern Relevance)
+  Users2, // For '學習社群' (Community) - if different from Users
+  MessageSquare, // For '寫作輔助' (Writing Assistant)
+  ListChecks, // For '學習目標' (Goals)
+  Brain, // For '學習狀況' (Learning Analysis)
 } from "lucide-react";
 
 import {
@@ -22,7 +29,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger, // Kept for mobile view on dashboard
+  SidebarTrigger, 
   SidebarInset,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -47,15 +54,18 @@ interface NavItem {
   tooltip: string;
 }
 
-// Nav items for the sidebar, shown when AppShell is used (i.e., on dashboard)
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "首頁", icon: LayoutDashboard, tooltip: "首頁" },
+  { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "儀表板" },
   { href: "/read", label: "閱讀", icon: BookOpen, tooltip: "閱讀" },
-  { href: "/community", label: "紅學社", icon: Users, tooltip: "Community Forum" },
+  { href: "/goals", label: "學習目標", icon: ListChecks, tooltip: "學習目標與進度" },
+  { href: "/characters", label: "學習狀況", icon: Brain, tooltip: "個人知識圖譜與學習分析" },
+  { href: "/research", label: "研讀", icon: BarChart3, tooltip: "專題研究" },
+  { href: "/modern-relevance", label: "情境連結", icon: Sparkles, tooltip: "現代生活連結" },
+  { href: "/community", label: "紅學社", icon: Users, tooltip: "學習社群" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const pathname = usePathname(); // Used for highlighting active nav item
+  const pathname = usePathname(); 
   const router = useRouter();
   const { user } = useAuth();
 
@@ -68,8 +78,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
   };
 
-  // AppShell is now only rendered by MainAppLayout when on '/dashboard'.
-  // So, SidebarProvider can default to open for desktop.
   return (
     <SidebarProvider defaultOpen>
       <Sidebar className="border-r-sidebar-border">
@@ -86,8 +94,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <SidebarMenuButton
                     asChild
                     className="w-full justify-start"
-                    variant={pathname === item.href ? "default" : "ghost"}
-                    isActive={pathname === item.href}
+                    variant={pathname === item.href || (pathname === '/read-book' && item.href === '/read') ? "default" : "ghost"}
+                    isActive={pathname === item.href || (pathname === '/read-book' && item.href === '/read')}
                     tooltip={item.tooltip}
                   >
                     <Link href={item.href}>
@@ -137,13 +145,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        {/* This header is part of the main content area when AppShell is used (on dashboard) */}
-        {/* It contains the SidebarTrigger for mobile */}
         <header className="sticky top-0 z-10 flex h-16 items-center justify-start border-b bg-background/80 px-6 backdrop-blur-md md:justify-between">
-          <SidebarTrigger className="md:hidden" /> {/* For opening sidebar on mobile when on dashboard */}
-          <div>{/* Placeholder for any other content in dashboard's header */}</div>
+          <SidebarTrigger className="md:hidden" /> 
+          <div></div>
         </header>
-        <main className="flex-1 overflow-y-auto p-6"> {/* Dashboard content always has padding */}
+        <main className="flex-1 overflow-y-auto p-6"> 
           {children}
         </main>
       </SidebarInset>
