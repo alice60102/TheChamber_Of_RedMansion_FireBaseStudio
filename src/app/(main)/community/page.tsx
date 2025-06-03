@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send, PencilLine } from "lucide-react";
+import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send, Pencil } from "lucide-react"; // Changed PencilLine to Pencil
 import { useAuth } from '@/hooks/useAuth';
 import { Label } from '@/components/ui/label';
 
@@ -293,6 +293,11 @@ export default function CommunityPage() {
                 用戶交流、分享心得的園地。暢所欲言，共同探討《紅樓夢》的無窮魅力。
               </CardDescription>
             </div>
+            {user && (
+              <Button onClick={() => alert("撰寫新帖 功能示意")} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Pencil className="mr-2 h-4 w-4" /> 撰寫新帖 
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
