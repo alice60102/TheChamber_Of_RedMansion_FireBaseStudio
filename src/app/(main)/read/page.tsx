@@ -3,19 +3,19 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+// import Image from 'next/image'; // Image component is no longer used for covers
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Edit } from 'lucide-react'; // Edit can be used for "编辑" if needed later
+import { BookOpen, Edit } from 'lucide-react'; 
 
 interface Book {
   id: string;
   title: string;
   author: string;
   description: string;
-  coverImage: string;
-  aiHint: string;
+  coverImage: string; // Still in interface, but not used for next/image
+  aiHint: string;     // Still in interface, but not used for next/image
   readLink: string;
 }
 
@@ -25,7 +25,7 @@ const placeholderBooks: Book[] = [
     title: '紅樓夢 (第三版)',
     author: '[清] 曹雪芹',
     description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
+    coverImage: 'https://placehold.co/150x220.png?tint=662929', // No longer directly rendered by <Image>
     aiHint: 'chinese novel',
     readLink: '/read-book', 
   },
@@ -114,14 +114,8 @@ export default function BookSelectionPage() {
                 {placeholderBooks.map((book) => (
                   <Card key={book.id} className="overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-card/70">
                     <CardContent className="p-0">
-                      <div className="relative aspect-[3/4.4]">
-                        <Image
-                          src={book.coverImage}
-                          alt={book.title}
-                          layout="fill"
-                          objectFit="cover"
-                          data-ai-hint={book.aiHint}
-                        />
+                      <div className="relative aspect-[3/4.4] bg-muted/50 flex items-center justify-center rounded-t-md overflow-hidden">
+                        <i className="fa fa-book text-7xl text-primary/60" aria-hidden="true"></i>
                         <div className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">
                           電子書
                         </div>
