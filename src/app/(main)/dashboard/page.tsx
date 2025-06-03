@@ -75,10 +75,10 @@ export default function DashboardPage() {
 
   const recentActivityData: RecentActivityItem[] = [
     { id: "hlm-gengchen", title: "紅樓夢 (庚辰本校注)", author: "曹雪芹", progress: 75, current: true, readLink: "/read-book" },
-    { id: "xyj-shide", title: "西遊記 (世德堂本)", author: "吳承恩", progress: 50, current: false, readLink: "#" },
-    { id: "shz-100", title: "水滸傳 (百回本)", author: "施耐庵", progress: 90, current: false, readLink: "#" },
-    { id: "sgyy-maoping", title: "三國演義 (毛宗崗評本)", author: "羅貫中", progress: 20, current: false, readLink: "#" },
-    { id: "lzzy-chao", title: "聊齋志異 (鑄雪齋抄本)", author: "蒲松齡", progress: 60, current: false, readLink: "#" },
+    { id: "jiangxun-youth", title: "蔣勳說紅樓夢青春版", author: "蔣勳", progress: 50, current: false, readLink: "#" },
+    { id: "hlm-chengjia", title: "紅樓夢 (程甲本影印)", author: "[清] 曹雪芹 高鶚", progress: 90, current: false, readLink: "#" },
+    { id: "baixianyong-detailed", title: "白先勇細說紅樓夢", author: "白先勇", progress: 20, current: false, readLink: "#" },
+    { id: "oulijuan-sixviews", title: "歐麗娟 六觀紅樓(綜論卷)", author: "歐麗娟", progress: 60, current: false, readLink: "#" },
   ];
 
   const radius = 15.9155;
@@ -206,3 +206,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
