@@ -15,7 +15,7 @@ export default function HomePage() {
     {
       icon: BookLock,
       title: "理解門檻高遠",
-      description: "近半數讀者反映《紅樓夢》人物關係複雜、文化背景艱澀。理解劉姥姥進大觀園、寶黛釵情感糾葛等，如同攀登文化高峰。",
+      description: "近半數讀者反映《紅樓夢》人物關係複雜、文化背景艱澀難懂。理解劉姥姥進大觀園、寶黛釵情感糾葛等，如同攀登文化高峰。",
     },
     {
       icon: Puzzle,
@@ -28,7 +28,7 @@ export default function HomePage() {
     {
       icon: Award,
       title: "點燃持續動力",
-      description: "採用遊戲化學習設計，將閱讀化為任務。透過成就徽章、進度追蹤、個性化目標與即時回饋，打造闖關般的愉悅體驗。",
+      description: "採用遊戲化學習設計，將閱讀化為任務。透過成就徽章、進度追蹤、個性化目標与即時回饋，打造闖關般的愉悅體驗。",
     },
     {
       icon: Lightbulb,
@@ -50,12 +50,18 @@ export default function HomePage() {
             <ScrollText className="h-7 w-7 text-primary" />
             <span className="text-xl font-artistic font-bold text-white">紅樓慧讀</span>
           </Link>
-          <nav className="flex items-center space-x-2">
-            <Button variant="ghost" asChild>
-              <Link href="/login">登入</Link>
+          <nav className="flex items-center space-x-4 md:space-x-6 mr-4">
+            <Button variant="ghost" asChild className="text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
+              <Link href="/">主頁</Link>
             </Button>
-            <Button variant="default" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-              <Link href="/register">註冊</Link>
+            <Button variant="ghost" asChild className="text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
+              <Link href="#challenges">特色</Link>
+            </Button>
+            <Button variant="ghost" asChild className="text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
+              <Link href="#solutions">主要功能</Link>
+            </Button>
+            <Button variant="ghost" className="text-xs font-medium text-foreground/70 hover:text-foreground px-2 sm:px-3">
+              ENGLISH (US) {/* Placeholder for language switching functionality */}
             </Button>
           </nav>
         </div>
