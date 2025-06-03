@@ -12,12 +12,12 @@ import {
   LogOut,
   Users,
   Search, // Added for search
-  BarChart3, // For '研讀' (Research)
-  Sparkles, // For '情境連結' (Modern Relevance)
-  Users2, // For '學習社群' (Community) - if different from Users
-  MessageSquare, // For '寫作輔助' (Writing Assistant)
-  ListChecks, // For '學習目標' (Goals)
-  Brain, // For '學習狀況' (Learning Analysis)
+  // BarChart3, // For '研讀' (Research) - Removed
+  // Sparkles, // For '情境連結' (Modern Relevance) - Removed
+  // Users2, // For '學習社群' (Community) - if different from Users
+  // MessageSquare, // For '寫作輔助' (Writing Assistant)
+  // ListChecks, // For '學習目標' (Goals) - Removed
+  // Brain, // For '學習狀況' (Learning Analysis) - Removed
 } from "lucide-react";
 
 import {
@@ -57,10 +57,10 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "儀表板" },
   { href: "/read", label: "閱讀", icon: BookOpen, tooltip: "閱讀" },
-  { href: "/goals", label: "學習目標", icon: ListChecks, tooltip: "學習目標與進度" },
-  { href: "/characters", label: "學習狀況", icon: Brain, tooltip: "個人知識圖譜與學習分析" },
-  { href: "/research", label: "研讀", icon: BarChart3, tooltip: "專題研究" },
-  { href: "/modern-relevance", label: "情境連結", icon: Sparkles, tooltip: "現代生活連結" },
+  // { href: "/goals", label: "學習目標", icon: ListChecks, tooltip: "學習目標與進度" }, // Removed
+  // { href: "/characters", label: "學習狀況", icon: Brain, tooltip: "個人知識圖譜與學習分析" }, // Removed
+  // { href: "/research", label: "研讀", icon: BarChart3, tooltip: "專題研究" }, // Removed
+  // { href: "/modern-relevance", label: "情境連結", icon: Sparkles, tooltip: "現代生活連結" }, // Removed
   { href: "/community", label: "紅學社", icon: Users, tooltip: "學習社群" },
 ];
 
