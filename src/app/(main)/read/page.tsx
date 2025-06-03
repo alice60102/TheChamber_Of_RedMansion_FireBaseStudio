@@ -98,7 +98,7 @@ export default function BookSelectionPage() {
       <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-artistic text-3xl text-primary">
-            電子書書架
+            我的書架
           </CardTitle>
           <CardDescription>
             選擇您的下一本讀物，開始智慧閱讀之旅。
@@ -108,8 +108,8 @@ export default function BookSelectionPage() {
           <Tabs defaultValue="ebooks" className="w-full" onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex mb-4">
               <TabsTrigger value="recent">最近學習</TabsTrigger>
-              <TabsTrigger value="ebooks">電子書書架</TabsTrigger>
-              <TabsTrigger value="audiobooks">聽書書架</TabsTrigger>
+              <TabsTrigger value="ebooks">紅樓夢原文</TabsTrigger>
+              <TabsTrigger value="audiobooks">專家解讀</TabsTrigger>
             </TabsList>
 
             <div className="mb-6 flex flex-wrap items-center gap-2">
@@ -166,7 +166,7 @@ export default function BookSelectionPage() {
             </TabsContent>
             <TabsContent value="audiobooks">
               <div className="text-center py-12 text-muted-foreground">
-                <p>聽書書架功能正在開發中。</p>
+                <p>專家解讀內容正在準備中。</p>
               </div>
             </TabsContent>
           </Tabs>
@@ -175,3 +175,4 @@ export default function BookSelectionPage() {
     </div>
   );
 }
+
