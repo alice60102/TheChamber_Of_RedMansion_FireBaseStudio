@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollText } from 'lucide-react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
@@ -18,10 +20,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
 const registerSchema = z.object({
-  firstName: z.string().min(1, { message: "姓氏不能為空" }), // Zod message might need update if "firstName" now means "surname"
-  lastName: z.string().min(1, { message: "名字不能為空" }),  // Zod message might need update if "lastName" now means "given name"
+  firstName: z.string().min(1, { message: "姓氏不能為空" }),
+  lastName: z.string().min(1, { message: "名字不能為空" }),
   email: z.string().email({ message: "請輸入有效的電子郵件地址" }),
   password: z.string().min(6, { message: "密碼長度至少為6位" }),
+  learningBackground: z.string().optional(),
+  readingInterests: z.string().optional(),
+  learningGoals: z.string().optional(),
 });
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -31,26 +36,25 @@ export default function RegisterPage() {
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
+  const { register, handleSubmit, control, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
   });
 
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
     setIsLoading(true);
     setFirebaseError(null);
+    console.log("Registration Data:", data); // Log all submitted data
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      // Optionally update profile with name
-      // Note: If firstName is now surname and lastName is given name, ensure displayName is formed as desired.
-      // For many Chinese names, it's Surname followed by Given Name.
       if (userCredential.user) {
         await updateProfile(userCredential.user, {
-          displayName: `${data.firstName}${data.lastName}`, // Example: "李四" if firstName="李", lastName="四"
+          displayName: `${data.firstName}${data.lastName}`,
         });
+        // Here you would typically send `data.learningBackground`, `data.readingInterests`, `data.learningGoals`
+        // to your backend (e.g., Firestore) to create the user's personalized profile.
       }
-      router.push('/dashboard'); // Redirect to dashboard on successful registration
+      router.push('/dashboard');
     } catch (error: any) {
-      // Handle Firebase errors
       if (error.code === 'auth/email-already-in-use') {
         setFirebaseError('此電子郵件地址已被註冊。');
       } else if (error.code === 'auth/weak-password') {
@@ -71,7 +75,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-primary/10 to-background p-4">
-      <Card className="w-full max-w-md shadow-2xl bg-card/90 backdrop-blur-lg">
+      <Card className="w-full max-w-lg shadow-2xl bg-card/90 backdrop-blur-lg"> {/* Increased max-w for more fields */}
         <CardHeader className="space-y-1 text-center">
            <Link href="/" className="inline-block mb-4">
              <ScrollText className="h-12 w-12 text-primary mx-auto" />
@@ -88,7 +92,7 @@ export default function RegisterPage() {
                 <AlertDescription>{firebaseError}</AlertDescription>
               </Alert>
             )}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="firstName">請輸入姓氏</Label>
                 <Input id="firstName" placeholder="姓氏" {...register("firstName")} className={`bg-background/70 ${errors.firstName ? 'border-destructive' : ''}`} />
@@ -110,9 +114,58 @@ export default function RegisterPage() {
               <Input id="password" type="password" {...register("password")} className={`bg-background/70 ${errors.password ? 'border-destructive' : ''}`} />
               {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
             </div>
+
+            {/* Personalized Information Section */}
+            <div className="pt-4">
+              <h3 className="text-lg font-semibold text-white mb-3">個性化學習檔案 (選填)</h3>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="learningBackground">您的古典文學基礎？</Label>
+                  <Controller
+                    name="learningBackground"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <SelectTrigger className="w-full bg-background/70">
+                          <SelectValue placeholder="請選擇您的古典文學背景" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">初次接觸</SelectItem>
+                          <SelectItem value="intermediate">略有涉獵</SelectItem>
+                          <SelectItem value="advanced">曾修讀相關課程</SelectItem>
+                          <SelectItem value="expert">深入研究</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="readingInterests">您對《紅樓夢》的哪些方面最感興趣？</Label>
+                  <Textarea
+                    id="readingInterests"
+                    placeholder="例如：人物關係、詩詞賞析、歷史文化背景..."
+                    {...register("readingInterests")}
+                    className="bg-background/70"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="learningGoals">您希望透過本平台達成什麼學習目標？</Label>
+                  <Textarea
+                    id="learningGoals"
+                    placeholder="例如：完整閱讀一遍、理解主要人物、完成所有判詞筆記..."
+                    {...register("learningGoals")}
+                    className="bg-background/70"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </div>
             
-            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
-              {isLoading ? "創建中..." : "創建帳戶"}
+            <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 mt-6" disabled={isLoading}>
+              {isLoading ? "創建中..." : "創建帳戶並開始學習"}
             </Button>
           </CardContent>
         </form>
