@@ -23,24 +23,20 @@ export default function MainAppLayout({ children }: { children: ReactNode }) {
     return null; 
   }
 
-  const isDashboardPage = pathname === '/dashboard';
-  const isReadPage = pathname === '/read' || pathname === '/read-book';
+  const isReadBookPage = pathname === '/read-book';
 
-  if (isDashboardPage) {
-    return <AppShell>{children}</AppShell>;
-  } else {
+  if (isReadBookPage) {
+    // Special layout for the book reading page (no AppShell, custom main for full immersion)
     return (
       <div className="flex flex-col min-h-screen bg-background text-foreground">
-        {isReadPage ? (
-          <main className="flex-1 overflow-hidden h-full">
-            {children}
-          </main>
-        ) : (
-          <main className="flex-1 overflow-y-auto p-6">
-            {children}
-          </main>
-        )}
+        <main className="flex-1 overflow-hidden h-full">
+          {children}
+        </main>
       </div>
     );
+  } else {
+    // Default layout for all other authenticated pages (wrapped with AppShell)
+    // AppShell internally provides a <main> with p-6 and overflow-y-auto
+    return <AppShell>{children}</AppShell>;
   }
 }
