@@ -7,7 +7,6 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { BookOpen, Activity, BarChart3, TrendingUp, Target, Edit3, ListChecks, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 
@@ -32,13 +31,13 @@ const StatCard: React.FC<StatCardProps> = ({ value, label, icon: Icon }) => (
   </Card>
 );
 
-interface RecentChapter {
-  id: number;
+interface RecentActivityItem {
+  id: string;
   title: string;
+  author: string;
   progress: number;
   current: boolean;
-  thumbnail: string;
-  thumbnailHint: string;
+  readLink: string;
 }
 
 export default function DashboardPage() {
@@ -47,9 +46,6 @@ export default function DashboardPage() {
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
   useEffect(() => {
-    const circumference = 2 * Math.PI * 15.9155; // Radius of the circle path
-    const targetOffset = circumference - (completedChapters / totalChapters) * circumference;
-    
     // For stroke-dasharray animation
     const targetProgressForDasharray = (completedChapters / totalChapters) * 100;
     
@@ -77,13 +73,12 @@ export default function DashboardPage() {
     { value: "8 個", label: "已達目標", icon: Target },
   ];
 
-  const recentChaptersData: RecentChapter[] = [
-    { id: 1, title: "第一回 甄士隱夢幻識通靈", progress: 100, current: false, thumbnail: "https://placehold.co/200x80.png", thumbnailHint: "classical chinese art" },
-    { id: 2, title: "第二回 賈夫人仙逝揚州城", progress: 100, current: false, thumbnail: "https://placehold.co/200x80.png", thumbnailHint: "traditional chinese story" },
-    { id: 3, title: "第三回 金陵城起復賈雨村", progress: 75, current: false, thumbnail: "https://placehold.co/200x80.png", thumbnailHint: "chapter scene illustration" },
-    { id: 4, title: "第四回 薄命女偏逢薄命郎", progress: 90, current: false, thumbnail: "https://placehold.co/200x80.png", thumbnailHint: "book chapter art" },
-    { id: 5, title: "第五回 遊幻境指迷十二釵", progress: 60, current: true, thumbnail: "https://placehold.co/200x80.png", thumbnailHint: "literary theme" },
-    { id: 6, title: "第六回 賈寶玉初試雲雨情", progress: 20, current: false, thumbnail: "https://placehold.co/200x80.png", thumbnailHint: "character illustration" },
+  const recentActivityData: RecentActivityItem[] = [
+    { id: "hlm-gengchen", title: "紅樓夢 (庚辰本校注)", author: "曹雪芹", progress: 75, current: true, readLink: "/read-book" },
+    { id: "xyj-shide", title: "西遊記 (世德堂本)", author: "吳承恩", progress: 50, current: false, readLink: "#" },
+    { id: "shz-100", title: "水滸傳 (百回本)", author: "施耐庵", progress: 90, current: false, readLink: "#" },
+    { id: "sgyy-maoping", title: "三國演義 (毛宗崗評本)", author: "羅貫中", progress: 20, current: false, readLink: "#" },
+    { id: "lzzy-chao", title: "聊齋志異 (鑄雪齋抄本)", author: "蒲松齡", progress: 60, current: false, readLink: "#" },
   ];
 
   const radius = 15.9155;
@@ -144,37 +139,33 @@ export default function DashboardPage() {
       <Card className="shadow-xl hover:shadow-primary/20 transition-shadow">
         <CardHeader>
           <CardTitle className="text-2xl font-artistic text-primary">最近閱讀活動</CardTitle>
-          <CardDescription>快速返回您上次閱讀的章節，或回顧最近的學習內容。</CardDescription>
+          <CardDescription>快速返回您上次閱讀的書籍，或回顧最近的學習內容。</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex space-x-4 pb-4">
-              {recentChaptersData.map(chapter => (
+              {recentActivityData.map(item => (
                 <Card 
-                  key={chapter.id} 
+                  key={item.id} 
                   className={cn(
                     "w-[200px] h-[150px] shrink-0 overflow-hidden flex flex-col group transition-all duration-300 ease-in-out hover:shadow-lg",
-                    chapter.current ? 'border-2 border-primary shadow-primary/30' : 'border-border'
+                    item.current ? 'border-2 border-primary shadow-primary/30' : 'border-border'
                   )}
                 >
-                  <Link href="/read" className="block h-full">
+                  <Link href={item.readLink} className="block h-full">
                     <CardContent className="p-0 h-full flex flex-col">
-                      <div className="h-[80px] relative overflow-hidden">
-                        <Image 
-                          src={chapter.thumbnail} 
-                          alt={chapter.title} 
-                          width={200} 
-                          height={80} 
-                          className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                          data-ai-hint={chapter.thumbnailHint} 
-                        />
-                        {chapter.current && (
+                      <div className="h-[80px] relative overflow-hidden bg-muted/30 flex items-center justify-center rounded-t-md">
+                        <i className="fa fa-book text-5xl text-primary/60" aria-hidden="true"></i>
+                        {item.current && (
                           <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-sm shadow">繼續閱讀</div>
                         )}
                       </div>
                       <div className="p-3 flex flex-col flex-grow justify-between bg-card">
-                        <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{chapter.title}</p>
-                        <Progress value={chapter.progress} className="h-1 w-full mt-1" indicatorClassName={chapter.current ? "bg-primary" : "bg-secondary"} />
+                        <div>
+                          <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors" title={item.title}>{item.title}</p>
+                          <p className="text-xs text-muted-foreground truncate" title={item.author}>{item.author}</p>
+                        </div>
+                        <Progress value={item.progress} className="h-1 w-full mt-1" indicatorClassName={item.current ? "bg-primary" : "bg-secondary"} />
                       </div>
                     </CardContent>
                   </Link>
