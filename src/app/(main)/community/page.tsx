@@ -59,7 +59,7 @@ const initialPostsData: Post[] = [
     id: '3',
     author: '村夫賈雨村',
     timestamp: '1天前',
-    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。這是一個較短的帖子，應該不需要展開。',
+    content: '《紅樓夢》不僅是文學巨著，亦是研究清代社會的珍貴史料。從衣食住行到人情世故，無不細緻入微。例如書中對貴族家庭的飲食描寫，如第四十一回「櫳翠庵茶品梅花雪 怡紅院劫遇母蝗蟲」，其中的點心、茶品都極其講究，反映了當時的物質文化水平。這是一個較短的發文，應該不需要展開。',
     likes: 12,
     tags: ['社會背景', '歷史研究'],
     initialPlaceholderComments: [
@@ -300,7 +300,7 @@ export default function CommunityPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input 
-                placeholder="搜索帖子內容、作者或標籤..." 
+                placeholder="搜索發文內容、作者或標籤..." 
                 className="pl-10 bg-background/50 text-base"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -319,9 +319,9 @@ export default function CommunityPage() {
           ) : (
             <div className="text-center py-12">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-semibold text-foreground">暫無匹配帖子</h3>
+              <h3 className="mt-2 text-lg font-semibold text-foreground">暫無匹配發文</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {searchTerm ? "未找到與您的搜索詞相關的帖子。" : "這裡還沒有帖子，快來發表第一篇吧！"}
+                {searchTerm ? "未找到與您的搜索詞相關的發文。" : "這裡還沒有發文，快來發表第一篇吧！"}
               </p>
             </div>
           )}
