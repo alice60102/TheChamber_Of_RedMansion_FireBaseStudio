@@ -109,7 +109,7 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-6 min-h-[320px] flex flex-col justify-center">
+          <CardContent className="space-y-4 min-h-[320px] flex flex-col">
             {firebaseError && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
@@ -194,19 +194,26 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <div className="flex justify-between items-center pt-4">
-              {currentStep > 1 && (
+            {/* Spacer to push buttons to bottom if content is short, but not needed if min-h and flex-col is used correctly */}
+            {currentStep > 1 && currentStep < 4 && <div className="flex-grow"></div>}
+
+
+            <div className="flex justify-between items-center pt-4 mt-auto"> {/* mt-auto will push this to the bottom if CardContent is flex-col */}
+              {currentStep > 1 ? (
                 <Button type="button" variant="outline" onClick={handlePreviousStep} className="text-accent border-accent hover:bg-accent/10">
                   <ArrowLeft className="mr-2 h-4 w-4" /> 上一步
                 </Button>
+              ) : (
+                 <div></div> // Placeholder to keep "Next" button to the right on step 1
               )}
+              
               {currentStep < 4 && (
-                <Button type="button" onClick={handleNextStep} className="ml-auto bg-primary text-primary-foreground hover:bg-primary/90">
+                <Button type="button" onClick={handleNextStep} className="bg-primary text-primary-foreground hover:bg-primary/90">
                   下一步 <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               )}
               {currentStep === 4 && (
-                <Button type="submit" className="ml-auto bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
+                <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
                   {isLoading ? "創建中..." : "創建帳戶並開始學習"}
                 </Button>
               )}
