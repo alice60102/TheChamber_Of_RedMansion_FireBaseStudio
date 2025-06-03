@@ -108,9 +108,9 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="min-h-[320px] flex flex-col"> {/* Removed space-y-4 */}
-            {/* Wrapper for all interactive content (fields + buttons) */}
-            <div>
+          <CardContent className="min-h-[320px] flex flex-col">
+            {/* Wrapper for dynamic content and buttons */}
+            <div className="flex flex-col"> 
               {firebaseError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertTriangle className="h-4 w-4" />
@@ -194,31 +194,47 @@ export default function RegisterPage() {
                   />
                 </div>
               )}
-              
-              <div className="flex justify-between items-center mt-6"> {/* Adjusted margin, removed pt-4 */}
+            
+              {/* Button navigation area */}
+              <div className="flex items-center mt-6 gap-4">
                 {currentStep > 1 ? (
-                  <Button type="button" variant="outline" onClick={handlePreviousStep} className="text-accent border-accent hover:bg-accent/10">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handlePreviousStep}
+                    className="text-accent border-accent hover:bg-accent/10 flex-1"
+                  >
                     <ArrowLeft className="mr-2 h-4 w-4" /> 上一步
                   </Button>
                 ) : (
-                   <div></div> 
+                  // This placeholder ensures the "Next" button aligns correctly when it's the only one logically on the right for step 1.
+                  // If there's only one button and it should be full width, this placeholder would be removed and the button itself wouldn't have flex-1.
+                  // Given our current structure with always two "visual slots", this makes them equal.
+                  <div className="flex-1"></div> 
                 )}
                 
                 {currentStep < 4 && (
-                  <Button type="button" onClick={handleNextStep} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button
+                    type="button"
+                    onClick={handleNextStep}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
+                  >
                     下一步 <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
                 {currentStep === 4 && (
-                  <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
+                  <Button
+                    type="submit"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
+                    disabled={isLoading}
+                  >
                     {isLoading ? "創建中..." : "創建帳戶並開始學習"}
                   </Button>
                 )}
               </div>
             </div>
             
-            {/* This div will take up the remaining space if the content above is shorter than min-h-[320px] */}
-            <div className="flex-grow"></div>
+            <div className="flex-grow"></div> {/* This pushes content up, empty space at bottom */}
           </CardContent>
         </form>
         <CardFooter className="text-center text-sm">
