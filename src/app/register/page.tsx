@@ -39,7 +39,7 @@ export default function RegisterPage() {
 
   const { register, handleSubmit, control, formState: { errors }, trigger } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    mode: "onChange", // Validate on change for better UX during steps
+    mode: "onChange", 
   });
 
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
@@ -78,8 +78,7 @@ export default function RegisterPage() {
     if (currentStep === 1) {
       fieldsToValidate = ["firstName", "lastName", "email", "password"];
     }
-    // No explicit validation needed for optional fields to proceed to next step
-
+    
     if (fieldsToValidate.length > 0) {
       const isValid = await trigger(fieldsToValidate);
       if (!isValid) {
@@ -109,115 +108,117 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4 min-h-[320px] flex flex-col">
-            {firebaseError && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>註冊錯誤</AlertTitle>
-                <AlertDescription>{firebaseError}</AlertDescription>
-              </Alert>
-            )}
+          <CardContent className="min-h-[320px] flex flex-col"> {/* Removed space-y-4 */}
+            {/* Wrapper for all interactive content (fields + buttons) */}
+            <div>
+              {firebaseError && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>註冊錯誤</AlertTitle>
+                  <AlertDescription>{firebaseError}</AlertDescription>
+                </Alert>
+              )}
 
-            {currentStep === 1 && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">請輸入姓氏</Label>
-                    <Input id="firstName" placeholder="姓氏" {...register("firstName")} className={`bg-background/70 ${errors.firstName ? 'border-destructive' : ''}`} />
-                    {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
+              {currentStep === 1 && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">請輸入姓氏</Label>
+                      <Input id="firstName" placeholder="姓氏" {...register("firstName")} className={`bg-background/70 ${errors.firstName ? 'border-destructive' : ''}`} />
+                      {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">請輸入名字</Label>
+                      <Input id="lastName" placeholder="名字" {...register("lastName")} className={`bg-background/70 ${errors.lastName ? 'border-destructive' : ''}`} />
+                      {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+                    </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">請輸入名字</Label>
-                    <Input id="lastName" placeholder="名字" {...register("lastName")} className={`bg-background/70 ${errors.lastName ? 'border-destructive' : ''}`} />
-                    {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+                    <Label htmlFor="email">電子郵件</Label>
+                    <Input id="email" type="email" placeholder="m@example.com" {...register("email")} className={`bg-background/70 ${errors.email ? 'border-destructive' : ''}`} />
+                    {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">密碼 (至少6位)</Label>
+                    <Input id="password" type="password" {...register("password")} className={`bg-background/70 ${errors.password ? 'border-destructive' : ''}`} />
+                    {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
                   </div>
                 </div>
+              )}
+
+              {currentStep === 2 && (
                 <div className="space-y-2">
-                  <Label htmlFor="email">電子郵件</Label>
-                  <Input id="email" type="email" placeholder="m@example.com" {...register("email")} className={`bg-background/70 ${errors.email ? 'border-destructive' : ''}`} />
-                  {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+                  <Label htmlFor="learningBackground">您的古典文學基礎？ (選填)</Label>
+                  <Controller
+                    name="learningBackground"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <SelectTrigger className="w-full bg-background/70">
+                          <SelectValue placeholder="請選擇您的古典文學背景" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="beginner">初次接觸</SelectItem>
+                          <SelectItem value="intermediate">略有涉獵</SelectItem>
+                          <SelectItem value="advanced">曾修讀相關課程</SelectItem>
+                          <SelectItem value="expert">深入研究</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                 </div>
+              )}
+
+              {currentStep === 3 && (
                 <div className="space-y-2">
-                  <Label htmlFor="password">密碼 (至少6位)</Label>
-                  <Input id="password" type="password" {...register("password")} className={`bg-background/70 ${errors.password ? 'border-destructive' : ''}`} />
-                  {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+                  <Label htmlFor="readingInterests">您對《紅樓夢》的哪些方面最感興趣？ (選填)</Label>
+                  <Textarea
+                    id="readingInterests"
+                    placeholder="例如：人物關係、詩詞賞析、歷史文化背景..."
+                    {...register("readingInterests")}
+                    className="bg-background/70 min-h-[120px]"
+                    rows={4}
+                  />
                 </div>
-              </>
-            )}
+              )}
 
-            {currentStep === 2 && (
-              <div className="space-y-2">
-                <Label htmlFor="learningBackground">您的古典文學基礎？ (選填)</Label>
-                <Controller
-                  name="learningBackground"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger className="w-full bg-background/70">
-                        <SelectValue placeholder="請選擇您的古典文學背景" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="beginner">初次接觸</SelectItem>
-                        <SelectItem value="intermediate">略有涉獵</SelectItem>
-                        <SelectItem value="advanced">曾修讀相關課程</SelectItem>
-                        <SelectItem value="expert">深入研究</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-            )}
-
-            {currentStep === 3 && (
-              <div className="space-y-2">
-                <Label htmlFor="readingInterests">您對《紅樓夢》的哪些方面最感興趣？ (選填)</Label>
-                <Textarea
-                  id="readingInterests"
-                  placeholder="例如：人物關係、詩詞賞析、歷史文化背景..."
-                  {...register("readingInterests")}
-                  className="bg-background/70 min-h-[120px]"
-                  rows={4}
-                />
-              </div>
-            )}
-
-            {currentStep === 4 && (
-              <div className="space-y-2">
-                <Label htmlFor="learningGoals">您希望透過本平台達成什麼學習目標？ (選填)</Label>
-                <Textarea
-                  id="learningGoals"
-                  placeholder="例如：完整閱讀一遍、理解主要人物、完成所有判詞筆記..."
-                  {...register("learningGoals")}
-                  className="bg-background/70 min-h-[120px]"
-                  rows={4}
-                />
-              </div>
-            )}
-
-            {/* Spacer to push buttons to bottom if content is short, but not needed if min-h and flex-col is used correctly */}
-            {currentStep > 1 && currentStep < 4 && <div className="flex-grow"></div>}
-
-
-            <div className="flex justify-between items-center pt-4 mt-auto"> {/* mt-auto will push this to the bottom if CardContent is flex-col */}
-              {currentStep > 1 ? (
-                <Button type="button" variant="outline" onClick={handlePreviousStep} className="text-accent border-accent hover:bg-accent/10">
-                  <ArrowLeft className="mr-2 h-4 w-4" /> 上一步
-                </Button>
-              ) : (
-                 <div></div> // Placeholder to keep "Next" button to the right on step 1
+              {currentStep === 4 && (
+                <div className="space-y-2">
+                  <Label htmlFor="learningGoals">您希望透過本平台達成什麼學習目標？ (選填)</Label>
+                  <Textarea
+                    id="learningGoals"
+                    placeholder="例如：完整閱讀一遍、理解主要人物、完成所有判詞筆記..."
+                    {...register("learningGoals")}
+                    className="bg-background/70 min-h-[120px]"
+                    rows={4}
+                  />
+                </div>
               )}
               
-              {currentStep < 4 && (
-                <Button type="button" onClick={handleNextStep} className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  下一步 <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-              {currentStep === 4 && (
-                <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
-                  {isLoading ? "創建中..." : "創建帳戶並開始學習"}
-                </Button>
-              )}
+              <div className="flex justify-between items-center mt-6"> {/* Adjusted margin, removed pt-4 */}
+                {currentStep > 1 ? (
+                  <Button type="button" variant="outline" onClick={handlePreviousStep} className="text-accent border-accent hover:bg-accent/10">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> 上一步
+                  </Button>
+                ) : (
+                   <div></div> 
+                )}
+                
+                {currentStep < 4 && (
+                  <Button type="button" onClick={handleNextStep} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                    下一步 <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                )}
+                {currentStep === 4 && (
+                  <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
+                    {isLoading ? "創建中..." : "創建帳戶並開始學習"}
+                  </Button>
+                )}
+              </div>
             </div>
+            
+            {/* This div will take up the remaining space if the content above is shorter than min-h-[320px] */}
+            <div className="flex-grow"></div>
           </CardContent>
         </form>
         <CardFooter className="text-center text-sm">
