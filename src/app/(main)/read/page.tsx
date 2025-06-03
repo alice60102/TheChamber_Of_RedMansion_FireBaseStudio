@@ -13,8 +13,8 @@ interface Book {
   title: string;
   author: string;
   description: string;
-  coverImage: string; 
-  aiHint: string;     
+  coverImage: string; // Kept for potential future use, but icon is used now
+  aiHint: string;     // For actual image generation if needed
   readLink: string;
   badgeText?: string; // For badges like "電子書" or "專家解讀"
 }
@@ -25,9 +25,9 @@ const originalTextBooks: Book[] = [
     title: '紅樓夢上中下三冊',
     author: '時報出版',
     description: '時報出版發行的《紅樓夢》全集，分為上、中、下三冊。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929', 
+    coverImage: 'https://placehold.co/150x220.png?tint=662929', // Tint for icon background placeholder
     aiHint: 'chinese novel set',
-    readLink: '#', 
+    readLink: '#', // Placeholder link
     badgeText: '電子書',
   },
   {
@@ -37,7 +37,7 @@ const originalTextBooks: Book[] = [
     description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
     coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese novel',
-    readLink: '/read-book', 
+    readLink: '/read-book', // Actual link for this specific book
     badgeText: '電子書',
   },
   {
@@ -160,6 +160,7 @@ const BookCard = ({ book }: { book: Book }) => (
   <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-card/70 flex flex-col">
     <CardContent className="p-0 flex-grow flex flex-col">
       <div className="relative aspect-[3/4.4] bg-muted/50 flex items-center justify-center rounded-t-md overflow-hidden">
+        {/* Using Font Awesome icon directly */}
         <i className="fa fa-book text-7xl text-primary/60" aria-hidden="true"></i>
         {book.badgeText && (
           <div className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">
@@ -173,7 +174,7 @@ const BookCard = ({ book }: { book: Book }) => (
           <p className="text-xs text-muted-foreground truncate" title={book.author}>{book.author}</p>
           <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-2" title={book.description}>{book.description}</p>
         </div>
-        <div className="flex items-center justify-end pt-2 mt-auto">
+        <div className="flex items-center justify-end pt-2 mt-auto"> {/* mt-auto pushes this div to the bottom */}
            <Button asChild variant="link" size="sm" className="p-0 h-auto text-primary hover:text-primary/80">
             <Link href={book.readLink}>
               <BookOpen className="mr-1 h-3.5 w-3.5" />閱讀
@@ -188,6 +189,7 @@ const BookCard = ({ book }: { book: Book }) => (
 export default function BookSelectionPage() {
   const [activeTab, setActiveTab] = useState("originals");
 
+  // Calculate total count for "全部" button
   const allBooksCount = originalTextBooks.length + expertInterpretationBooks.length;
 
 
@@ -246,3 +248,4 @@ export default function BookSelectionPage() {
     </div>
   );
 }
+
