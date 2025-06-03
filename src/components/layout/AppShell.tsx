@@ -12,6 +12,7 @@ import {
   LogOut,
   Users,
   Search, // Added for search
+  Trophy, // Added for Achievements
   // BarChart3, // For '研讀' (Research) - Removed
   // Sparkles, // For '情境連結' (Modern Relevance) - Removed
   // Users2, // For '學習社群' (Community) - if different from Users
@@ -57,6 +58,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "儀表板" },
   { href: "/read", label: "閱讀", icon: BookOpen, tooltip: "閱讀" },
+  { href: "/achievements", label: "成就與目標", icon: Trophy, tooltip: "我的成就與目標" }, // Added
   // { href: "/goals", label: "學習目標", icon: ListChecks, tooltip: "學習目標與進度" }, // Removed
   // { href: "/characters", label: "學習狀況", icon: Brain, tooltip: "個人知識圖譜與學習分析" }, // Removed
   // { href: "/research", label: "研讀", icon: BarChart3, tooltip: "專題研究" }, // Removed
@@ -94,8 +96,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <SidebarMenuButton
                     asChild
                     className="w-full justify-start"
-                    variant={pathname === item.href || (pathname === '/read-book' && item.href === '/read') ? "default" : "ghost"}
-                    isActive={pathname === item.href || (pathname === '/read-book' && item.href === '/read')}
+                    variant={pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/') || (pathname === '/read-book' && item.href === '/read') ? "default" : "ghost"}
+                    isActive={pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/') || (pathname === '/read-book' && item.href === '/read')}
                     tooltip={item.tooltip}
                   >
                     <Link href={item.href}>

@@ -188,7 +188,6 @@ export default function HomePage() {
               <p className="text-sm">AI 賦能，重探紅樓之夢。您的智能《紅樓夢》學習夥伴。</p>
             </div>
             <div className="text-sm">
-              <p>參加「113-2 數位人文創想競賽_高山文津_紅樓慧讀」</p>
             </div>
           </div>
           <div className="mt-8 border-t border-border/40 pt-6 text-center text-xs">
