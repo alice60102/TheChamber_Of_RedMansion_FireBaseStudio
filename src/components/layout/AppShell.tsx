@@ -56,7 +56,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "儀表板", icon: LayoutDashboard, tooltip: "儀表板" },
+  { href: "/dashboard", label: "首頁", icon: LayoutDashboard, tooltip: "首頁" },
   { href: "/read", label: "閱讀", icon: BookOpen, tooltip: "閱讀" },
   { href: "/achievements", label: "成就與目標", icon: Trophy, tooltip: "我的成就與目標" }, // Added
   // { href: "/goals", label: "學習目標", icon: ListChecks, tooltip: "學習目標與進度" }, // Removed
