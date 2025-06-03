@@ -633,7 +633,10 @@ export default function ReadBookPage() {
       </div>
 
       <ScrollArea
-        className={cn("flex-grow pt-24 pb-10 px-4 md:px-8")}
+        className={cn(
+          "flex-grow pt-24 pb-10 px-4 md:px-8",
+          selectedTheme.readingBgClass 
+        )}
         id="chapter-content-scroll-area"
       >
         <div
@@ -641,7 +644,6 @@ export default function ReadBookPage() {
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedTheme.readingBgClass,
             selectedTheme.readingTextClass, 
             selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '',
           )}
