@@ -25,7 +25,7 @@ const placeholderBooks: Book[] = [
     title: '紅樓夢 (第三版)',
     author: '[清] 曹雪芹',
     description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
-    coverImage: 'https://placehold.co/150x220.png',
+    coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese novel',
     readLink: '/read-book', 
   },
@@ -34,7 +34,7 @@ const placeholderBooks: Book[] = [
     title: '紅樓夢 (程甲本影印)',
     author: '[清] 曹雪芹 高鶚',
     description: '清代程偉元、高鶚整理的《紅樓夢》早期印本之一。',
-    coverImage: 'https://placehold.co/150x220.png',
+    coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese antique',
     readLink: '#',
   },
@@ -43,7 +43,7 @@ const placeholderBooks: Book[] = [
     title: '紅樓夢 (庚辰本校注)',
     author: '[清] 曹雪芹 著；俞平伯 校注',
     description: '以庚辰本為底本，參校各脂本，進行詳細校勘與註釋。',
-    coverImage: 'https://placehold.co/150x220.png',
+    coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese scholarly',
     readLink: '#',
   },
@@ -52,7 +52,7 @@ const placeholderBooks: Book[] = [
     title: '脂硯齋重評石頭記 (校訂本)',
     author: '[清] 曹雪芹；脂硯齋 評',
     description: '彙集了帶有脂硯齋等人大量批語的早期抄本。',
-    coverImage: 'https://placehold.co/150x220.png',
+    coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese manuscript',
     readLink: '#',
   },
@@ -61,7 +61,7 @@ const placeholderBooks: Book[] = [
     title: '紅樓夢 (夢稿本整理版)',
     author: '[清] 曹雪芹',
     description: '根據「夢稿本」整理排印，保留早期稿本特色。',
-    coverImage: 'https://placehold.co/150x220.png',
+    coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese rare',
     readLink: '#',
   },
@@ -70,7 +70,7 @@ const placeholderBooks: Book[] = [
     title: '紅樓夢 (百年紀念版)',
     author: '[清] 曹雪芹',
     description: '紀念《紅樓夢》研究百年，匯集名家點評的珍藏版本。',
-    coverImage: 'https://placehold.co/150x220.png',
+    coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese edition',
     readLink: '#',
   },
@@ -158,3 +158,4 @@ export default function BookSelectionPage() {
     </div>
   );
 }
+
