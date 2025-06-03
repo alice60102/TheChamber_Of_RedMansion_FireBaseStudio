@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'sc0.blr1.digitaloceanspaces.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   webpack: (config, { isServer }) => {
@@ -43,3 +49,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

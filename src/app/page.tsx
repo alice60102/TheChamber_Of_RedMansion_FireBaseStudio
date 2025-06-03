@@ -50,18 +50,18 @@ export default function HomePage() {
             <ScrollText className="h-7 w-7 text-primary" />
             <span className="text-xl font-artistic font-bold text-white">紅樓慧讀</span>
           </Link>
-          <nav className="flex items-center space-x-4 md:space-x-6 mr-4">
-            <Button variant="ghost" asChild className="text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
+          <nav className="flex items-center space-x-1 md:space-x-2 mr-4">
+            <Button variant="ghost" asChild className="text-xs sm:text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
               <Link href="/">主頁</Link>
             </Button>
-            <Button variant="ghost" asChild className="text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
+            <Button variant="ghost" asChild className="text-xs sm:text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
               <Link href="#challenges">特色</Link>
             </Button>
-            <Button variant="ghost" asChild className="text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
+            <Button variant="ghost" asChild className="text-xs sm:text-sm font-medium text-foreground/80 hover:text-foreground px-2 sm:px-3">
               <Link href="#solutions">主要功能</Link>
             </Button>
-            <Button variant="ghost" className="text-xs font-medium text-foreground/70 hover:text-foreground px-2 sm:px-3">
-              ENGLISH (US) {/* Placeholder for language switching functionality */}
+            <Button variant="ghost" className="text-xs sm:text-sm font-medium text-foreground/70 hover:text-foreground px-2 sm:px-3">
+              ENGLISH (US)
             </Button>
           </nav>
         </div>
@@ -71,15 +71,23 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="relative py-20 md:py-32">
            <Image
-            src="https://placehold.co/1920x800.png?tint=2E0A0A,932121"
-            alt="紅樓夢藝術背景"
+            src="https://placehold.co/1920x800.png?tint=2E0A0A,932121" // Base red background
+            alt="紅樓夢藝術背景底色"
             fill
             priority
             quality={75}
-            className="absolute inset-0 -z-10 object-cover opacity-30"
-            data-ai-hint="chinese classical art"
+            className="absolute inset-0 -z-20 object-cover opacity-30" 
+            data-ai-hint="red texture"
           />
-          <div className="container relative mx-auto px-6 text-center">
+          <Image
+            src="https://sc0.blr1.digitaloceanspaces.com/large/876203-87586-yybgacqder-1524133512.jpg" // New overlay image
+            alt="紅樓夢古典繪畫疊加背景"
+            fill
+            quality={75}
+            className="absolute inset-0 -z-10 object-cover opacity-50"
+            data-ai-hint="chinese classical painting"
+          />
+          <div className="container relative z-0 mx-auto px-6 text-center">
             <h1 className="text-4xl font-artistic font-bold text-white md:text-6xl leading-tight">
               智能引航，重煥<span className="text-primary">紅樓</span>之夢
             </h1>
@@ -191,3 +199,4 @@ export default function HomePage() {
     </div>
   );
 }
+
