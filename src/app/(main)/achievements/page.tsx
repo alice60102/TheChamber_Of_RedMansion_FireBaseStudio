@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Award, Star, Target, BookOpen, CalendarDays, CheckCircle, Users, Trophy, Share2, ShieldCheck, BarChart3, Edit, Settings2, ListChecks, Clock, Zap } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useState } from "react";
+import { Label } from "@/components/ui/label";
 
 // Placeholder Data
 const achievedAchievementsData = [
