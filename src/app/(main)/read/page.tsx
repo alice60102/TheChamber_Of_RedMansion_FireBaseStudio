@@ -16,8 +16,6 @@ interface Book {
   description: string;
   coverImage: string;
   aiHint: string;
-  price?: string; // Kept for interface consistency, but won't be rendered
-  memberFree?: boolean; // Kept for interface consistency, but won't be rendered
   readLink: string;
 }
 
@@ -28,7 +26,7 @@ const placeholderBooks: Book[] = [
     author: '[清] 曹雪芹',
     description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
     coverImage: 'https://placehold.co/150x220.png',
-    aiHint: 'classic chinese novel',
+    aiHint: 'chinese novel',
     readLink: '/read-book', 
   },
   {
@@ -37,7 +35,7 @@ const placeholderBooks: Book[] = [
     author: '[清] 曹雪芹 高鶚',
     description: '清代程偉元、高鶚整理的《紅樓夢》早期印本之一。',
     coverImage: 'https://placehold.co/150x220.png',
-    aiHint: 'antique chinese book',
+    aiHint: 'chinese antique',
     readLink: '#',
   },
   {
@@ -46,7 +44,7 @@ const placeholderBooks: Book[] = [
     author: '[清] 曹雪芹 著；俞平伯 校注',
     description: '以庚辰本為底本，參校各脂本，進行詳細校勘與註釋。',
     coverImage: 'https://placehold.co/150x220.png',
-    aiHint: 'scholarly chinese literature',
+    aiHint: 'chinese scholarly',
     readLink: '#',
   },
   {
@@ -55,7 +53,7 @@ const placeholderBooks: Book[] = [
     author: '[清] 曹雪芹；脂硯齋 評',
     description: '彙集了帶有脂硯齋等人大量批語的早期抄本。',
     coverImage: 'https://placehold.co/150x220.png',
-    aiHint: 'historical chinese manuscript',
+    aiHint: 'chinese manuscript',
     readLink: '#',
   },
   {
@@ -64,7 +62,7 @@ const placeholderBooks: Book[] = [
     author: '[清] 曹雪芹',
     description: '根據「夢稿本」整理排印，保留早期稿本特色。',
     coverImage: 'https://placehold.co/150x220.png',
-    aiHint: 'rare chinese book',
+    aiHint: 'chinese rare',
     readLink: '#',
   },
   {
@@ -73,7 +71,7 @@ const placeholderBooks: Book[] = [
     author: '[清] 曹雪芹',
     description: '紀念《紅樓夢》研究百年，匯集名家點評的珍藏版本。',
     coverImage: 'https://placehold.co/150x220.png',
-    aiHint: 'special edition book',
+    aiHint: 'chinese edition',
     readLink: '#',
   },
 ];
@@ -131,7 +129,7 @@ export default function BookSelectionPage() {
                       <div className="p-3 space-y-1">
                         <h3 className="font-semibold text-sm text-foreground truncate" title={book.title}>{book.title}</h3>
                         <p className="text-xs text-muted-foreground truncate" title={book.author}>{book.author}</p>
-                        <div className="flex items-center justify-end pt-1"> {/* Changed justify-between to justify-end */}
+                        <div className="flex items-center justify-end pt-1">
                            <Button asChild variant="link" size="sm" className="p-0 h-auto text-primary hover:text-primary/80">
                             <Link href={book.readLink}>
                               <BookOpen className="mr-1 h-3.5 w-3.5" />閱讀
