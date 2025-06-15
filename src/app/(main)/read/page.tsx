@@ -11,150 +11,47 @@ import { useLanguage } from '@/hooks/useLanguage';
 
 interface Book {
   id: string;
-  title: string;
-  author: string;
-  description: string;
+  titleKey: string;
+  authorKey: string;
+  descriptionKey: string;
   coverImage: string; 
   aiHint: string;
   readLink: string;
   badgeTextKey?: string; 
 }
 
-const originalTextBooks: Book[] = [
-  {
-    id: 'hlm-times-edition',
-    title: '紅樓夢上中下三冊',
-    author: '時報出版',
-    description: '時報出版發行的《紅樓夢》全集，分為上、中、下三冊。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
-    aiHint: 'chinese novel set',
-    readLink: '#', 
-    badgeTextKey: 'read.badgeEbook',
-  },
-  {
-    id: 'hlm-v3',
-    title: '紅樓夢 (第三版)',
-    author: '[清] 曹雪芹',
-    description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
-    aiHint: 'chinese novel',
-    readLink: '/read-book',
-    badgeTextKey: 'read.badgeEbook',
-  },
-  {
-    id: 'hlm-chengjia',
-    title: '紅樓夢 (程甲本影印)',
-    author: '[清] 曹雪芹 高鶚',
-    description: '清代程偉元、高鶚整理的《紅樓夢》早期印本之一。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
-    aiHint: 'chinese antique',
-    readLink: '#',
-    badgeTextKey: 'read.badgeEbook',
-  },
-  {
-    id: 'hlm-gengchen',
-    title: '紅樓夢 (庚辰本校注)',
-    author: '[清] 曹雪芹 著；俞平伯 校注',
-    description: '以庚辰本為底本，參校各脂本，進行詳細校勘與註釋。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
-    aiHint: 'chinese scholarly',
-    readLink: '#',
-    badgeTextKey: 'read.badgeEbook',
-  },
-  {
-    id: 'hlm-zhiyan',
-    title: '脂硯齋重評石頭記 (校訂本)',
-    author: '[清] 曹雪芹；脂硯齋 評',
-    description: '彙集了帶有脂硯齋等人大量批語的早期抄本。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
-    aiHint: 'chinese manuscript',
-    readLink: '#',
-    badgeTextKey: 'read.badgeEbook',
-  },
-  {
-    id: 'hlm-menggao',
-    title: '紅樓夢 (夢稿本整理版)',
-    author: '[清] 曹雪芹',
-    description: '根據「夢稿本」整理排印，保留早期稿本特色。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
-    aiHint: 'chinese rare',
-    readLink: '#',
-    badgeTextKey: 'read.badgeEbook',
-  },
-  {
-    id: 'hlm-anniversary',
-    title: '紅樓夢 (百年紀念版)',
-    author: '[清] 曹雪芹',
-    description: '紀念《紅樓夢》研究百年，匯集名家點評的珍藏版本。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929',
-    aiHint: 'chinese edition',
-    readLink: '#',
-    badgeTextKey: 'read.badgeEbook',
-  },
+// Data uses keys now, actual text in translations.ts
+const originalTextBooksData: Omit<Book, 'titleKey'|'authorKey'|'descriptionKey'> & { id: string }[] = [
+  { id: 'hlm-times-edition', coverImage: 'https://placehold.co/150x220.png?tint=662929', aiHint: 'chinese novel set', readLink: '#', badgeTextKey: 'read.badgeEbook' },
+  { id: 'hlm-v3', coverImage: 'https://placehold.co/150x220.png?tint=662929', aiHint: 'chinese novel', readLink: '/read-book', badgeTextKey: 'read.badgeEbook' },
+  { id: 'hlm-chengjia', coverImage: 'https://placehold.co/150x220.png?tint=662929', aiHint: 'chinese antique', readLink: '#', badgeTextKey: 'read.badgeEbook' },
+  { id: 'hlm-gengchen', coverImage: 'https://placehold.co/150x220.png?tint=662929', aiHint: 'chinese scholarly', readLink: '#', badgeTextKey: 'read.badgeEbook' },
+  { id: 'hlm-zhiyan', coverImage: 'https://placehold.co/150x220.png?tint=662929', aiHint: 'chinese manuscript', readLink: '#', badgeTextKey: 'read.badgeEbook' },
+  { id: 'hlm-menggao', coverImage: 'https://placehold.co/150x220.png?tint=662929', aiHint: 'chinese rare', readLink: '#', badgeTextKey: 'read.badgeEbook' },
+  { id: 'hlm-anniversary', coverImage: 'https://placehold.co/150x220.png?tint=662929', aiHint: 'chinese edition', readLink: '#', badgeTextKey: 'read.badgeEbook' },
 ];
 
-const expertInterpretationBooks: Book[] = [
-  {
-    id: 'jiangxun-youth',
-    title: '蔣勳說紅樓夢青春版',
-    author: '蔣勳',
-    description: '除了文字之外，附加了很多的圖，閱讀的易讀性增加了許多。詳細講解每一回，並且排版很舒服。文筆柔和，內容也沒有多大門檻、生活化，適合青少年讀。',
-    coverImage: 'https://placehold.co/150x220.png?tint=555555',
-    aiHint: 'chinese literary criticism',
-    readLink: '#',
-    badgeTextKey: 'read.badgeExpert',
-  },
-  {
-    id: 'jiangxun-dream',
-    title: '蔣勳 夢紅樓',
-    author: '蔣勳',
-    description: '為入門的紅樓夢書籍 可以作為讀紅樓夢之前的概觀 不用太多的專業知識也能讀懂 和生活連結性強。',
-    coverImage: 'https://placehold.co/150x220.png?tint=555555',
-    aiHint: 'chinese literary introduction',
-    readLink: '#',
-    badgeTextKey: 'read.badgeExpert',
-  },
-  {
-    id: 'jiangxun-microdust',
-    title: '蔣勳 微塵眾',
-    author: '蔣勳',
-    description: '也是入門的紅樓夢書籍 一一介紹了紅樓夢的各個人物',
-    coverImage: 'https://placehold.co/150x220.png?tint=555555',
-    aiHint: 'chinese character analysis',
-    readLink: '#',
-    badgeTextKey: 'read.badgeExpert',
-  },
-  {
-    id: 'baixianyong-detailed',
-    title: '白先勇細說紅樓夢',
-    author: '白先勇',
-    description: '也詳細講了每一回，和蔣勳老師不同之處在於生活的部分少了很多。詳細講的全面、深入，較為深思型的，有另一個不一樣的視角。需要一點中國文學的背景知識。書中有文字也有圖。',
-    coverImage: 'https://placehold.co/150x220.png?tint=555555',
-    aiHint: 'chinese literary analysis',
-    readLink: '#',
-    badgeTextKey: 'read.badgeExpert',
-  },
-  {
-    id: 'oulijuan-sixviews',
-    title: '歐麗娟 六觀紅樓(綜論卷)、紅樓夢公開課',
-    author: '歐麗娟',
-    description: '歐麗娟老師的適合讀完紅樓夢整本，以及對紅樓夢有較整體認識來讀的，並且學術性較多，多為專題式的研究。',
-    coverImage: 'https://placehold.co/150x220.png?tint=555555',
-    aiHint: 'chinese academic study',
-    readLink: '#',
-    badgeTextKey: 'read.badgeExpert',
-  },
-  {
-    id: 'dongmei-thorough',
-    title: '董梅講透紅樓夢',
-    author: '董梅',
-    description: '介於生活和學術之間，需要的閱讀能力有點在白先勇的前面一些，門檻沒有很高。但是為主題式的說明，從各個角度，例如生活美學、文學傑作、生活符號綜合來了解紅樓夢。',
-    coverImage: 'https://placehold.co/150x220.png?tint=555555',
-    aiHint: 'chinese thematic interpretation',
-    readLink: '#',
-    badgeTextKey: 'read.badgeExpert',
-  },
+const expertInterpretationBooksData: Omit<Book, 'titleKey'|'authorKey'|'descriptionKey'> & { id: string }[] = [
+  { id: 'jiangxun-youth', coverImage: 'https://placehold.co/150x220.png?tint=555555', aiHint: 'chinese literary criticism', readLink: '#', badgeTextKey: 'read.badgeExpert' },
+  { id: 'jiangxun-dream', coverImage: 'https://placehold.co/150x220.png?tint=555555', aiHint: 'chinese literary introduction', readLink: '#', badgeTextKey: 'read.badgeExpert' },
+  { id: 'jiangxun-microdust', coverImage: 'https://placehold.co/150x220.png?tint=555555', aiHint: 'chinese character analysis', readLink: '#', badgeTextKey: 'read.badgeExpert' },
+  { id: 'baixianyong-detailed', coverImage: 'https://placehold.co/150x220.png?tint=555555', aiHint: 'chinese literary analysis', readLink: '#', badgeTextKey: 'read.badgeExpert' },
+  { id: 'oulijuan-sixviews', coverImage: 'https://placehold.co/150x220.png?tint=555555', aiHint: 'chinese academic study', readLink: '#', badgeTextKey: 'read.badgeExpert' },
+  { id: 'dongmei-thorough', coverImage: 'https://placehold.co/150x220.png?tint=555555', aiHint: 'chinese thematic interpretation', readLink: '#', badgeTextKey: 'read.badgeExpert' },
 ];
+
+// Function to create full Book objects with translation keys
+const createBookList = (bookData: any[]): Book[] => {
+  return bookData.map(book => ({
+    ...book,
+    titleKey: `bookShelf.${book.id.replace(/-/g, '')}.title`, // e.g. bookShelf.hlmtimesedition.title
+    authorKey: `bookShelf.${book.id.replace(/-/g, '')}.author`,
+    descriptionKey: `bookShelf.${book.id.replace(/-/g, '')}.description`,
+  }));
+};
+
+const originalTextBooks: Book[] = createBookList(originalTextBooksData);
+const expertInterpretationBooks: Book[] = createBookList(expertInterpretationBooksData);
 
 
 const BookCard = ({ book, t }: { book: Book; t: (key: string) => string }) => (
@@ -170,9 +67,9 @@ const BookCard = ({ book, t }: { book: Book; t: (key: string) => string }) => (
       </div>
       <div className="p-3 space-y-1 flex-grow flex flex-col justify-between">
         <div>
-          <h3 className="font-semibold text-sm text-foreground truncate" title={book.title}>{book.title}</h3>
-          <p className="text-xs text-muted-foreground truncate" title={book.author}>{book.author}</p>
-          <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-2" title={book.description}>{book.description}</p>
+          <h3 className="font-semibold text-sm text-foreground truncate" title={t(book.titleKey)}>{t(book.titleKey)}</h3>
+          <p className="text-xs text-muted-foreground truncate" title={t(book.authorKey)}>{t(book.authorKey)}</p>
+          <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-2" title={t(book.descriptionKey)}>{t(book.descriptionKey)}</p>
         </div>
         <div className="flex items-center justify-end pt-2 mt-auto">
            <Button asChild variant="link" size="sm" className="p-0 h-auto text-primary hover:text-primary/80">

@@ -9,14 +9,14 @@ import {
   Volume2,  
   Copy,     
   Quote,
-  ChevronDown // Added for popover close
+  ChevronDown 
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
-import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection'; // Output type removed as it's not directly used here
+import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label';
+import { Label } from '@/components/ui/label';
 import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
@@ -25,37 +25,33 @@ import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/compone
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from '@/hooks/useLanguage';
-
+import { transformTextForLang } from '@/lib/translations'; // Import the transformation utility
 
 interface Annotation {
   text: string;
-  note: string;
+  note: string; // Base text (zh-TW)
   id: string;
 }
 
 interface Paragraph {
-  content: Array<string | Annotation>;
-  vernacular?: string;
+  content: Array<string | Annotation>; // Base text (zh-TW)
+  vernacular?: string; // Base text (zh-TW)
 }
 
 interface Chapter {
   id: number;
-  title: string; // Will remain in Chinese
-  subtitle?: string; // Will remain in Chinese
-  summary: string; // Will remain in Chinese
-  paragraphs: Paragraph[];
+  titleKey: string; // Translation key
+  subtitleKey?: string; // Translation key
+  summaryKey: string; // Translation key
+  paragraphs: Paragraph[]; // Content remains base zh-TW
 }
 
-// CHAPTER DATA: This data is intentionally kept in Chinese as it represents the book content.
-// Only UI elements around it will be translated.
-const chapters: Chapter[] = [
+// CHAPTER DATA: Base content is zh-TW. Keys are used for translatable metadata.
+const chapters_base_data: Omit<Chapter, 'titleKey' | 'subtitleKey' | 'summaryKey'>[] = [
   {
     id: 1,
-    title: "第一回 甄士隱夢幻識通靈 賈雨村風塵懷閨秀",
-    subtitle: "紅樓夢:第三版(中國古典文學讀本叢書)",
-    summary: "本回主要講述了甄士隱夢遇一僧一道談論石頭下凡歷劫，以及賈雨村的落魄與發跡。甄士隱因女兒英蓮被拐、家遭火災而看破紅塵，隨跛足道人出家，點出了小說「真事隱去，假語存焉」的創作主旨和「夢幻」的基調。",
     paragraphs: [
-      { content: ["此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！当此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。"], vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以致 bugün一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提並論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
+      { content: ["此開卷第一回也。作者自云：因曾歷過一番夢幻之後，故將真事隱去，而借「通靈」之說，撰此《石頭記》一書也。故曰「甄士隱」云云。但書中所記何事何人？自又云：「今風塵碌碌，一事無成，忽念及當日所有之女子，一一細考較去，覺其行止見識，皆出我之上。我堂堂鬚眉，誠不若彼裙釵。我實愧則有餘，悔又無益，大無可如何之日也！当此日，欲將已往所賴天恩祖德，錦衣紈褲之時，飫甘饜肥之日，背父兄教育之恩，負師友規訓之德，以致今日一技無成，半生潦倒之罪，編述一集，以告天下。知我之負罪固多，然閨閣中歷歷有人，萬不可因我之不肖，自護己短，一併使其泯滅也。故當此時，自欲將以往經歷，及素所聞識，逐細編次，作為小說，聊以表我這些姊妹。雖不敢比類自己，自謂可以傳世，亦可使閨閣昭傳。復可破一時之悶，醒同人之目，不亦宜乎？」故曰「賈雨村」云云。"], vernacular: "（白話文）這是本書的第一回。作者自己說：因為曾經經歷過一番夢幻般的事情，所以把真實的事情隱藏起來，借用「通靈寶玉」的說法，寫成了這本《石頭記》。所以書中稱「甄士隱」等等。但書中記載的是什麼事、什麼人呢？作者又說：「現在我到處奔波，一事無成，忽然想起當年的那些女子，一個個仔細回想比較，覺得她們的言行見識，都在我之上。我一個堂堂男子，實在不如那些女性。我實在是慚愧有餘，後悔也沒用，真是非常無奈啊！在那時，我想把自己過去依仗著上天的恩賜和祖先的功德，過著富裕悠閒生活的時候，享受著美味佳餚的日子，卻違背了父兄的教誨，辜負了老師朋友的規勸，以致今日一無所長，半生潦倒的罪過，編寫成一本書，告訴世人。我知道我的罪過很多，但是女性當中確實有很多傑出的人物，千萬不能因為我的不成才，只顧著掩飾自己的缺點，而讓她们的事蹟也跟著被埋沒了。所以在這個時候，我自己想把過去的經歷，以及平時聽到見到的事情，詳細地編排起來，寫成小說，來表彰我這些姐妹們。雖然不敢和自己相提並論，自認為可以流傳後世，也可以讓女性們的事蹟顯揚。又可以解除一時的煩悶，提醒世人，不也是件好事嗎？」所以書中稱「賈雨村」等等。" },
       {
         content: [
           "你道此書從何而起？說來雖近荒唐，細玩頗有趣味。卻說那",
@@ -82,9 +78,6 @@ const chapters: Chapter[] = [
     const chapterNum = i + 2;
     return {
       id: chapterNum,
-      title: `第 ${chapterNum} 回 示例標題 ${chapterNum}`,
-      subtitle: `紅樓夢示例副標題 ${chapterNum}`,
-      summary: `這是第 ${chapterNum} 回的摘要。此回主要講述了 [簡短描述] 等情節，展現了 [主要人物] 的 [性格特點或遭遇]。`,
       paragraphs: [
         { content: [`此為第 ${chapterNum} 回示例原文段落一。話說 [某角色] 如何如何...`], vernacular: `（白話文）這是第 ${chapterNum} 回的白話示例段落一。[某角色] 做了些什麼...` },
         { content: [`第 ${chapterNum} 回示例原文段落二，又提及 [另一事件或人物]。此處略去更多內容，僅為演示。`], vernacular: `（白話文）第 ${chapterNum} 回白話示例段落二。又說到了 [其他事情]。` },
@@ -92,6 +85,25 @@ const chapters: Chapter[] = [
     };
   })
 ];
+
+const chapters: Chapter[] = chapters_base_data.map(ch_base => {
+  const chapterNum = ch_base.id;
+  if (chapterNum === 1) {
+    return {
+      ...ch_base,
+      titleKey: 'chapterContent.ch1.title',
+      subtitleKey: 'chapterContent.ch1.subtitle',
+      summaryKey: 'chapterContent.ch1.summary',
+    };
+  }
+  return {
+    ...ch_base,
+    titleKey: `chapterContent.ch_generic.title#${chapterNum}`, // Using # to pass number for replacement
+    subtitleKey: `chapterContent.ch_generic.subtitle#${chapterNum}`,
+    summaryKey: `chapterContent.ch_generic.summary#${chapterNum}`,
+  };
+});
+
 
 type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
 type ColumnLayout = 'single' | 'double' | 'triple';
@@ -146,7 +158,7 @@ const highlightText = (text: string, highlight: string): React.ReactNode[] => {
 export default function ReadBookPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { t, language } = useLanguage(); // Added language
+  const { t, language } = useLanguage();
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
   const [showVernacular, setShowVernacular] = useState(false);
@@ -168,6 +180,7 @@ export default function ReadBookPage() {
 
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const toolbarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
   const currentChapter = chapters[currentChapterIndex];
 
   const [isSettingsPopoverOpen, setIsSettingsPopoverOpen] = useState(false);
@@ -234,6 +247,13 @@ export default function ReadBookPage() {
     setCurrentSearchTerm("");
     setIsSearchPopoverOpen(false);
     setIsToolbarVisible(true);
+    // Scroll to top of chapter content when chapter changes
+    if (chapterContentRef.current) {
+      const scrollArea = document.getElementById('chapter-content-scroll-area');
+      if (scrollArea) {
+        scrollArea.scrollTop = 0;
+      }
+    }
   }, [currentChapterIndex]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
@@ -353,13 +373,11 @@ export default function ReadBookPage() {
 
       const input: ExplainTextSelectionInput = {
         selectedText: selectedTextInfo.text,
-        // For AI, questions should ideally be in the language it's trained for, or provide language hints.
-        // Here, we pass userQuestionInput as is. If AI struggles with mixed-lang prompts, this might need adjustment.
         userQuestion: userQuestionInput, 
         chapterContext: chapterContextSnippet,
       };
-      const result = await explainTextSelection(input); // explainTextSelection itself is not multilingual
-      setTextExplanation(result.explanation); // The explanation from AI will be in Chinese
+      const result = await explainTextSelection(input);
+      setTextExplanation(result.explanation);
       setAiInteractionState('answered');
     } catch (error) {
       console.error("Error explaining text selection:", error);
@@ -416,7 +434,16 @@ export default function ReadBookPage() {
   const toolbarIconClass = "h-6 w-6";
   const toolbarLabelClass = "mt-1 text-xs leading-none";
   
-  const vernacularText = language === 'en-US' ? currentChapter.paragraphs[0]?.vernacular?.replace("（白話文）", "(Vernacular) ") : currentChapter.paragraphs[0]?.vernacular;
+  const getChapterTitle = (titleKey: string) => {
+    if (titleKey.includes('#')) {
+      const [baseKey, num] = titleKey.split('#');
+      return t(baseKey).replace('{chapterNum}', num);
+    }
+    return t(titleKey);
+  };
+  
+  const currentChapterTitle = getChapterTitle(currentChapter.titleKey);
+  const currentChapterSubtitle = currentChapter.subtitleKey ? getChapterTitle(currentChapter.subtitleKey) : undefined;
 
 
   return (
@@ -509,6 +536,9 @@ export default function ReadBookPage() {
                     ))}
                   </div>
                 </div>
+                 <PopoverClose className="absolute top-1 right-1 rounded-full p-1 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+                    <X className="h-4 w-4" />
+                 </PopoverClose>
               </PopoverContent>
             </Popover>
 
@@ -543,9 +573,8 @@ export default function ReadBookPage() {
           </div>
 
           <div className="text-center overflow-hidden flex-grow px-2 mx-2 md:mx-4">
-            {/* Chapter title and subtitle are content, not UI, so not translated by `t()` */}
-            <h1 className={cn("text-base md:text-lg font-semibold truncate", selectedTheme.toolbarAccentTextClass)}>{currentChapter.title}</h1>
-            {currentChapter.subtitle && <p className={cn("text-sm truncate", selectedTheme.toolbarTextClass)}>{currentChapter.subtitle}</p>}
+            <h1 className={cn("text-base md:text-lg font-semibold truncate", selectedTheme.toolbarAccentTextClass)} title={currentChapterTitle}>{currentChapterTitle}</h1>
+            {currentChapterSubtitle && <p className={cn("text-sm truncate", selectedTheme.toolbarTextClass)} title={currentChapterSubtitle}>{currentChapterSubtitle}</p>}
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
@@ -590,6 +619,9 @@ export default function ReadBookPage() {
                     <ClearSearchIcon className="h-4 w-4" />
                   </Button>
                 </div>
+                 <PopoverClose className="absolute top-1 right-1 rounded-full p-1 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
+                    <X className="h-4 w-4" />
+                 </PopoverClose>
               </PopoverContent>
             </Popover>
 
@@ -603,7 +635,7 @@ export default function ReadBookPage() {
 
       <ScrollArea
         className={cn(
-          "flex-grow pt-24 pb-10 px-4 md:px-8",
+          "flex-grow pt-24 pb-10 px-4 md:px-8", // pt-24 to account for toolbar height
           selectedTheme.readingBgClass 
         )}
         id="chapter-content-scroll-area"
@@ -613,25 +645,27 @@ export default function ReadBookPage() {
           className={cn(
             "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedTheme.readingTextClass, 
-            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '',
+            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '', // Apply Tailwind font class if it's one of them
           )}
           style={{
             fontSize: `${currentNumericFontSize}px`,
-            fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class
+            fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class // Apply direct font family if not a Tailwind class
           }}
         >
           {currentChapter.paragraphs.map((para, paraIndex) => (
             <div key={paraIndex} className="mb-4 break-inside-avoid-column">
-              <p>
+              <p className={selectedTheme.readingTextClass}>
                 {para.content.map((item, itemIndex) => {
                   const key = `para-${paraIndex}-item-${itemIndex}`;
                   if (typeof item === 'string') {
-                    return <React.Fragment key={key}>{highlightText(item, currentSearchTerm)}</React.Fragment>;
+                    const transformedOriginal = transformTextForLang(item, language, 'original');
+                    return <React.Fragment key={key}>{highlightText(transformedOriginal, currentSearchTerm)}</React.Fragment>;
                   } else {
+                    const transformedAnnotationText = transformTextForLang(item.text, language, 'original');
+                    const transformedAnnotationNote = transformTextForLang(item.note, language, 'annotation');
                     return (
                       <React.Fragment key={item.id || key}>
-                        {highlightText(item.text, currentSearchTerm)}
+                        {highlightText(transformedAnnotationText, currentSearchTerm)}
                         <Popover>
                           <PopoverTrigger asChild>
                             <button
@@ -655,7 +689,7 @@ export default function ReadBookPage() {
                               <PopoverClose className="absolute top-1 right-1 rounded-full p-0.5 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
                                 <X className="h-3.5 w-3.5" />
                               </PopoverClose>
-                              <p className="whitespace-pre-wrap pr-4">{item.note}</p>
+                              <p className="whitespace-pre-wrap pr-4">{transformedAnnotationNote}</p>
                             </div>
                           </PopoverContent>
                         </Popover>
@@ -665,9 +699,14 @@ export default function ReadBookPage() {
                 })}
               </p>
               {showVernacular && para.vernacular && (
-                 <p className={cn("italic mt-1 text-sm", selectedTheme.readingTextClass === themes.night.readingTextClass ? "text-neutral-400" : "text-muted-foreground")}>
+                 <p className={cn(
+                    "italic mt-1 text-sm", 
+                    selectedTheme.readingTextClass, // Apply main text color first
+                    selectedTheme.key === 'night' ? "text-neutral-400 opacity-80" : "text-muted-foreground opacity-90" // More specific muted for vernacular
+                  )}
+                 >
                   {highlightText(
-                    language === 'en-US' ? para.vernacular.replace("（白話文）", t('readBook.vernacularPrefix')) : para.vernacular.replace("（白話文）", t('readBook.vernacularPrefix')), // replace prefix with translated one
+                     transformTextForLang(para.vernacular.replace(/^（白話文）\s*/, t('readBook.vernacularPrefix') + " "), language, 'vernacular'),
                     currentSearchTerm
                   )}
                 </p>
@@ -758,8 +797,7 @@ export default function ReadBookPage() {
             onInteractOutside={(e) => e.preventDefault()} 
         >
           <SheetHeader className="p-4 border-b border-border">
-            {/* Chapter title here is content, so not translated by t() */}
-            <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.knowledgeGraphSheetTitle')}: {currentChapter.title}</SheetTitle>
+            <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.knowledgeGraphSheetTitle')}: {getChapterTitle(currentChapter.titleKey)}</SheetTitle>
             <SheetDescription>
               {t('readBook.knowledgeGraphSheetDesc')}
             </SheetDescription>
@@ -797,7 +835,7 @@ export default function ReadBookPage() {
                 className="w-full justify-start text-left h-auto py-1.5 px-3 text-sm"
                 onClick={() => handleSelectChapterFromToc(index)}
               >
-                {chapter.title} {/* Chapter titles are content */}
+                {getChapterTitle(chapter.titleKey)}
               </Button>
             ))}
             </div>

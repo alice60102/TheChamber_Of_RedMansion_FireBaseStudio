@@ -13,6 +13,145 @@ interface Translations {
   [key: string]: any; // Allows for nested structure
 }
 
+// Placeholder transformation function
+export function transformTextForLang(text: string | undefined, lang: Language, type: 'original' | 'vernacular' | 'annotation'): string {
+  if (!text) return "";
+  if (lang === 'zh-CN') {
+    // Basic placeholder for TW -> SC conversion
+    return text
+      .replace(/臺/g, '台')
+      .replace(/裡/g, '里')
+      .replace(/蘋/g, '苹')
+      .replace(/纔/g, '才')
+      .replace(/眾/g, '众')
+      .replace(/夢/g, '梦')
+      .replace(/寧/g, '宁')
+      .replace(/寶/g, '宝')
+      .replace(/釵/g, '钗')
+      .replace(/黛/g, '黛')
+      .replace(/襲/g, '袭')
+      .replace(/鳳/g, '凤')
+      .replace(/風/g, '风')
+      .replace(/塵/g, '尘')
+      .replace(/懷/g, '怀')
+      .replace(/閨/g, '闺')
+      .replace(/識/g, '识')
+      .replace(/靈/g, '灵')
+      .replace(/頑/g, '顽')
+      .replace(/無/g, '无')
+      .replace(/選/g, '选')
+      .replace(/塊/g, '块')
+      .replace(/煉/g, '炼')
+      .replace(/媧/g, '娲')
+      .replace(/補/g, '补')
+      .replace(/員/g, '员')
+      .replace(/僅/g, '仅')
+      .replace(/劉/g, '刘')
+      .replace(/姥/g, '姥')
+      .replace(/進/g, '进')
+      .replace(/觀/g, '观')
+      .replace(/園/g, '园')
+      .replace(/圓/g, '圆')
+      .replace(/鍾/g, '钟')
+      .replace(/應/g, '应')
+      .replace(/嘆/g, '叹')
+      .replace(/見/g, '见')
+      .replace(/說/g, '说')
+      .replace(/聽/g, '听')
+      .replace(/聯/g, '联')
+      .replace(/聰/g, '聪')
+      .replace(/遊/g, '游')
+      .replace(/鬱/g, '郁')
+      .replace(/點/g, '点')
+      .replace(/癡/g, '痴')
+      .replace(/隨/g, '随')
+      .replace(/隱/g, '隐')
+      .replace(/義/g, '义')
+      .replace(/術/g, '术')
+      .replace(/葉/g, '叶')
+      .replace(/搗/g, '捣')
+      .replace(/畫/g, '画')
+      .replace(/詩/g, '诗')
+      .replace(/詞/g, '词')
+      .replace(/賞/g, '赏')
+      .replace(/析/g, '析')
+      .replace(/評/g, '评')
+      .replace(/註/g, '注')
+      .replace(/釋/g, '释')
+      .replace(/論/g, '论')
+      .replace(/講/g, '讲')
+      .replace(/細/g, '细')
+      .replace(/課/g, '课')
+      .replace(/庫/g, '库')
+      .replace(/歷/g, '历')
+      .replace(/範/g, '范')
+      .replace(/圍/g, '围')
+      .replace(/歸/g, '归')
+      .replace(/傑/g, '杰')
+      .replace(/處/g, '处')
+      .replace(/總/g, '总')
+      .replace(/響/g, '响')
+      .replace(/興/g, '兴')
+      .replace(/趣/g, '趣')
+      .replace(/賈/g, '贾')
+      .replace(/雨/g, '雨')
+      .replace(/村/g, '村')
+      .replace(/甄/g, '甄')
+      .replace(/士/g, '士')
+      .replace(/隱/g, '隐')
+      .replace(/畢/g, '毕')
+      .replace(/畢竟/g, '毕竟')
+      .replace(/叢/g, '丛')
+      .replace(/書/g, '书')
+      .replace(/孫/g, '孙')
+      .replace(/兒/g, '儿')
+      .replace(/號/g, '号')
+      .replace(/畢/g, '毕')
+      .replace(/叢/g, '丛')
+      .replace(/書/g, '书')
+      .replace(/孫/g, '孙')
+      .replace(/兒/g, '儿')
+      .replace(/號/g, '号')
+      .replace(/卻/g, '却')
+      .replace(/開卷/g, '开卷')
+      .replace(/罷/g, '罢')
+      .replace(/師/g, '师')
+      .replace(/蹤/g, '踪')
+      .replace(/跡/g, '迹')
+      .replace(/階/g, '阶')
+      .replace(/齣/g, '出')
+      .replace(/壞/g, '坏')
+      .replace(/災/g, '灾')
+      .replace(/鄉/g, '乡')
+      .replace(/宦/g, '宦')
+      .replace(/遊/g, '游')
+      .replace(/蹤/g, '踪')
+      .replace(/跡/g, '迹')
+      .replace(/階/g, '阶')
+      .replace(/齣/g, '出')
+      .replace(/壞/g, '坏')
+      .replace(/災/g, '灾')
+      .replace(/鄉/g, '乡')
+      .replace(/遊/g, '游')
+      .replace(/蹤/g, '踪')
+      .replace(/跡/g, '迹')
+      .replace(/階/g, '阶')
+      .replace(/齣/g, '出')
+      .replace(/壞/g, '坏')
+      .replace(/災/g, '灾')
+      .replace(/鄉/g, '乡')
+      .replace(/遊/g, '游');
+  } else if (lang === 'en-US') {
+    // Placeholder: In a real app, use a proper translation service or library.
+    // This is just to show structure and that transformation happens.
+    const textStart = text.substring(0, 50);
+    if (type === 'original') return `[EN] ${textStart}... (Full original text translation pending)`;
+    if (type === 'vernacular') return `[EN Vernacular] ${textStart}... (Full vernacular translation pending)`;
+    if (type === 'annotation') return `[EN Annotation] ${textStart}... (Full annotation translation pending)`;
+  }
+  return text; // Default to zh-TW or original text
+}
+
 export const translations: Record<Language, Translations> = {
   'zh-TW': {
     // Global
@@ -83,20 +222,19 @@ export const translations: Record<Language, Translations> = {
       selectedContent: '選取內容:',
       yourNote: '您的筆記:',
       yourQuestion: '您的問題：',
+      themes: {
+        white: '白色',
+        yellow: '黃色',
+        green: '護眼',
+        night: '夜間',
+      },
+      fonts: {
+        notoSerifSC: '思源宋體',
+        system: '系統字體',
+        kai: '楷體',
+        hei: '粗黑體',
+      },
     },
-    themes: {
-      white: '白色',
-      yellow: '黃色',
-      green: '護眼',
-      night: '夜間',
-    },
-    fonts: {
-      notoSerifSC: '思源宋體',
-      system: '系統字體',
-      kai: '楷體',
-      hei: '粗黑體',
-    },
-    // Homepage (page.tsx)
     page: {
       navHome: '主頁',
       navFeatures: '特色',
@@ -126,24 +264,16 @@ export const translations: Record<Language, Translations> = {
       footerSlogan: 'AI 賦能，重探紅樓之夢。您的智能《紅樓夢》學習夥伴。',
       footerRights: '© 2024 紅樓慧讀團隊. All Rights Reserved.',
     },
-    // AppShell
     appShell: {
       userAccount: '我的帳戶',
       settings: '設置 (待開發)',
     },
-    // Sidebar
     sidebar: {
       home: '首頁',
       read: '閱讀',
       achievements: '成就與目標',
       community: '紅學社',
-      // Removed items, kept for potential future re-addition if needed
-      // goals: '學習目標',
-      // learningAnalysis: '學習狀況',
-      // research: '研讀',
-      // modernRelevance: '情境連結',
     },
-    // Login Page
     login: {
       welcomeBack: '歡迎回來',
       pageDescription: '登入以繼續您的紅樓慧讀之旅',
@@ -156,7 +286,6 @@ export const translations: Record<Language, Translations> = {
       registerNow: '立即註冊',
       loggingIn: '登入中...',
     },
-    // Register Page
     register: {
       joinApp: '加入紅樓慧讀',
       step1Description: '創建您的帳戶，開啟智能閱讀新體驗',
@@ -195,7 +324,6 @@ export const translations: Record<Language, Translations> = {
         passwordMinLength: '密碼長度至少為6位',
       }
     },
-    // Dashboard Page
     dashboard: {
       learningOverview: '學習總覽',
       chaptersCompleted: '章',
@@ -210,10 +338,8 @@ export const translations: Record<Language, Translations> = {
       manageAllGoals: '管理所有目標',
       continueReading: '繼續閱讀',
     },
-    // Read Page (My Shelf)
     read: {
       myShelf: '我的書架',
-      // shelfDescription: '選擇您的下一本讀物，開始智慧閱讀之旅。', // Removed as per new design
       tabRecent: '最近學習',
       tabOriginals: '紅樓夢原文',
       tabInterpretations: '專家解讀',
@@ -224,7 +350,6 @@ export const translations: Record<Language, Translations> = {
       badgeEbook: '電子書',
       badgeExpert: '專家解讀',
     },
-    // Achievements Page
     achievements: {
       title: '我的成就與目標',
       description: '追蹤您的學習成果，設定新目標，迎接挑戰，不斷進步。',
@@ -265,7 +390,6 @@ export const translations: Record<Language, Translations> = {
       viewActivity: '查看活動',
       rewardPrefix: '獎勵：',
     },
-    // Community Page
     community: {
       title: '紅學社',
       description: '用戶交流、分享心得的園地。暢所欲言，共同探討《紅樓夢》的無窮魅力。',
@@ -287,7 +411,6 @@ export const translations: Record<Language, Translations> = {
       showMore: '更多',
       showLess: '收起',
     },
-    // Read Book Page
     readBook: {
       knowledgeGraphSheetTitle: '章回知識圖譜',
       knowledgeGraphSheetDesc: '呈現本章回主要概念之間的關聯。(此為模擬圖，實際圖譜會基於文本動態生成)',
@@ -300,8 +423,91 @@ export const translations: Record<Language, Translations> = {
       annotationAbbr: '註',
       vernacularPrefix: '（白話文）',
       errorAIExplain: '向 AI 提問時發生錯誤。',
-      errorAIMissingOutput: 'AI模型未能生成有效的文本解釋。', // Used in the flow
-      errorAIContextAnalysis: 'AI模型未能生成有效的文本脈絡分析。', // Used in context-aware-analysis flow
+      errorAIMissingOutput: 'AI模型未能生成有效的文本解釋。',
+      errorAIContextAnalysis: 'AI模型未能生成有效的文本脈絡分析。',
+    },
+    // Book shelf translations
+    bookShelf: {
+      hlmTimesEdition: {
+        title: '紅樓夢上中下三冊',
+        author: '時報出版',
+        description: '時報出版發行的《紅樓夢》全集，分為上、中、下三冊。',
+      },
+      hlmV3: {
+        title: '紅樓夢 (第三版)',
+        author: '[清] 曹雪芹',
+        description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
+      },
+      hlmChengjia: {
+        title: '紅樓夢 (程甲本影印)',
+        author: '[清] 曹雪芹 高鶚',
+        description: '清代程偉元、高鶚整理的《紅樓夢》早期印本之一。',
+      },
+      hlmGengchen: {
+        title: '紅樓夢 (庚辰本校注)',
+        author: '[清] 曹雪芹 著；俞平伯 校注',
+        description: '以庚辰本為底本，參校各脂本，進行詳細校勘與註釋。',
+      },
+      hlmZhiyan: {
+        title: '脂硯齋重評石頭記 (校訂本)',
+        author: '[清] 曹雪芹；脂硯齋 評',
+        description: '彙集了帶有脂硯齋等人大量批語的早期抄本。',
+      },
+      hlmMenggao: {
+        title: '紅樓夢 (夢稿本整理版)',
+        author: '[清] 曹雪芹',
+        description: '根據「夢稿本」整理排印，保留早期稿本特色。',
+      },
+      hlmAnniversary: {
+        title: '紅樓夢 (百年紀念版)',
+        author: '[清] 曹雪芹',
+        description: '紀念《紅樓夢》研究百年，匯集名家點評的珍藏版本。',
+      },
+      jiangxunYouth: {
+        title: '蔣勳說紅樓夢青春版',
+        author: '蔣勳',
+        description: '除了文字之外，附加了很多的圖，閱讀的易讀性增加了許多。詳細講解每一回，並且排版很舒服。文筆柔和，內容也沒有多大門檻、生活化，適合青少年讀。',
+      },
+      jiangxunDream: {
+        title: '蔣勳 夢紅樓',
+        author: '蔣勳',
+        description: '為入門的紅樓夢書籍 可以作為讀紅樓夢之前的概觀 不用太多的專業知識也能讀懂 和生活連結性強。',
+      },
+      jiangxunMicrodust: {
+        title: '蔣勳 微塵眾',
+        author: '蔣勳',
+        description: '也是入門的紅樓夢書籍 一一介紹了紅樓夢的各個人物',
+      },
+      baixianyongDetailed: {
+        title: '白先勇細說紅樓夢',
+        author: '白先勇',
+        description: '也詳細講了每一回，和蔣勳老師不同之處在於生活的部分少了很多。詳細講的全面、深入，較為深思型的，有另一個不一樣的視角。需要一點中國文學的背景知識。書中有文字也有圖。',
+      },
+      oulijuanSixviews: {
+        title: '歐麗娟 六觀紅樓(綜論卷)、紅樓夢公開課',
+        author: '歐麗娟',
+        description: '歐麗娟老師的適合讀完紅樓夢整本，以及對紅樓夢有較整體認識來讀的，並且學術性較多，多為專題式的研究。',
+      },
+      dongmeiThorough: {
+        title: '董梅講透紅樓夢',
+        author: '董梅',
+        description: '介於生活和學術之間，需要的閱讀能力有點在白先勇的前面一些，門檻沒有很高。但是為主題式的說明，從各個角度，例如生活美學、文學傑作、生活符號綜合來了解紅樓夢。',
+      },
+    },
+    // Chapter content translations (titles and summaries)
+    chapterContent: {
+      ch1: {
+        title: '第一回 甄士隱夢幻識通靈 賈雨村風塵懷閨秀',
+        subtitle: '紅樓夢:第三版(中國古典文學讀本叢書)',
+        summary: '本回主要講述了甄士隱夢遇一僧一道談論石頭下凡歷劫，以及賈雨村的落魄與發跡。甄士隱因女兒英蓮被拐、家遭火災而看破紅塵，隨跛足道人出家，點出了小說「真事隱去，假語存焉」的創作主旨和「夢幻」的基調。',
+      },
+      // Add other chapters as needed...
+      // Example for a generic chapter
+      ch_generic: {
+        title: '第 {chapterNum} 回 示例標題 {chapterNum}',
+        subtitle: '紅樓夢示例副標題 {chapterNum}',
+        summary: '這是第 {chapterNum} 回的摘要。此回主要講述了 [簡短描述] 等情節，展現了 [主要人物] 的 [性格特點或遭遇]。',
+      }
     }
   },
   'zh-CN': {
@@ -372,18 +578,18 @@ export const translations: Record<Language, Translations> = {
       selectedContent: '选取内容:',
       yourNote: '您的笔记:',
       yourQuestion: '您的问题：',
-    },
-    themes: {
-      white: '白色',
-      yellow: '黄色',
-      green: '护眼',
-      night: '夜间',
-    },
-    fonts: {
-      notoSerifSC: '思源宋体',
-      system: '系统字体',
-      kai: '楷体',
-      hei: '粗黑体',
+      themes: {
+        white: '白色',
+        yellow: '黄色',
+        green: '护眼',
+        night: '夜间',
+      },
+      fonts: {
+        notoSerifSC: '思源宋体',
+        system: '系统字体',
+        kai: '楷体',
+        hei: '粗黑体',
+      },
     },
     page: {
       navHome: '主页',
@@ -575,6 +781,85 @@ export const translations: Record<Language, Translations> = {
       errorAIExplain: '向 AI 提问时发生错误。',
       errorAIMissingOutput: 'AI模型未能生成有效的文本解释。',
       errorAIContextAnalysis: 'AI模型未能生成有效的文本脉络分析。',
+    },
+    bookShelf: {
+      hlmTimesEdition: {
+        title: '红楼梦上中下三册',
+        author: '时报出版',
+        description: '时报出版发行的《红楼梦》全集，分为上、中、下三册。',
+      },
+      hlmV3: {
+        title: '红楼梦 (第三版)',
+        author: '[清] 曹雪芹',
+        description: '以宝黛爱情悲剧为主线，展现清代贵族生活画卷。',
+      },
+      hlmChengjia: {
+        title: '红楼梦 (程甲本影印)',
+        author: '[清] 曹雪芹 高鹗',
+        description: '清代程伟元、高鹗整理的《红楼梦》早期印本之一。',
+      },
+      hlmGengchen: {
+        title: '红楼梦 (庚辰本校注)',
+        author: '[清] 曹雪芹 著；俞平伯 校注',
+        description: '以庚辰本为底本，参校各脂本，进行详细校勘与注释。',
+      },
+      hlmZhiyan: {
+        title: '脂砚斋重评石头记 (校订本)',
+        author: '[清] 曹雪芹；脂砚斋 评',
+        description: '汇集了带有脂砚斋等人大量批语的早期抄本。',
+      },
+      hlmMenggao: {
+        title: '红楼梦 (梦稿本整理版)',
+        author: '[清] 曹雪芹',
+        description: '根据“梦稿本”整理排印，保留早期稿本特色。',
+      },
+      hlmAnniversary: {
+        title: '红楼梦 (百年纪念版)',
+        author: '[清] 曹雪芹',
+        description: '纪念《红楼梦》研究百年，汇集名家点评的珍藏版本。',
+      },
+      jiangxunYouth: {
+        title: '蒋勋说红楼梦青春版',
+        author: '蒋勋',
+        description: '除了文字之外，附加了很多的图，阅读的易读性增加了许多。详细讲解每一回，并且排版很舒服。文笔柔和，内容也没有多大门槛、生活化，适合青少年读。',
+      },
+      jiangxunDream: {
+        title: '蒋勋 梦红楼',
+        author: '蒋勋',
+        description: '为入门的红楼梦书籍 可以作为读红楼梦之前的概观 不用太多的专业知识也能读懂 和生活连结性强。',
+      },
+      jiangxunMicrodust: {
+        title: '蒋勋 微尘众',
+        author: '蒋勋',
+        description: '也是入门的红楼梦书籍 一一介绍了红楼梦的各个人物',
+      },
+      baixianyongDetailed: {
+        title: '白先勇细说红楼梦',
+        author: '白先勇',
+        description: '也详细讲了每一回，和蒋勋老师不同之处在于生活的部分少了很多。详细讲的全面、深入，较为深思型的，有另一个不一样的视角。需要一点中国文学的背景知识。书中有文字也有图。',
+      },
+      oulijuanSixviews: {
+        title: '欧丽娟 六观红楼(综论卷)、红楼梦公开课',
+        author: '欧丽娟',
+        description: '欧丽娟老师的适合读完红楼梦整本，以及对红楼梦有较整体认识来读的，并且学术性较多，多为专题式的研究。',
+      },
+      dongmeiThorough: {
+        title: '董梅讲透红楼梦',
+        author: '董梅',
+        description: '介于生活和学术之间，需要的阅读能力有点在白先勇的前面一些，门槛没有很高。但是为主题式的说明，从各个角度，例如生活美学、文学杰作、生活符号综合来了解红楼梦。',
+      },
+    },
+    chapterContent: {
+      ch1: {
+        title: '第一回 甄士隐梦幻识通灵 贾雨村风尘怀闺秀',
+        subtitle: '红楼梦:第三版(中国古典文学读本丛书)',
+        summary: '本回主要讲述了甄士隐梦遇一僧一道谈论石头下凡历劫，以及贾雨村的落魄与发迹。甄士隐因女儿英莲被拐、家遭火灾而看破红尘，随跛足道人出家，点出了小说“真事隐去，假语存焉”的创作主旨和“梦幻”的基调。',
+      },
+      ch_generic: {
+        title: '第 {chapterNum} 回 示例标题 {chapterNum}',
+        subtitle: '红楼梦示例副标题 {chapterNum}',
+        summary: '这是第 {chapterNum} 回的摘要。此回主要讲述了 [简短描述] 等情节，展现了 [主要人物] 的 [性格特点或遭遇]。',
+      }
     }
   },
   'en-US': {
@@ -645,18 +930,18 @@ export const translations: Record<Language, Translations> = {
       selectedContent: 'Selected Content:',
       yourNote: 'Your Note:',
       yourQuestion: 'Your Question:',
-    },
-    themes: {
-      white: 'White',
-      yellow: 'Yellow',
-      green: 'Green',
-      night: 'Night',
-    },
-    fonts: {
-      notoSerifSC: 'Noto Serif SC',
-      system: 'System Font',
-      kai: 'Kaiti',
-      hei: 'Heiti',
+      themes: {
+        white: 'White',
+        yellow: 'Yellow',
+        green: 'Green',
+        night: 'Night',
+      },
+      fonts: {
+        notoSerifSC: 'Noto Serif SC',
+        system: 'System Font',
+        kai: 'Kaiti',
+        hei: 'Heiti',
+      },
     },
     page: {
       navHome: 'Home',
@@ -848,6 +1133,85 @@ export const translations: Record<Language, Translations> = {
       errorAIExplain: 'An error occurred while asking the AI.',
       errorAIMissingOutput: 'The AI model failed to generate a valid text explanation.',
       errorAIContextAnalysis: 'The AI model failed to generate a valid context analysis.',
+    },
+    bookShelf: {
+        hlmTimesEdition: {
+            title: 'Dream of the Red Chamber (3 Vol. Set)',
+            author: 'China Times Publishing',
+            description: 'The complete "Dream of the Red Chamber" published by China Times, in three volumes.',
+        },
+        hlmV3: {
+            title: 'Dream of the Red Chamber (3rd Edition)',
+            author: '[Qing] Cao Xueqin',
+            description: 'Focuses on the tragic love story of Baoyu and Daiyu, depicting the life of aristocratic families in the Qing Dynasty.',
+        },
+        hlmChengjia: {
+            title: 'Dream of the Red Chamber (Chengjia Edition Reprint)',
+            author: '[Qing] Cao Xueqin, Gao E',
+            description: 'One of the early printed editions of "Dream of the Red Chamber" compiled by Cheng Weiyuan and Gao E in the Qing Dynasty.',
+        },
+        hlmGengchen: {
+            title: 'Dream of the Red Chamber (Gengchen Edition, Annotated)',
+            author: '[Qing] Cao Xueqin; Annotated by Yu Pingbo',
+            description: 'Based on the Gengchen manuscript, collated with various Zhipingben (manuscripts with commentary by Zhiyanzhai), with detailed annotations.',
+        },
+        hlmZhiyan: {
+            title: 'Zhiyanzhai\'s Re-commentary on the Story of the Stone (Revised Edition)',
+            author: '[Qing] Cao Xueqin; Commentary by Zhiyanzhai',
+            description: 'A collection of early manuscripts with extensive commentary by Zhiyanzhai and others.',
+        },
+        hlmMenggao: {
+            title: 'Dream of the Red Chamber (Menggao Manuscript, Edited Edition)',
+            author: '[Qing] Cao Xueqin',
+            description: 'Typeset and arranged based on the "Menggao manuscript," preserving the characteristics of early manuscripts.',
+        },
+        hlmAnniversary: {
+            title: 'Dream of the Red Chamber (Centennial Memorial Edition)',
+            author: '[Qing] Cao Xueqin',
+            description: 'A collector\'s edition commemorating a century of "Dream of the Red Chamber" research, featuring commentary from renowned scholars.',
+        },
+        jiangxunYouth: {
+            title: 'Jiang Xun on Dream of the Red Chamber (Youth Edition)',
+            author: 'Jiang Xun',
+            description: 'Includes many illustrations alongside the text, significantly enhancing readability. Detailed explanations for each chapter with comfortable typesetting. Gentle writing style, accessible content, relatable to daily life, suitable for young readers.',
+        },
+        jiangxunDream: {
+            title: 'Jiang Xun\'s Dream of the Red Chamber',
+            author: 'Jiang Xun',
+            description: 'An introductory book to "Dream of the Red Chamber," serving as an overview before reading the novel. Understandable without extensive professional knowledge and strongly connected to life.',
+        },
+        jiangxunMicrodust: {
+            title: 'Jiang Xun\'s Myriad Dust Motes (Characters of Red Chamber)',
+            author: 'Jiang Xun',
+            description: 'Also an introductory book, introducing various characters from "Dream of the Red Chamber" one by one.',
+        },
+        baixianyongDetailed: {
+            title: 'Pai Hsien-yung\'s Detailed Talk on Dream of the Red Chamber',
+            author: 'Pai Hsien-yung (Bai Xianyong)',
+            description: 'Also provides detailed explanations for each chapter, differing from Jiang Xun by focusing less on daily life aspects. Offers comprehensive, in-depth, and thought-provoking analysis from a different perspective. Requires some background in Chinese literature. Contains both text and illustrations.',
+        },
+        oulijuanSixviews: {
+            title: 'Ou Lijuan\'s Six Perspectives on Red Chamber (Comprehensive Volume) & Public Lectures',
+            author: 'Ou Lijuan',
+            description: 'Suitable for those who have read the entire novel and have a relatively holistic understanding. More academic, focusing on thematic research.',
+        },
+        dongmeiThorough: {
+            title: 'Dong Mei\'s Thorough Explanation of Dream of the Red Chamber',
+            author: 'Dong Mei',
+            description: 'Strikes a balance between daily life and academic analysis. Slightly more accessible than Pai Hsien-yung\'s work. Thematic explanations covering various angles like life aesthetics, literary masterpiece, and life symbols to understand the novel.',
+        },
+    },
+    chapterContent: {
+      ch1: {
+        title: 'Chapter 1: Zhen Shiyin in a Dream Sees the Jade of Spiritual Understanding; Jia Yucun in Dusty Travels Yearns for Beauties',
+        subtitle: 'Dream of the Red Chamber: 3rd Edition (Chinese Classical Literature Reader Series)',
+        summary: 'This chapter primarily recounts Zhen Shiyin\'s dream encounter with a monk and a Daoist discussing the Stone\'s descent to the mortal realm for tribulation, and Jia Yucun\'s destitution and rise. Zhen Shiyin, after his daughter Yinglian is abducted and his house burns down, sees through the vanity of the world and follows a lame Daoist to become a monk, highlighting the novel\'s creative principle of "true events are hidden, false words remain" and its "dream-like" tone.',
+      },
+      ch_generic: {
+        title: 'Chapter {chapterNum}: Sample Title {chapterNum}',
+        subtitle: 'Dream of the Red Chamber Sample Subtitle {chapterNum}',
+        summary: 'This is the summary for Chapter {chapterNum}. This chapter mainly tells about events like [brief description], showcasing [main character]\'s [traits or experiences].',
+      }
     }
   },
 };
@@ -867,11 +1231,58 @@ export function getTranslation(lang: Language, key: string, translationsObj: Rec
         fallbackResult = fallbackResult?.[fk];
         if (fallbackResult === undefined) {
           // console.warn(`Translation key "${key}" not found in language "${lang}" or default language.`);
+          // Replace {chapterNum} if present in the key for generic fallbacks
+          if (key.includes("{chapterNum}")) {
+             const chapterNumMatch = key.match(/ch(\d+)\./) || key.match(/ch_generic\.title\.replace\('\{chapterNum\}', '(\d+)'\)/);
+
+             let numStr = "N";
+             if(chapterNumMatch && chapterNumMatch[1]) {
+                numStr = chapterNumMatch[1];
+             } else {
+                 const parts = key.split('.');
+                 const lastPart = parts[parts.length-1];
+                 if(lastPart.startsWith("ch") && !lastPart.includes("_")){
+                     numStr = lastPart.substring(2);
+                 }
+             }
+             return key.replace(/{chapterNum}/g, numStr);
+          }
           return key; // Return the key itself if not found anywhere
         }
       }
+       // Replace {chapterNum} if present in the fallback for generic fallbacks
+      if (typeof fallbackResult === 'string' && fallbackResult.includes("{chapterNum}")) {
+          const chapterNumMatch = key.match(/ch(\d+)\./) || key.match(/ch_generic\.title\.replace\('\{chapterNum\}', '(\d+)'\)/);
+          let numStr = "N";
+          if(chapterNumMatch && chapterNumMatch[1]) {
+             numStr = chapterNumMatch[1];
+          } else {
+              const parts = key.split('.');
+              const lastPart = parts[parts.length-1];
+              if(lastPart.startsWith("ch") && !lastPart.includes("_")){
+                  numStr = lastPart.substring(2);
+              }
+          }
+          return fallbackResult.replace(/{chapterNum}/g, numStr);
+      }
       return fallbackResult as string;
     }
+  }
+
+  // Replace {chapterNum} if present in the result for generic fallbacks
+  if (typeof result === 'string' && result.includes("{chapterNum}")) {
+      const chapterNumMatch = key.match(/ch(\d+)\./) || key.match(/ch_generic\.title\.replace\('\{chapterNum\}', '(\d+)'\)/);
+      let numStr = "N";
+      if(chapterNumMatch && chapterNumMatch[1]) {
+         numStr = chapterNumMatch[1];
+      } else {
+          const parts = key.split('.');
+          const lastPart = parts[parts.length-1];
+          if(lastPart.startsWith("ch") && !lastPart.includes("_")){
+              numStr = lastPart.substring(2);
+          }
+      }
+      return result.replace(/{chapterNum}/g, numStr);
   }
   return result as string;
 }
