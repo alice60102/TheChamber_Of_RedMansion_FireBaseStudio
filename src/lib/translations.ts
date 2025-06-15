@@ -482,7 +482,7 @@ export const translations: Record<Language, Translations> = {
         author: '白先勇',
         description: '也詳細講了每一回，和蔣勳老師不同之處在於生活的部分少了很多。詳細講的全面、深入，較為深思型的，有另一个不一样的视角。需要一点中国文学的背景知识。书中有文字也有图。',
       },
-      oulijuanviews: { // Corrected key from oulijuansixviews to oulijuanviews
+      oulijuansixviews: {
         title: '歐麗娟 六觀紅樓(綜論卷)、紅樓夢公開課',
         author: '歐麗娟',
         description: '歐麗娟老師的適合讀完紅樓夢整本，以及對紅樓夢有較整體認識來讀的，並且學術性較多，多為專題式的研究。',
@@ -837,7 +837,7 @@ export const translations: Record<Language, Translations> = {
         author: '白先勇',
         description: '也详细讲了每一回，和蒋勋老师不同之处在于生活的部分少了很多。详细讲的全面、深入，较为深思型的，有另一个不一样的视角。需要一点中国文学的背景知识。书中有文字也有图。',
       },
-      oulijuanviews: { // Corrected key from oulijuansixviews to oulijuanviews
+      oulijuansixviews: {
         title: '欧丽娟 六观红楼(综论卷)、红楼梦公开课',
         author: '欧丽娟',
         description: '欧丽娟老师的适合读完红楼梦整本，以及对红楼梦有较整体认识来读的，并且学术性较多，多为专题式的研究。',
@@ -1189,7 +1189,7 @@ export const translations: Record<Language, Translations> = {
             author: 'Pai Hsien-yung (Bai Xianyong)',
             description: 'Also provides detailed explanations for each chapter, differing from Jiang Xun by focusing less on daily life aspects. Offers comprehensive, in-depth, and thought-provoking analysis from a different perspective. Requires some background in Chinese literature. Contains both text and illustrations.',
         },
-        oulijuanviews: { // Corrected key from oulijuansixviews to oulijuanviews
+        oulijuansixviews: {
             title: 'Ou Lijuan\'s Six Perspectives on Red Chamber (Comprehensive Volume) & Public Lectures',
             author: 'Ou Lijuan',
             description: 'Suitable for those who have read the entire novel and have a relatively holistic understanding. More academic, focusing on thematic research.',
