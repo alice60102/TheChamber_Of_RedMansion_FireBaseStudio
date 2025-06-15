@@ -9,13 +9,14 @@ import {
   Volume2,  
   Copy,     
   Quote,
+  ChevronDown // Added for popover close
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
-import type { ExplainTextSelectionInput, ExplainTextSelectionOutput } from '@/ai/flows/explain-text-selection';
+import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection'; // Output type removed as it's not directly used here
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
-import { Label } from '@/components/ui/label';
+import { Label } from "@/components/ui/label';
 import ReactMarkdown from 'react-markdown';
 import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
@@ -23,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useLanguage } from '@/hooks/useLanguage';
 
 
 interface Annotation {
@@ -38,12 +40,14 @@ interface Paragraph {
 
 interface Chapter {
   id: number;
-  title: string;
-  subtitle?: string;
-  summary: string;
+  title: string; // Will remain in Chinese
+  subtitle?: string; // Will remain in Chinese
+  summary: string; // Will remain in Chinese
   paragraphs: Paragraph[];
 }
 
+// CHAPTER DATA: This data is intentionally kept in Chinese as it represents the book content.
+// Only UI elements around it will be translated.
 const chapters: Chapter[] = [
   {
     id: 1,
@@ -93,49 +97,17 @@ type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
 type ColumnLayout = 'single' | 'double' | 'triple';
 
 const themes = {
-  white: {
-    key: 'white', name: '白色',
-    readingBgClass: 'bg-white', readingTextClass: 'text-neutral-800',
-    swatchClass: 'bg-white border-neutral-300',
-    toolbarBgClass: 'bg-neutral-100/90',
-    toolbarTextClass: 'text-neutral-700',
-    toolbarAccentTextClass: 'text-[hsl(45_70%_50%)]', 
-    toolbarBorderClass: 'border-neutral-300/50'
-  },
-  yellow: {
-    key: 'yellow', name: '黃色',
-    readingBgClass: 'bg-yellow-50', readingTextClass: 'text-yellow-950',
-    swatchClass: 'bg-yellow-200 border-yellow-400',
-    toolbarBgClass: 'bg-yellow-100/90',
-    toolbarTextClass: 'text-yellow-800',
-    toolbarAccentTextClass: 'text-amber-600',
-    toolbarBorderClass: 'border-yellow-300/50'
-  },
-  green: {
-    key: 'green', name: '護眼',
-    readingBgClass: 'bg-green-100', readingTextClass: 'text-green-900',
-    swatchClass: 'bg-green-500 border-green-700',
-    toolbarBgClass: 'bg-green-200/90',
-    toolbarTextClass: 'text-green-700',
-    toolbarAccentTextClass: 'text-emerald-600',
-    toolbarBorderClass: 'border-green-400/50'
-  },
-  night: {
-    key: 'night', name: '夜間',
-    readingBgClass: 'bg-neutral-800', readingTextClass: 'text-neutral-200',
-    swatchClass: 'bg-black border-neutral-500',
-    toolbarBgClass: 'bg-neutral-900/90',
-    toolbarTextClass: 'text-neutral-300',
-    toolbarAccentTextClass: 'text-primary',
-    toolbarBorderClass: 'border-neutral-700/50'
-  },
+  white: { key: 'white', nameKey: 'labels.themes.white', readingBgClass: 'bg-white', readingTextClass: 'text-neutral-800', swatchClass: 'bg-white border-neutral-300', toolbarBgClass: 'bg-neutral-100/90', toolbarTextClass: 'text-neutral-700', toolbarAccentTextClass: 'text-[hsl(45_70%_50%)]', toolbarBorderClass: 'border-neutral-300/50' },
+  yellow: { key: 'yellow', nameKey: 'labels.themes.yellow', readingBgClass: 'bg-yellow-50', readingTextClass: 'text-yellow-950', swatchClass: 'bg-yellow-200 border-yellow-400', toolbarBgClass: 'bg-yellow-100/90', toolbarTextClass: 'text-yellow-800', toolbarAccentTextClass: 'text-amber-600', toolbarBorderClass: 'border-yellow-300/50' },
+  green: { key: 'green', nameKey: 'labels.themes.green', readingBgClass: 'bg-green-100', readingTextClass: 'text-green-900', swatchClass: 'bg-green-500 border-green-700', toolbarBgClass: 'bg-green-200/90', toolbarTextClass: 'text-green-700', toolbarAccentTextClass: 'text-emerald-600', toolbarBorderClass: 'border-green-400/50' },
+  night: { key: 'night', nameKey: 'labels.themes.night', readingBgClass: 'bg-neutral-800', readingTextClass: 'text-neutral-200', swatchClass: 'bg-black border-neutral-500', toolbarBgClass: 'bg-neutral-900/90', toolbarTextClass: 'text-neutral-300', toolbarAccentTextClass: 'text-primary', toolbarBorderClass: 'border-neutral-700/50' },
 };
 
 const fontFamilies = {
-  notoSerifSC: { key: 'notoSerifSC', class: "font-['Noto_Serif_SC',_serif]", name: '思源宋體' },
-  system: { key: 'system', class: 'font-sans', name: '系統字體' },
-  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", name: '楷體' },
-  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", name: '粗黑體' },
+  notoSerifSC: { key: 'notoSerifSC', class: "font-['Noto_Serif_SC',_serif]", nameKey: 'labels.fonts.notoSerifSC' },
+  system: { key: 'system', class: 'font-sans', nameKey: 'labels.fonts.system' },
+  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", nameKey: 'labels.fonts.kai' },
+  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", nameKey: 'labels.fonts.hei' },
 };
 
 const FONT_SIZE_MIN = 12;
@@ -174,6 +146,7 @@ const highlightText = (text: string, highlight: string): React.ReactNode[] => {
 export default function ReadBookPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { t, language } = useLanguage(); // Added language
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
   const [showVernacular, setShowVernacular] = useState(false);
@@ -349,21 +322,20 @@ export default function ReadBookPage() {
     if (selectedTextInfo?.text) {
       navigator.clipboard.writeText(selectedTextInfo.text)
         .then(() => {
-          toast({ title: "已複製", description: "選取內容已複製到剪貼簿。" });
+          toast({ title: t('buttons.copy'), description: t('buttons.copiedToClipboard') });
         })
         .catch(err => {
           console.error("Failed to copy text: ", err);
-          toast({ variant: "destructive", title: "複製失敗", description: "無法複製內容到剪貼簿。" });
+          toast({ variant: "destructive", title: t('buttons.copyFailed'), description: String(err) });
         });
       setSelectedTextInfo(null); 
     }
   };
 
-  const handlePlaceholderAction = (actionName: string) => {
-    toast({ title: "功能提示", description: `${actionName} 功能尚未實現。` });
+  const handlePlaceholderAction = (actionNameKey: string) => {
+    toast({ title: t('buttons.featureComingSoon'), description: `${t(actionNameKey)} ${t('buttons.featureComingSoon')}` });
     setSelectedTextInfo(null); 
   };
-
 
   const handleUserSubmitQuestion = async () => { 
     if (!selectedTextInfo?.text || !userQuestionInput.trim() || !currentChapter) return;
@@ -381,15 +353,17 @@ export default function ReadBookPage() {
 
       const input: ExplainTextSelectionInput = {
         selectedText: selectedTextInfo.text,
-        userQuestion: userQuestionInput,
+        // For AI, questions should ideally be in the language it's trained for, or provide language hints.
+        // Here, we pass userQuestionInput as is. If AI struggles with mixed-lang prompts, this might need adjustment.
+        userQuestion: userQuestionInput, 
         chapterContext: chapterContextSnippet,
       };
-      const result = await explainTextSelection(input);
-      setTextExplanation(result.explanation);
+      const result = await explainTextSelection(input); // explainTextSelection itself is not multilingual
+      setTextExplanation(result.explanation); // The explanation from AI will be in Chinese
       setAiInteractionState('answered');
     } catch (error) {
       console.error("Error explaining text selection:", error);
-      setTextExplanation(error instanceof Error ? error.message : "向 AI 提問時發生錯誤。");
+      setTextExplanation(error instanceof Error ? error.message : t('readBook.errorAIExplain'));
       setAiInteractionState('error');
     }
     setIsLoadingExplanation(false);
@@ -432,8 +406,8 @@ export default function ReadBookPage() {
 
   const handleReadAloudClick = () => {
     toast({
-      title: "功能提示",
-      description: "朗讀功能尚未實現。",
+      title: t('buttons.featureComingSoon'),
+      description: `${t('buttons.readAloud')} ${t('buttons.featureComingSoon')}`,
     });
     handleInteraction();
   };
@@ -441,6 +415,9 @@ export default function ReadBookPage() {
   const toolbarButtonBaseClass = "flex flex-col items-center justify-center h-auto p-2";
   const toolbarIconClass = "h-6 w-6";
   const toolbarLabelClass = "mt-1 text-xs leading-none";
+  
+  const vernacularText = language === 'en-US' ? currentChapter.paragraphs[0]?.vernacular?.replace("（白話文）", "(Vernacular) ") : currentChapter.paragraphs[0]?.vernacular;
+
 
   return (
     <div className="h-full flex flex-col">
@@ -455,16 +432,16 @@ export default function ReadBookPage() {
       >
         <div className={cn("container mx-auto flex items-center justify-between max-w-screen-xl")}>
           <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => router.push('/dashboard')} title="返回">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => router.push('/dashboard')} title={t('buttons.return')}>
               <CornerUpLeft className={toolbarIconClass} />
-              <span className={toolbarLabelClass}>返回</span>
+              <span className={toolbarLabelClass}>{t('buttons.return')}</span>
             </Button>
 
             <Popover open={isSettingsPopoverOpen} onOpenChange={(isOpen) => {setIsSettingsPopoverOpen(isOpen); handleInteraction();}}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="閱讀設定">
+                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title={t('buttons.settings')}>
                    <i className={cn("fa fa-font", toolbarIconClass)} aria-hidden="true" style={{fontSize: '24px'}}></i>
-                  <span className={toolbarLabelClass}>設定</span>
+                  <span className={toolbarLabelClass}>{t('buttons.settings')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent
@@ -476,7 +453,7 @@ export default function ReadBookPage() {
                 align="start"
               >
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-foreground">主題</h4>
+                  <h4 className="text-sm font-medium text-foreground">{t('labels.theme')}</h4>
                   <div className="flex justify-around items-center">
                     {Object.values(themes).map((theme) => (
                       <div key={theme.key} className="flex flex-col items-center gap-1.5">
@@ -487,35 +464,35 @@ export default function ReadBookPage() {
                             theme.swatchClass,
                             activeThemeKey === theme.key ? 'ring-2 ring-primary ring-offset-2 ring-offset-card' : 'border-transparent'
                           )}
-                          title={theme.name}
-                          aria-label={theme.name}
+                          title={t(theme.nameKey)}
+                          aria-label={t(theme.nameKey)}
                         >
                            {activeThemeKey === theme.key && theme.key === 'white' && <Check className="h-4 w-4 text-neutral-600"/>}
                            {activeThemeKey === theme.key && theme.key !== 'white' && <Check className="h-4 w-4 text-white"/>}
                         </button>
-                        <span className="text-xs text-muted-foreground">{theme.name}</span>
+                        <span className="text-xs text-muted-foreground">{t(theme.nameKey)}</span>
                       </div>
                     ))}
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-foreground">文字</h4>
+                  <h4 className="text-sm font-medium text-foreground">{t('labels.text')}</h4>
                   <div className="flex items-center justify-between gap-3">
                     <Button variant="outline" size="icon" onClick={() => changeFontSize(-FONT_SIZE_STEP)} className="h-10 w-10 rounded-full p-0">
                       <Minus className="h-5 w-5" />
-                      <span className="sr-only">減小字號</span>
+                      <span className="sr-only">Decrease font size</span>
                     </Button>
                     <div className="text-center">
                       <div className="text-2xl font-semibold text-primary">{currentNumericFontSize}</div>
-                      <div className="text-xs text-muted-foreground">當前字號</div>
+                      <div className="text-xs text-muted-foreground">{t('labels.currentFontSize')}</div>
                     </div>
                     <Button variant="outline" size="icon" onClick={() => changeFontSize(FONT_SIZE_STEP)} className="h-10 w-10 rounded-full p-0">
                       <Plus className="h-5 w-5" />
-                      <span className="sr-only">放大字號</span>
+                      <span className="sr-only">Increase font size</span>
                     </Button>
                   </div>
                   <div className="mt-2 p-2 bg-muted/50 rounded-md text-xs text-muted-foreground text-center">
-                    支援快速鍵 Ctrl + Alt + “+” 放大字號, Ctrl + Alt + “-” 縮小字號
+                    {t('labels.fontHint')}
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -527,7 +504,7 @@ export default function ReadBookPage() {
                         onClick={() => {setActiveFontFamilyKey(font.key as keyof typeof fontFamilies); setIsSettingsPopoverOpen(false);}}
                         className={cn("w-full h-10 text-sm justify-center", activeFontFamilyKey === font.key ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background/70 hover:bg-accent/50")}
                       >
-                        {font.name}
+                        {t(font.nameKey)}
                       </Button>
                     ))}
                   </div>
@@ -538,67 +515,59 @@ export default function ReadBookPage() {
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
             <Button
               variant={columnLayout === 'single' ? 'secondary' : 'ghost'}
-              className={cn(
-                toolbarButtonBaseClass,
-                columnLayout === 'single' ? '' : selectedTheme.toolbarTextClass 
-              )}
+              className={cn(toolbarButtonBaseClass, columnLayout === 'single' ? '' : selectedTheme.toolbarTextClass )}
               onClick={() => setColumnLayout('single')}
-              title="單欄"
+              title={t('buttons.singleColumn')}
             >
               <AlignLeft className={cn(toolbarIconClass, columnLayout === 'single' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
-              <span className={cn(toolbarLabelClass, columnLayout === 'single' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>單欄</span>
+              <span className={cn(toolbarLabelClass, columnLayout === 'single' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>{t('buttons.singleColumn')}</span>
             </Button>
             <Button
               variant={columnLayout === 'double' ? 'secondary' : 'ghost'}
-               className={cn(
-                toolbarButtonBaseClass,
-                columnLayout === 'double' ? '' : selectedTheme.toolbarTextClass
-              )}
+               className={cn(toolbarButtonBaseClass, columnLayout === 'double' ? '' : selectedTheme.toolbarTextClass)}
               onClick={() => setColumnLayout('double')}
-              title="雙欄"
+              title={t('buttons.doubleColumn')}
             >
               <AlignCenter className={cn(toolbarIconClass, columnLayout === 'double' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
-              <span className={cn(toolbarLabelClass, columnLayout === 'double' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>雙欄</span>
+              <span className={cn(toolbarLabelClass, columnLayout === 'double' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>{t('buttons.doubleColumn')}</span>
             </Button>
             <Button
               variant={columnLayout === 'triple' ? 'secondary' : 'ghost'}
-              className={cn(
-                toolbarButtonBaseClass,
-                columnLayout === 'triple' ? '' : selectedTheme.toolbarTextClass
-              )}
+              className={cn(toolbarButtonBaseClass, columnLayout === 'triple' ? '' : selectedTheme.toolbarTextClass )}
               onClick={() => setColumnLayout('triple')}
-              title="三欄"
+              title={t('buttons.tripleColumn')}
             >
               <AlignJustify className={cn(toolbarIconClass, columnLayout === 'triple' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
-              <span className={cn(toolbarLabelClass, columnLayout === 'triple' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>三欄</span>
+              <span className={cn(toolbarLabelClass, columnLayout === 'triple' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>{t('buttons.tripleColumn')}</span>
             </Button>
           </div>
 
           <div className="text-center overflow-hidden flex-grow px-2 mx-2 md:mx-4">
+            {/* Chapter title and subtitle are content, not UI, so not translated by `t()` */}
             <h1 className={cn("text-base md:text-lg font-semibold truncate", selectedTheme.toolbarAccentTextClass)}>{currentChapter.title}</h1>
             {currentChapter.subtitle && <p className={cn("text-sm truncate", selectedTheme.toolbarTextClass)}>{currentChapter.subtitle}</p>}
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? "隱藏白話文" : "顯示白話文"}>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? t('buttons.hideVernacular') : t('buttons.showVernacular')}>
               {showVernacular ? <EyeOff className={toolbarIconClass}/> : <Eye className={toolbarIconClass}/>}
-              <span className={toolbarLabelClass}>{showVernacular ? "隱藏白話" : "顯示白話"}</span>
+              <span className={toolbarLabelClass}>{showVernacular ? t('buttons.hideVernacular') : t('buttons.showVernacular')}</span>
             </Button>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title="知識圖譜">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title={t('buttons.knowledgeGraph')}>
               <Map className={toolbarIconClass}/>
-              <span className={toolbarLabelClass}>圖譜</span>
+              <span className={toolbarLabelClass}>{t('buttons.knowledgeGraph')}</span>
             </Button>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title="目錄">
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsTocSheetOpen(true); handleInteraction(); }} title={t('buttons.toc')}>
               <List className={toolbarIconClass}/>
-              <span className={toolbarLabelClass}>目錄</span>
+              <span className={toolbarLabelClass}>{t('buttons.toc')}</span>
             </Button>
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
             
             <Popover open={isSearchPopoverOpen} onOpenChange={(isOpen) => { setIsSearchPopoverOpen(isOpen); handleInteraction(); if (!isOpen) setCurrentSearchTerm(""); }}>
               <PopoverTrigger asChild>
-                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title="書內搜尋">
+                <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title={t('buttons.search')}>
                   <SearchIcon className={toolbarIconClass} />
-                  <span className={toolbarLabelClass}>搜尋</span>
+                  <span className={toolbarLabelClass}>{t('buttons.search')}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
@@ -612,21 +581,21 @@ export default function ReadBookPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="text"
-                    placeholder="輸入搜尋詞..."
+                    placeholder={t('placeholders.searchInBook')}
                     value={currentSearchTerm}
                     onChange={(e) => setCurrentSearchTerm(e.target.value)}
                     className="h-9 text-sm bg-background/80 focus:ring-primary"
                   />
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => setCurrentSearchTerm("")} title="清除搜尋">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => setCurrentSearchTerm("")} title={t('buttons.clearSearch')}>
                     <ClearSearchIcon className="h-4 w-4" />
                   </Button>
                 </div>
               </PopoverContent>
             </Popover>
 
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title={isFullscreenActive ? "退出全螢幕" : "全螢幕"} onClick={toggleFullscreen}>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} title={isFullscreenActive ? t('buttons.exitFullscreen') : t('buttons.fullscreen')} onClick={toggleFullscreen}>
               {isFullscreenActive ? <Minimize className={toolbarIconClass} /> : <Maximize className={toolbarIconClass} />}
-              <span className={toolbarLabelClass}>{isFullscreenActive ? "退出" : "全螢幕"}</span>
+              <span className={toolbarLabelClass}>{isFullscreenActive ? t('buttons.exitFullscreen') : t('buttons.fullscreen')}</span>
             </Button>
           </div>
         </div>
@@ -669,8 +638,9 @@ export default function ReadBookPage() {
                               className="inline-flex items-center justify-center w-4 h-4 p-0 mx-0.5 text-[9px] align-middle bg-green-200 text-green-700 dark:bg-green-600 dark:text-green-100 rounded-full leading-none hover:bg-green-300 dark:hover:bg-green-500 focus:outline-none focus:ring-1 focus:ring-green-400 dark:focus:ring-green-500 shadow-sm"
                               style={{ position: 'relative', top: '-0.2em' }}
                               onClick={(e) => e.stopPropagation()}
+                              aria-label={t('readBook.annotationAbbr')}
                             >
-                              註
+                              {t('readBook.annotationAbbr')}
                             </button>
                           </PopoverTrigger>
                           <PopoverContent
@@ -695,8 +665,11 @@ export default function ReadBookPage() {
                 })}
               </p>
               {showVernacular && para.vernacular && (
-                <p className={cn("italic mt-1 text-sm", selectedTheme.readingTextClass === themes.night.readingTextClass ? "text-neutral-400" : "text-muted-foreground")}>
-                  {highlightText(para.vernacular, currentSearchTerm)}
+                 <p className={cn("italic mt-1 text-sm", selectedTheme.readingTextClass === themes.night.readingTextClass ? "text-neutral-400" : "text-muted-foreground")}>
+                  {highlightText(
+                    language === 'en-US' ? para.vernacular.replace("（白話文）", t('readBook.vernacularPrefix')) : para.vernacular.replace("（白話文）", t('readBook.vernacularPrefix')), // replace prefix with translated one
+                    currentSearchTerm
+                  )}
                 </p>
               )}
             </div>
@@ -719,46 +692,46 @@ export default function ReadBookPage() {
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
             onClick={handleOpenNoteSheet}
             data-selection-action-toolbar="true"
-            title="寫筆記"
+            title={t('buttons.writeNote')}
           >
             <Edit3 className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">寫筆記</span>
+            <span className="text-[10px] leading-none">{t('buttons.writeNote')}</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
-            onClick={() => handlePlaceholderAction("劃線")}
+            onClick={() => handlePlaceholderAction('buttons.highlight')}
             data-selection-action-toolbar="true"
-            title="劃線"
+            title={t('buttons.highlight')}
           >
             <Baseline className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">劃線</span>
+            <span className="text-[10px] leading-none">{t('buttons.highlight')}</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
-            onClick={() => handlePlaceholderAction("聽當前")}
+            onClick={() => handlePlaceholderAction('buttons.listenCurrent')}
             data-selection-action-toolbar="true"
-            title="聽當前"
+            title={t('buttons.listenCurrent')}
           >
             <Volume2 className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">聽當前</span>
+            <span className="text-[10px] leading-none">{t('buttons.listenCurrent')}</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
             onClick={handleCopySelectedText}
             data-selection-action-toolbar="true"
-            title="複製"
+            title={t('buttons.copy')}
           >
             <Copy className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">複製</span>
+            <span className="text-[10px] leading-none">{t('buttons.copy')}</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
             onClick={handleOpenAiSheet}
             data-selection-action-toolbar="true"
-            title="問 AI"
+            title={t('buttons.askAI')}
           >
             <Lightbulb className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">問 AI</span>
+            <span className="text-[10px] leading-none">{t('buttons.askAI')}</span>
           </button>
            
           <div
@@ -785,9 +758,10 @@ export default function ReadBookPage() {
             onInteractOutside={(e) => e.preventDefault()} 
         >
           <SheetHeader className="p-4 border-b border-border">
-            <SheetTitle className="text-primary text-xl font-artistic">章回知識圖譜: {currentChapter.title}</SheetTitle>
+            {/* Chapter title here is content, so not translated by t() */}
+            <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.knowledgeGraphSheetTitle')}: {currentChapter.title}</SheetTitle>
             <SheetDescription>
-              呈現本章回主要概念之間的關聯。(此為模擬圖，實際圖譜會基於文本動態生成)
+              {t('readBook.knowledgeGraphSheetDesc')}
             </SheetDescription>
           </SheetHeader>
           <ScrollArea className="flex-grow p-4">
@@ -795,7 +769,7 @@ export default function ReadBookPage() {
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border">
             <SheetClose asChild>
-              <Button variant="outline" onClick={() => handleInteraction()}>關閉</Button>
+              <Button variant="outline" onClick={() => handleInteraction()}>{t('buttons.close')}</Button>
             </SheetClose>
           </SheetFooter>
         </SheetContent>
@@ -809,9 +783,9 @@ export default function ReadBookPage() {
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
           <SheetHeader className="p-4 border-b border-border">
-            <SheetTitle className="text-primary text-xl font-artistic">目錄</SheetTitle>
+            <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.tocSheetTitle')}</SheetTitle>
             <SheetDescription>
-              選擇章回以快速跳轉。
+              {t('readBook.tocSheetDesc')}
             </SheetDescription>
           </SheetHeader>
           <ScrollArea className="flex-grow">
@@ -823,14 +797,14 @@ export default function ReadBookPage() {
                 className="w-full justify-start text-left h-auto py-1.5 px-3 text-sm"
                 onClick={() => handleSelectChapterFromToc(index)}
               >
-                {chapter.title}
+                {chapter.title} {/* Chapter titles are content */}
               </Button>
             ))}
             </div>
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border">
              <SheetClose asChild>
-                <Button variant="outline" onClick={() => handleInteraction()}>關閉</Button>
+                <Button variant="outline" onClick={() => handleInteraction()}>{t('buttons.close')}</Button>
              </SheetClose>
           </SheetFooter>
         </SheetContent>
@@ -844,25 +818,25 @@ export default function ReadBookPage() {
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
           <SheetHeader className="p-4 border-b border-border">
-            <SheetTitle className="text-primary text-xl font-artistic">撰寫筆記</SheetTitle>
+            <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.noteSheetTitle')}</SheetTitle>
             <SheetDescription>
-              針對您選取的內容記錄您的想法。
+              {t('readBook.noteSheetDesc')}
             </SheetDescription>
           </SheetHeader>
           <ScrollArea className="flex-grow p-4 space-y-4">
             <div>
-              <Label className="text-sm text-muted-foreground">選取內容:</Label>
+              <Label className="text-sm text-muted-foreground">{t('labels.selectedContent')}</Label>
               <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
-                {selectedTextInfo?.text || "未選取任何內容。"}
+                {selectedTextInfo?.text || "No content selected."}
               </blockquote>
             </div>
             <div>
-              <Label htmlFor="noteTextarea" className="text-sm text-muted-foreground">您的筆記:</Label>
+              <Label htmlFor="noteTextarea" className="text-sm text-muted-foreground">{t('labels.yourNote')}</Label>
               <Textarea
                 id="noteTextarea"
                 value={currentNote}
                 onChange={(e) => setCurrentNote(e.target.value)}
-                placeholder="在此輸入您的筆記..."
+                placeholder={t('placeholders.yourNote')}
                 className="min-h-[200px] bg-background/70 mt-1"
                 rows={8}
               />
@@ -870,20 +844,18 @@ export default function ReadBookPage() {
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border flex justify-between">
             <SheetClose asChild>
-              <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null); handleInteraction();}}>取消</Button>
+              <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null); handleInteraction();}}>{t('buttons.cancel')}</Button>
             </SheetClose>
             <Button
               onClick={() => {
-                console.log("Saving note for text:", selectedTextInfo?.text);
-                console.log("Note content:", currentNote);
                 setIsNoteSheetOpen(false);
                 setSelectedTextInfo(null);
-                toast({ title: "筆記已保存", description: "您的筆記已成功保存（模擬）。" });
+                toast({ title: t('buttons.saveNote'), description: t('buttons.noteSaved') });
                 handleInteraction();
               }}
               className="bg-primary hover:bg-primary/90"
             >
-              保存筆記
+              {t('buttons.saveNote')}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -898,13 +870,13 @@ export default function ReadBookPage() {
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
             <SheetHeader className="p-4 border-b border-border">
-                <SheetTitle className="text-primary text-xl font-artistic">問 AI</SheetTitle>
-                <SheetDescription>針對選取的文本提出您的疑問。</SheetDescription>
+                <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.aiSheetTitle')}</SheetTitle>
+                <SheetDescription>{t('readBook.aiSheetDesc')}</SheetDescription>
             </SheetHeader>
             <ScrollArea className="flex-grow p-4 space-y-3">
                 {selectedTextInfo?.text && (
                     <div>
-                        <Label className="text-sm text-muted-foreground">選取內容:</Label>
+                        <Label className="text-sm text-muted-foreground">{t('labels.selectedContent')}</Label>
                         <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
                             {selectedTextInfo.text.length > 150 ? selectedTextInfo.text.substring(0, 150) + '...' : selectedTextInfo.text}
                         </blockquote>
@@ -913,12 +885,12 @@ export default function ReadBookPage() {
 
                 <div className="space-y-4">
                     <div>
-                        <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">您的問題：</Label>
+                        <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">{t('labels.yourQuestion')}</Label>
                         <Textarea
                             id="userQuestionAiSheet"
                             value={userQuestionInput}
                             onChange={(e) => setUserQuestionInput(e.target.value)}
-                            placeholder="請輸入您想問的問題..."
+                            placeholder={t('placeholders.yourQuestion')}
                             className="min-h-[100px] text-sm bg-background/70 mt-1"
                             rows={4}
                             disabled={aiInteractionState === 'answering' || aiInteractionState === 'answered'}
@@ -927,7 +899,7 @@ export default function ReadBookPage() {
                     
                     {(aiInteractionState === 'asking' || aiInteractionState === 'error') && (
                         <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim() || !selectedTextInfo?.text} className="w-full mt-4">
-                            {isLoadingExplanation ? "傳送中..." : "送出問題"}
+                            {isLoadingExplanation ? t('buttons.submit') + "..." : t('buttons.submit')}
                         </Button>
                     )}
                 </div>
@@ -935,26 +907,26 @@ export default function ReadBookPage() {
                 {(aiInteractionState === 'answering') && (
                      <div className="p-4 flex flex-col items-center justify-center text-muted-foreground">
                         <Lightbulb className="h-8 w-8 mb-2 animate-pulse text-primary" />
-                        AI 思考中...
+                        {t('buttons.aiThinking')}
                     </div>
                 )}
                 {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
                     <div>
-                        <h4 className="font-semibold mb-2 text-primary">AI 回答：</h4>
+                        <h4 className="font-semibold mb-2 text-primary">{t('buttons.aiReply')}</h4>
                         <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
                            <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line p-2 text-white">
                             {textExplanation}
                           </ReactMarkdown>
                         </ScrollArea>
                         <Button variant="link" onClick={() => {setAiInteractionState('asking'); setUserQuestionInput(''); setTextExplanation(null);}} className="mt-2 text-sm text-primary hover:text-primary/80 px-0">
-                          再問一題
+                          {t('buttons.askAnotherQuestion')}
                         </Button>
                     </div>
                 )}
             </ScrollArea>
             <SheetFooter className="p-4 border-t border-border">
                  <SheetClose asChild>
-                    <Button variant="outline" onClick={() => {setIsAiSheetOpen(false); setSelectedTextInfo(null); handleInteraction();}}>關閉</Button>
+                    <Button variant="outline" onClick={() => {setIsAiSheetOpen(false); setSelectedTextInfo(null); handleInteraction();}}>{t('buttons.close')}</Button>
                  </SheetClose>
             </SheetFooter>
         </SheetContent>
@@ -964,7 +936,7 @@ export default function ReadBookPage() {
         variant="default"
         className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-lg z-40 bg-primary text-primary-foreground hover:bg-primary/90 p-0 flex items-center justify-center"
         onClick={handleReadAloudClick}
-        title="朗讀"
+        title={t('buttons.readAloud')}
         data-no-selection="true"
       >
         <i className="fa fa-play-circle-o text-[54px]" aria-hidden="true"></i>
@@ -972,4 +944,3 @@ export default function ReadBookPage() {
     </div>
   );
 }
-

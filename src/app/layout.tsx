@@ -1,12 +1,14 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/AuthContext';
+import { LanguageProvider } from '@/context/LanguageContext'; // Added
 
 // Noto Serif SC is imported in globals.css
 
 export const metadata: Metadata = {
-  title: '紅樓慧讀',
+  title: '紅樓慧讀', // This might become dynamic later if needed
   description: '探索《紅樓夢》的智能閱讀夥伴 (An intelligent reading companion for exploring "Dream of the Red Chamber")',
 };
 
@@ -16,7 +18,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    // LanguageProvider will set document.documentElement.lang
+    // Initial lang here might be overridden by LanguageProvider's useEffect
+    <html lang="zh-TW"> 
       <head>
         <link 
           rel="stylesheet" 
@@ -28,8 +32,10 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         <AuthProvider>
-          {children}
-          <Toaster />
+          <LanguageProvider> {/* Added LanguageProvider */}
+            {children}
+            <Toaster />
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

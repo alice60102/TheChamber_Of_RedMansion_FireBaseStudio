@@ -18,34 +18,36 @@ import { auth } from '@/lib/firebase';
 import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { useLanguage } from '@/hooks/useLanguage';
 
-const registerSchema = z.object({
-  firstName: z.string().min(1, { message: "姓氏不能為空" }),
-  lastName: z.string().min(1, { message: "名字不能為空" }),
-  email: z.string().email({ message: "請輸入有效的電子郵件地址" }),
-  password: z.string().min(6, { message: "密碼長度至少為6位" }),
+const getRegisterSchema = (t: (key: string) => string) => z.object({
+  firstName: z.string().min(1, { message: t('register.errors.firstNameRequired') }),
+  lastName: z.string().min(1, { message: t('register.errors.lastNameRequired') }),
+  email: z.string().email({ message: t('register.errors.emailInvalid') }),
+  password: z.string().min(6, { message: t('register.errors.passwordMinLength') }),
   learningBackground: z.string().optional(),
   readingInterests: z.string().optional(),
   learningGoals: z.string().optional(),
 });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
+  type RegisterFormValues = z.infer<ReturnType<typeof getRegisterSchema>>;
+
   const { register, handleSubmit, control, formState: { errors }, trigger } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(getRegisterSchema(t)),
     mode: "onChange", 
   });
 
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
     setIsLoading(true);
     setFirebaseError(null);
-    console.log("Registration Data:", data); 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       if (userCredential.user) {
@@ -56,16 +58,16 @@ export default function RegisterPage() {
       router.push('/dashboard');
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
-        setFirebaseError('此電子郵件地址已被註冊。');
+        setFirebaseError(t('register.errorEmailInUse'));
       } else if (error.code === 'auth/weak-password') {
-        setFirebaseError('密碼太弱，請使用更強的密碼。');
+        setFirebaseError(t('register.errorWeakPassword'));
       } else if (error.code === 'auth/configuration-not-found') {
-        setFirebaseError('Firebase 驗證設定未找到。請確認您的 .env 文件中的 Firebase 專案ID是否正確，並在 Firebase 控制台中啟用了 Email/Password 登入方式。');
+        setFirebaseError(t('register.errorConfigNotFound'));
       } else if (error.code === 'auth/invalid-api-key') {
-        setFirebaseError('Firebase API 金鑰無效。請檢查您的 .env 文件中的 Firebase 配置是否正確。');
+        setFirebaseError(t('register.errorInvalidApiKey'));
       }
       else {
-        setFirebaseError('註冊失敗，請稍後再試。錯誤碼：' + error.code);
+        setFirebaseError(`${t('register.errorDefault')} ${error.code}`);
       }
       console.error("Registration error:", error);
     } finally {
@@ -92,6 +94,13 @@ export default function RegisterPage() {
     setCurrentStep((prev) => prev - 1);
   };
 
+  const stepDescriptions: Record<number, string> = {
+    1: t('register.step1Description'),
+    2: t('register.step2Description'),
+    3: t('register.step3Description'),
+    4: t('register.step4Description'),
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-primary/10 to-background p-4">
       <Card className="w-full max-w-lg shadow-2xl bg-card/90 backdrop-blur-lg">
@@ -99,22 +108,18 @@ export default function RegisterPage() {
            <Link href="/" className="inline-block mb-4">
              <ScrollText className="h-12 w-12 text-primary mx-auto" />
           </Link>
-          <CardTitle className="text-3xl font-artistic text-primary">加入紅樓慧讀</CardTitle>
+          <CardTitle className="text-3xl font-artistic text-primary">{t('register.joinApp')}</CardTitle>
           <CardDescription>
-            {currentStep === 1 && "創建您的帳戶，開啟智能閱讀新體驗"}
-            {currentStep === 2 && "告訴我們更多關於您的學習背景"}
-            {currentStep === 3 && "分享您對《紅樓夢》的閱讀興趣"}
-            {currentStep === 4 && "設定您的學習目標"}
+            {stepDescriptions[currentStep]}
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="min-h-[320px] flex flex-col">
-            {/* Wrapper for dynamic content and buttons */}
             <div className="flex flex-col"> 
               {firebaseError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>註冊錯誤</AlertTitle>
+                  <AlertTitle>{t('register.errorTitle')}</AlertTitle>
                   <AlertDescription>{firebaseError}</AlertDescription>
                 </Alert>
               )}
@@ -123,23 +128,23 @@ export default function RegisterPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName">請輸入姓氏</Label>
-                      <Input id="firstName" placeholder="姓氏" {...register("firstName")} className={`bg-background/70 ${errors.firstName ? 'border-destructive' : ''}`} />
+                      <Label htmlFor="firstName">{t('register.firstNameLabel')}</Label>
+                      <Input id="firstName" placeholder={t('register.firstNamePlaceholder')} {...register("firstName")} className={`bg-background/70 ${errors.firstName ? 'border-destructive' : ''}`} />
                       {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName">請輸入名字</Label>
-                      <Input id="lastName" placeholder="名字" {...register("lastName")} className={`bg-background/70 ${errors.lastName ? 'border-destructive' : ''}`} />
+                      <Label htmlFor="lastName">{t('register.lastNameLabel')}</Label>
+                      <Input id="lastName" placeholder={t('register.lastNamePlaceholder')} {...register("lastName")} className={`bg-background/70 ${errors.lastName ? 'border-destructive' : ''}`} />
                       {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email">電子郵件</Label>
-                    <Input id="email" type="email" placeholder="m@example.com" {...register("email")} className={`bg-background/70 ${errors.email ? 'border-destructive' : ''}`} />
+                    <Label htmlFor="email">{t('register.emailLabel')}</Label>
+                    <Input id="email" type="email" placeholder={t('placeholders.emailExample')} {...register("email")} className={`bg-background/70 ${errors.email ? 'border-destructive' : ''}`} />
                     {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password">密碼 (至少6位)</Label>
+                    <Label htmlFor="password">{t('register.passwordLabel')}</Label>
                     <Input id="password" type="password" {...register("password")} className={`bg-background/70 ${errors.password ? 'border-destructive' : ''}`} />
                     {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
                   </div>
@@ -148,20 +153,20 @@ export default function RegisterPage() {
 
               {currentStep === 2 && (
                 <div className="space-y-2">
-                  <Label htmlFor="learningBackground">您的古典文學基礎？ (選填)</Label>
+                  <Label htmlFor="learningBackground">{t('register.learningBackgroundLabel')}</Label>
                   <Controller
                     name="learningBackground"
                     control={control}
                     render={({ field }) => (
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <SelectTrigger className="w-full bg-background/70">
-                          <SelectValue placeholder="請選擇您的古典文學背景" />
+                          <SelectValue placeholder={t('register.learningBackgroundPlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="beginner">初次接觸</SelectItem>
-                          <SelectItem value="intermediate">略有涉獵</SelectItem>
-                          <SelectItem value="advanced">曾修讀相關課程</SelectItem>
-                          <SelectItem value="expert">深入研究</SelectItem>
+                          <SelectItem value="beginner">{t('register.bgOptionBeginner')}</SelectItem>
+                          <SelectItem value="intermediate">{t('register.bgOptionIntermediate')}</SelectItem>
+                          <SelectItem value="advanced">{t('register.bgOptionAdvanced')}</SelectItem>
+                          <SelectItem value="expert">{t('register.bgOptionExpert')}</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
@@ -171,10 +176,10 @@ export default function RegisterPage() {
 
               {currentStep === 3 && (
                 <div className="space-y-2">
-                  <Label htmlFor="readingInterests">您對《紅樓夢》的哪些方面最感興趣？ (選填)</Label>
+                  <Label htmlFor="readingInterests">{t('register.readingInterestsLabel')}</Label>
                   <Textarea
                     id="readingInterests"
-                    placeholder="例如：人物關係、詩詞賞析、歷史文化背景..."
+                    placeholder={t('register.readingInterestsPlaceholder')}
                     {...register("readingInterests")}
                     className="bg-background/70 min-h-[120px]"
                     rows={4}
@@ -184,10 +189,10 @@ export default function RegisterPage() {
 
               {currentStep === 4 && (
                 <div className="space-y-2">
-                  <Label htmlFor="learningGoals">您希望透過本平台達成什麼學習目標？ (選填)</Label>
+                  <Label htmlFor="learningGoals">{t('register.learningGoalsLabel')}</Label>
                   <Textarea
                     id="learningGoals"
-                    placeholder="例如：完整閱讀一遍、理解主要人物、完成所有判詞筆記..."
+                    placeholder={t('register.learningGoalsPlaceholder')}
                     {...register("learningGoals")}
                     className="bg-background/70 min-h-[120px]"
                     rows={4}
@@ -195,21 +200,17 @@ export default function RegisterPage() {
                 </div>
               )}
             
-              {/* Button navigation area */}
               <div className="flex items-center mt-6 gap-4">
-                {currentStep > 1 ? (
+                 {currentStep > 1 ? (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handlePreviousStep}
                     className="text-accent border-accent hover:bg-accent/10 flex-1"
                   >
-                    <ArrowLeft className="mr-2 h-4 w-4" /> 上一步
+                    <ArrowLeft className="mr-2 h-4 w-4" /> {t('buttons.previous')}
                   </Button>
                 ) : (
-                  // This placeholder ensures the "Next" button aligns correctly when it's the only one logically on the right for step 1.
-                  // If there's only one button and it should be full width, this placeholder would be removed and the button itself wouldn't have flex-1.
-                  // Given our current structure with always two "visual slots", this makes them equal.
                   <div className="flex-1"></div> 
                 )}
                 
@@ -219,7 +220,7 @@ export default function RegisterPage() {
                     onClick={handleNextStep}
                     className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
                   >
-                    下一步 <ArrowRight className="ml-2 h-4 w-4" />
+                    {t('buttons.next')} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 )}
                 {currentStep === 4 && (
@@ -228,19 +229,18 @@ export default function RegisterPage() {
                     className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
                     disabled={isLoading}
                   >
-                    {isLoading ? "創建中..." : "創建帳戶並開始學習"}
+                    {isLoading ? t('register.creatingAccount') : t('register.createAndStart')}
                   </Button>
                 )}
               </div>
             </div>
-            
-            <div className="flex-grow"></div> {/* This pushes content up, empty space at bottom */}
+            <div className="flex-grow"></div> 
           </CardContent>
         </form>
         <CardFooter className="text-center text-sm">
-          已經有帳戶了?{' '}
+          {t('register.alreadyHaveAccount')}{' '}
           <Link href="/login" className="text-accent underline hover:text-accent/80">
-            登入
+            {t('buttons.login')}
           </Link>
         </CardFooter>
       </Card>

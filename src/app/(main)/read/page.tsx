@@ -4,19 +4,20 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardDescription, CardFooter
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Edit } from 'lucide-react'; 
+import { useLanguage } from '@/hooks/useLanguage';
 
 interface Book {
   id: string;
   title: string;
   author: string;
   description: string;
-  coverImage: string; // Kept for potential future use, but icon is used now
-  aiHint: string;     // For actual image generation if needed
+  coverImage: string; 
+  aiHint: string;
   readLink: string;
-  badgeText?: string; // For badges like "電子書" or "專家解讀"
+  badgeTextKey?: string; 
 }
 
 const originalTextBooks: Book[] = [
@@ -25,10 +26,10 @@ const originalTextBooks: Book[] = [
     title: '紅樓夢上中下三冊',
     author: '時報出版',
     description: '時報出版發行的《紅樓夢》全集，分為上、中、下三冊。',
-    coverImage: 'https://placehold.co/150x220.png?tint=662929', // Tint for icon background placeholder
+    coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese novel set',
-    readLink: '#', // Placeholder link
-    badgeText: '電子書',
+    readLink: '#', 
+    badgeTextKey: 'read.badgeEbook',
   },
   {
     id: 'hlm-v3',
@@ -37,8 +38,8 @@ const originalTextBooks: Book[] = [
     description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
     coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese novel',
-    readLink: '/read-book', // Actual link for this specific book
-    badgeText: '電子書',
+    readLink: '/read-book',
+    badgeTextKey: 'read.badgeEbook',
   },
   {
     id: 'hlm-chengjia',
@@ -48,7 +49,7 @@ const originalTextBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese antique',
     readLink: '#',
-    badgeText: '電子書',
+    badgeTextKey: 'read.badgeEbook',
   },
   {
     id: 'hlm-gengchen',
@@ -58,7 +59,7 @@ const originalTextBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese scholarly',
     readLink: '#',
-    badgeText: '電子書',
+    badgeTextKey: 'read.badgeEbook',
   },
   {
     id: 'hlm-zhiyan',
@@ -68,7 +69,7 @@ const originalTextBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese manuscript',
     readLink: '#',
-    badgeText: '電子書',
+    badgeTextKey: 'read.badgeEbook',
   },
   {
     id: 'hlm-menggao',
@@ -78,7 +79,7 @@ const originalTextBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese rare',
     readLink: '#',
-    badgeText: '電子書',
+    badgeTextKey: 'read.badgeEbook',
   },
   {
     id: 'hlm-anniversary',
@@ -88,7 +89,7 @@ const originalTextBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=662929',
     aiHint: 'chinese edition',
     readLink: '#',
-    badgeText: '電子書',
+    badgeTextKey: 'read.badgeEbook',
   },
 ];
 
@@ -98,10 +99,10 @@ const expertInterpretationBooks: Book[] = [
     title: '蔣勳說紅樓夢青春版',
     author: '蔣勳',
     description: '除了文字之外，附加了很多的圖，閱讀的易讀性增加了許多。詳細講解每一回，並且排版很舒服。文筆柔和，內容也沒有多大門檻、生活化，適合青少年讀。',
-    coverImage: 'https://placehold.co/150x220.png?tint=555555', // Slightly different tint for expert books
+    coverImage: 'https://placehold.co/150x220.png?tint=555555',
     aiHint: 'chinese literary criticism',
     readLink: '#',
-    badgeText: '專家解讀',
+    badgeTextKey: 'read.badgeExpert',
   },
   {
     id: 'jiangxun-dream',
@@ -111,7 +112,7 @@ const expertInterpretationBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=555555',
     aiHint: 'chinese literary introduction',
     readLink: '#',
-    badgeText: '專家解讀',
+    badgeTextKey: 'read.badgeExpert',
   },
   {
     id: 'jiangxun-microdust',
@@ -121,7 +122,7 @@ const expertInterpretationBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=555555',
     aiHint: 'chinese character analysis',
     readLink: '#',
-    badgeText: '專家解讀',
+    badgeTextKey: 'read.badgeExpert',
   },
   {
     id: 'baixianyong-detailed',
@@ -131,7 +132,7 @@ const expertInterpretationBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=555555',
     aiHint: 'chinese literary analysis',
     readLink: '#',
-    badgeText: '專家解讀',
+    badgeTextKey: 'read.badgeExpert',
   },
   {
     id: 'oulijuan-sixviews',
@@ -141,7 +142,7 @@ const expertInterpretationBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=555555',
     aiHint: 'chinese academic study',
     readLink: '#',
-    badgeText: '專家解讀',
+    badgeTextKey: 'read.badgeExpert',
   },
   {
     id: 'dongmei-thorough',
@@ -151,20 +152,19 @@ const expertInterpretationBooks: Book[] = [
     coverImage: 'https://placehold.co/150x220.png?tint=555555',
     aiHint: 'chinese thematic interpretation',
     readLink: '#',
-    badgeText: '專家解讀',
+    badgeTextKey: 'read.badgeExpert',
   },
 ];
 
 
-const BookCard = ({ book }: { book: Book }) => (
+const BookCard = ({ book, t }: { book: Book; t: (key: string) => string }) => (
   <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow bg-card/70 flex flex-col">
     <CardContent className="p-0 flex-grow flex flex-col">
       <div className="relative aspect-[3/4.4] bg-muted/50 flex items-center justify-center rounded-t-md overflow-hidden">
-        {/* Using Font Awesome icon directly */}
         <i className="fa fa-book text-7xl text-primary/60" aria-hidden="true"></i>
-        {book.badgeText && (
+        {book.badgeTextKey && (
           <div className="absolute bottom-1 left-1 bg-black/50 text-white text-xs px-1.5 py-0.5 rounded-sm">
-            {book.badgeText}
+            {t(book.badgeTextKey)}
           </div>
         )}
       </div>
@@ -174,10 +174,10 @@ const BookCard = ({ book }: { book: Book }) => (
           <p className="text-xs text-muted-foreground truncate" title={book.author}>{book.author}</p>
           <p className="text-xs text-muted-foreground/80 mt-1 line-clamp-2" title={book.description}>{book.description}</p>
         </div>
-        <div className="flex items-center justify-end pt-2 mt-auto"> {/* mt-auto pushes this div to the bottom */}
+        <div className="flex items-center justify-end pt-2 mt-auto">
            <Button asChild variant="link" size="sm" className="p-0 h-auto text-primary hover:text-primary/80">
             <Link href={book.readLink}>
-              <BookOpen className="mr-1 h-3.5 w-3.5" />閱讀
+              <BookOpen className="mr-1 h-3.5 w-3.5" />{t('buttons.read')}
             </Link>
           </Button>
         </div>
@@ -187,38 +187,33 @@ const BookCard = ({ book }: { book: Book }) => (
 );
 
 export default function BookSelectionPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("originals");
-
-  // Calculate total count for "全部" button
   const allBooksCount = originalTextBooks.length + expertInterpretationBooks.length;
-
 
   return (
     <div className="space-y-6">
       <Card className="shadow-xl">
         <CardHeader>
           <CardTitle className="font-artistic text-3xl text-primary">
-            我的書架
+            {t('read.myShelf')}
           </CardTitle>
-          {/* <CardDescription>
-            選擇您的下一本讀物，開始智慧閱讀之旅。
-          </CardDescription> */}
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="originals" className="w-full" onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-3 md:w-auto md:inline-flex mb-4">
-              <TabsTrigger value="recent">最近學習</TabsTrigger>
-              <TabsTrigger value="originals">紅樓夢原文</TabsTrigger>
-              <TabsTrigger value="interpretations">專家解讀</TabsTrigger>
+              <TabsTrigger value="recent">{t('read.tabRecent')}</TabsTrigger>
+              <TabsTrigger value="originals">{t('read.tabOriginals')}</TabsTrigger>
+              <TabsTrigger value="interpretations">{t('read.tabInterpretations')}</TabsTrigger>
             </TabsList>
 
             <div className="mb-6 flex flex-wrap items-center gap-2">
-              <Button variant="default" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">全部 ({allBooksCount})</Button>
-              <Button variant="outline" size="sm">進度</Button>
-              <Button variant="outline" size="sm">分類</Button>
+              <Button variant="default" size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">{t('read.btnAll')} ({allBooksCount})</Button>
+              <Button variant="outline" size="sm">{t('read.btnProgress')}</Button>
+              <Button variant="outline" size="sm">{t('read.btnCategory')}</Button>
               <div className="ml-auto hidden md:block">
                 <Button variant="ghost" size="sm">
-                  <Edit className="mr-2 h-4 w-4" /> 編輯
+                  <Edit className="mr-2 h-4 w-4" /> {t('buttons.edit')}
                 </Button>
               </div>
             </div>
@@ -226,20 +221,20 @@ export default function BookSelectionPage() {
             <TabsContent value="originals">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {originalTextBooks.map((book) => (
-                  <BookCard key={book.id} book={book} />
+                  <BookCard key={book.id} book={book} t={t} />
                 ))}
               </div>
             </TabsContent>
             <TabsContent value="interpretations">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                 {expertInterpretationBooks.map((book) => (
-                  <BookCard key={book.id} book={book} />
+                  <BookCard key={book.id} book={book} t={t} />
                 ))}
               </div>
             </TabsContent>
             <TabsContent value="recent">
               <div className="text-center py-12 text-muted-foreground">
-                <p>最近學習記錄將顯示於此。</p>
+                <p>{t('read.recentLearningPlaceholder')}</p>
               </div>
             </TabsContent>
           </Tabs>
@@ -248,4 +243,3 @@ export default function BookSelectionPage() {
     </div>
   );
 }
-

@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send, Pencil } from "lucide-react"; // Changed PencilLine to Pencil
+import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send, Pencil } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { Label } from '@/components/ui/label';
+import { useLanguage } from '@/hooks/useLanguage';
+
 
 type PostedComment = {
   author: string;
@@ -26,23 +28,22 @@ type Post = {
 };
 
 
-// Placeholder data for posts - with customized placeholder comments
-const initialPostsData: Post[] = [
+const getInitialPostsData = (t: (key: string) => string): Post[] => [
   {
     id: '1',
-    author: '寶玉哥哥',
+    author: '寶玉哥哥', // Example, could be dynamic or user-based
     timestamp: '2小時前',
     content: '今日細讀判詞，忽有所悟，不知諸位有何高見？尤其是晴為黛影，襲為釵副之說，總覺得意猶未盡... 判詞云：「霽月難逢，彩雲易散。心比天高，身為下賤。風流靈巧招人怨。壽夭多因毀謗生，多情公子空牽念。」此處暗示晴雯命運。又云：「枉自溫柔和順，空雲似桂如蘭。堪羨優伶有福，誰知公子無緣。」此為襲人。',
     likes: 15,
-    tags: ['判詞解析', '人物探討'],
+    tags: ['判詞解析', '人物探討'], // These could also be translated if needed, but often tags are language-specific
     initialPlaceholderComments: [
       {
-        author: "林黛玉",
-        text: "寶玉哥哥此番見解深刻，晴雯判詞確令人心傷。一句「霽月難逢，彩雲易散」，道盡了她的不幸與淒涼。"
+        author: t('community.placeholderInitialCommentAuthor1'),
+        text: t('community.placeholderInitialCommentText1')
       },
       {
-        author: "薛寶釵",
-        text: "襲人判詞中「枉自溫柔和順，空雲似桂如蘭」，也頗耐人尋味。書中人物命運多舛，實是紅樓一夢，令人不勝唏噓。"
+        author: t('community.placeholderInitialCommentAuthor2'),
+        text: t('community.placeholderInitialCommentText2')
       }
     ]
   },
@@ -53,7 +54,7 @@ const initialPostsData: Post[] = [
     content: '「儂今葬花人笑痴，他年葬儂知是誰？」每讀此句，心緒難平。不知各位姐妹讀此詞時，作何感想？「試看春殘花漸落，便是紅顏老死時。一朝春盡紅顏老，花落人亡兩不知！」全詩淒婉動人，道盡了黛玉的多愁 sensibilia (多愁善感) and tragic fate.',
     likes: 28,
     tags: ['詩詞賞析', '黛玉'],
-    initialPlaceholderComments: [] // No initial comments
+    initialPlaceholderComments: []
   },
   {
     id: '3',
@@ -64,8 +65,8 @@ const initialPostsData: Post[] = [
     tags: ['社會背景', '歷史研究'],
     initialPlaceholderComments: [
       {
-        author: "王熙鳳",
-        text: "雨村先生所言甚是。若論及排場與吃穿用度，我們賈府的確是冠絕一時。便是尋常一道茶點，也有無數講究呢。"
+        author: t('community.placeholderInitialCommentAuthor3'),
+        text: t('community.placeholderInitialCommentText3')
       }
     ]
   },
@@ -73,9 +74,9 @@ const initialPostsData: Post[] = [
 
 
 const MAX_POST_LENGTH = 5000;
-const CONTENT_TRUNCATE_LENGTH = 150; // Character limit to show "更多"
+const CONTENT_TRUNCATE_LENGTH = 150; 
 
-function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void }) {
+function NewPostForm({ onPostSubmit, t }: { onPostSubmit: (content: string) => void; t: (key: string) => string }) {
   const { user } = useAuth();
   const [postContent, setPostContent] = useState('');
   const [characterCount, setCharacterCount] = useState(0);
@@ -106,9 +107,9 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
             style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           ></i>
           <div className="flex-grow">
-            <p className="font-semibold text-white mb-1">{user?.displayName || '訪客'}</p>
+            <p className="font-semibold text-white mb-1">{user?.displayName || t('community.anonymousUser')}</p>
             <Textarea
-              placeholder="發文內容..."
+              placeholder={t('placeholders.postContent')}
               value={postContent}
               onChange={handleContentChange}
               className="w-full min-h-[80px] bg-background/50 text-base mb-2"
@@ -116,14 +117,14 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
             />
             <div className="flex justify-end items-center gap-4">
               <span className="text-xs text-muted-foreground">
-                {characterCount} / {MAX_POST_LENGTH}
+                {characterCount} / {MAX_POST_LENGTH} {t('community.characterCount')}
               </span>
               <Button 
                 onClick={handleSubmit} 
                 disabled={!postContent.trim()}
                 className="bg-accent text-accent-foreground hover:bg-accent/90"
               >
-                發佈
+                {t('buttons.post')}
               </Button>
             </div>
           </div>
@@ -133,12 +134,11 @@ function NewPostForm({ onPostSubmit }: { onPostSubmit: (content: string) => void
   );
 }
 
-function PostCard({ post: initialPost }: { post: Post }) {
+function PostCard({ post: initialPost, t }: { post: Post; t: (key: string) => string }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const showMoreButton = initialPost.content.length > CONTENT_TRUNCATE_LENGTH;
   const { user } = useAuth();
 
-  // Likes state
   const [isLiked, setIsLiked] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(initialPost.likes);
 
@@ -151,7 +151,6 @@ function PostCard({ post: initialPost }: { post: Post }) {
     setIsLiked(!isLiked);
   };
 
-  // Comments state
   const [showCommentInput, setShowCommentInput] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [postedComments, setPostedComments] = useState<PostedComment[]>(initialPost.initialPlaceholderComments || []); 
@@ -161,10 +160,10 @@ function PostCard({ post: initialPost }: { post: Post }) {
   const handleSubmitComment = () => {
     if (newComment.trim()) {
       const newCommentEntry: PostedComment = {
-        author: user?.displayName || '匿名用戶',
+        author: user?.displayName || t('community.anonymousUser'),
         text: newComment.trim(),
       };
-      setPostedComments(prev => [newCommentEntry, ...prev]); // New comments at the top
+      setPostedComments(prev => [newCommentEntry, ...prev]); 
       setCurrentCommentsCount(prev => prev + 1);
       setNewComment('');
     }
@@ -196,7 +195,7 @@ function PostCard({ post: initialPost }: { post: Post }) {
             onClick={() => setIsExpanded(!isExpanded)}
             className="text-primary hover:text-primary/80 p-0 h-auto mt-1 text-sm"
           >
-            {isExpanded ? "收起" : "更多"}
+            {isExpanded ? t('community.showLess') : t('community.showMore')}
           </Button>
         )}
         <div className="flex flex-wrap gap-2 mt-3">
@@ -236,17 +235,17 @@ function PostCard({ post: initialPost }: { post: Post }) {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor={`comment-input-${initialPost.id}`} className="text-sm font-semibold text-foreground/90">發表評論</Label>
+            <Label htmlFor={`comment-input-${initialPost.id}`} className="text-sm font-semibold text-foreground/90">{t('community.commentLabel')}</Label>
             <Textarea
               id={`comment-input-${initialPost.id}`}
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder="寫下您的評論..."
+              placeholder={t('placeholders.writeYourComment')}
               rows={2}
               className="bg-background/70 text-base"
             />
             <Button onClick={handleSubmitComment} size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" disabled={!newComment.trim()}>
-              <Send className="h-3 w-3 mr-1.5"/> 送出評論
+              <Send className="h-3 w-3 mr-1.5"/> {t('buttons.submitComment')}
             </Button>
           </div>
         </CardContent>
@@ -256,6 +255,8 @@ function PostCard({ post: initialPost }: { post: Post }) {
 }
 
 export default function CommunityPage() {
+  const { t } = useLanguage();
+  const initialPostsData = getInitialPostsData(t);
   const [posts, setPosts] = useState<Post[]>(initialPostsData);
   const [searchTerm, setSearchTerm] = useState('');
   const { user } = useAuth(); 
@@ -263,11 +264,11 @@ export default function CommunityPage() {
   const handleNewPost = (content: string) => {
     const newPost: Post = {
       id: (posts.length + 1).toString(),
-      author: user?.displayName || '匿名用戶',
-      timestamp: '剛剛',
+      author: user?.displayName || t('community.anonymousUser'),
+      timestamp: '剛剛', // This could be localized or formatted too
       content: content,
       likes: 0,
-      tags: ['新帖'],
+      tags: [t('community.postTagNew')],
       initialPlaceholderComments: []
     };
     setPosts([newPost, ...posts]);
@@ -287,15 +288,15 @@ export default function CommunityPage() {
             <div>
               <CardTitle className="font-artistic text-2xl text-primary flex items-center gap-2">
                 <Users className="h-7 w-7" />
-                紅學社
+                {t('community.title')}
               </CardTitle>
               <CardDescription>
-                用戶交流、分享心得的園地。暢所欲言，共同探討《紅樓夢》的無窮魅力。
+                {t('community.description')}
               </CardDescription>
             </div>
             {user && (
-              <Button onClick={() => alert("撰寫新帖 功能示意")} className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Pencil className="mr-2 h-4 w-4" /> 撰寫新帖 
+              <Button onClick={() => alert(t('community.newPostPlaceholder'))} className="bg-accent text-accent-foreground hover:bg-accent/90">
+                <Pencil className="mr-2 h-4 w-4" /> {t('community.writeNewPost')}
               </Button>
             )}
           </div>
@@ -305,7 +306,7 @@ export default function CommunityPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input 
-                placeholder="搜索發文內容、作者或標籤..." 
+                placeholder={t('placeholders.searchPosts')}
                 className="pl-10 bg-background/50 text-base"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -313,20 +314,20 @@ export default function CommunityPage() {
             </div>
           </div>
 
-          {user && <NewPostForm onPostSubmit={handleNewPost} />}
+          {user && <NewPostForm onPostSubmit={handleNewPost} t={t} />}
 
           {filteredPosts.length > 0 ? (
             <div className="space-y-6">
               {filteredPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard key={post.id} post={post} t={t} />
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-semibold text-foreground">暫無匹配發文</h3>
+              <h3 className="mt-2 text-lg font-semibold text-foreground">{t('community.noMatchingPosts')}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {searchTerm ? "未找到與您的搜索詞相關的發文。" : "這裡還沒有發文，快來發表第一篇吧！"}
+                {searchTerm ? t('community.errorSearchNoResults') : t('community.noPostsYet')}
               </p>
             </div>
           )}
@@ -335,4 +336,3 @@ export default function CommunityPage() {
     </div>
   );
 }
-

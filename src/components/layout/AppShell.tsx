@@ -11,14 +11,8 @@ import {
   LayoutDashboard,
   LogOut,
   Users,
-  Search, // Added for search
-  Trophy, // Added for Achievements
-  // BarChart3, // For '研讀' (Research) - Removed
-  // Sparkles, // For '情境連結' (Modern Relevance) - Removed
-  // Users2, // For '學習社群' (Community) - if different from Users
-  // MessageSquare, // For '寫作輔助' (Writing Assistant)
-  // ListChecks, // For '學習目標' (Goals) - Removed
-  // Brain, // For '學習狀況' (Learning Analysis) - Removed
+  Trophy,
+  ChevronDown,
 } from "lucide-react";
 
 import {
@@ -47,30 +41,24 @@ import { useAuth } from "@/hooks/useAuth";
 import { auth } from "@/lib/firebase";
 import { signOut } from "firebase/auth";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/hooks/useLanguage";
+import { LANGUAGES } from "@/lib/translations";
+import type { Language } from "@/lib/translations";
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: React.ElementType;
-  tooltip: string;
-}
-
-const navItems: NavItem[] = [
-  { href: "/dashboard", label: "首頁", icon: LayoutDashboard, tooltip: "首頁" },
-  { href: "/read", label: "閱讀", icon: BookOpen, tooltip: "閱讀" },
-  { href: "/achievements", label: "成就與目標", icon: Trophy, tooltip: "我的成就與目標" }, // Added
-  // { href: "/goals", label: "學習目標", icon: ListChecks, tooltip: "學習目標與進度" }, // Removed
-  // { href: "/characters", label: "學習狀況", icon: Brain, tooltip: "個人知識圖譜與學習分析" }, // Removed
-  // { href: "/research", label: "研讀", icon: BarChart3, tooltip: "專題研究" }, // Removed
-  // { href: "/modern-relevance", label: "情境連結", icon: Sparkles, tooltip: "現代生活連結" }, // Removed
-  { href: "/community", label: "紅學社", icon: Users, tooltip: "學習社群" },
-];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname(); 
   const router = useRouter();
   const { user } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
 
+  const navItems = [
+    { href: "/dashboard", labelKey: "sidebar.home", icon: LayoutDashboard },
+    { href: "/read", labelKey: "sidebar.read", icon: BookOpen },
+    { href: "/achievements", labelKey: "sidebar.achievements", icon: Trophy },
+    { href: "/community", labelKey: "sidebar.community", icon: Users },
+  ];
+  
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -86,23 +74,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         <SidebarHeader className="p-4">
           <Link href="/dashboard" className="flex items-center gap-2">
             <ScrollText className="h-8 w-8 text-primary" />
-            <h1 className="text-xl font-artistic text-white">紅樓慧讀</h1>
+            <h1 className="text-xl font-artistic text-white">{t('appName')}</h1>
           </Link>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
             {navItems.map((item) => (
-              <SidebarMenuItem key={item.label}>
+              <SidebarMenuItem key={item.labelKey}>
                 <SidebarMenuButton
                     asChild
                     className="w-full justify-start"
                     variant={pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/') || (pathname === '/read-book' && item.href === '/read') ? "default" : "ghost"}
                     isActive={pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/') || (pathname === '/read-book' && item.href === '/read')}
-                    tooltip={item.tooltip}
+                    tooltip={t(item.labelKey)}
                   >
                     <Link href={item.href}>
                       <item.icon />
-                      <span className="truncate">{item.label}</span>
+                      <span className="truncate">{t(item.labelKey)}</span>
                     </Link>
                   </SidebarMenuButton>
               </SidebarMenuItem>
@@ -121,35 +109,54 @@ export function AppShell({ children }: { children: ReactNode }) {
                     style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                   ></i>
                   <div className="text-left">
-                    <p className="text-sm font-medium text-sidebar-foreground truncate">{user.displayName || '用戶'}</p>
+                    <p className="text-sm font-medium text-sidebar-foreground truncate">{user.displayName || t('community.anonymousUser')}</p>
                     <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="top" align="start" className="w-56">
-                <DropdownMenuLabel>我的帳戶</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('appShell.userAccount')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem disabled>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>設置 (待開發)</span>
+                  <span>{t('appShell.settings')}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>登出</span>
+                  <span>{t('buttons.logout')}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
            ) : (
             <Button variant="ghost" className="w-full justify-start" asChild>
-              <Link href="/login">登入 / 註冊</Link>
+              <Link href="/login">{t('buttons.login')}</Link>
             </Button>
            )}
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-start border-b bg-background/80 px-6 backdrop-blur-md md:justify-between">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-6 backdrop-blur-md">
           <SidebarTrigger className="md:hidden" /> 
-          <div></div>
+          <div></div> {/* Placeholder for potential header content on the right */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="text-xs sm:text-sm font-medium text-foreground/70 hover:text-foreground px-2 sm:px-3">
+                {LANGUAGES.find(lang => lang.code === language)?.name || language}
+                <ChevronDown className="ml-1 h-4 w-4 opacity-70" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {LANGUAGES.map((langOption) => (
+                <DropdownMenuItem
+                  key={langOption.code}
+                  onSelect={() => setLanguage(langOption.code as Language)}
+                  disabled={language === langOption.code}
+                >
+                  {langOption.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
         <main className="flex-1 overflow-y-auto p-6"> 
           {children}

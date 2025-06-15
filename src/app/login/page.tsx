@@ -16,21 +16,24 @@ import { auth } from '@/lib/firebase';
 import { useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { useLanguage } from '@/hooks/useLanguage';
 
-const loginSchema = z.object({
-  email: z.string().email({ message: "請輸入有效的電子郵件地址" }),
-  password: z.string().min(1, { message: "密碼不能為空" }),
+const getLoginSchema = (t: (key: string) => string) => z.object({
+  email: z.string().email({ message: t('register.errors.emailInvalid') }),
+  password: z.string().min(1, { message: t('register.errors.passwordMinLength') }), // Assuming same message or create a new one
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  type LoginFormValues = z.infer<ReturnType<typeof getLoginSchema>>;
+
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(getLoginSchema(t)),
   });
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
@@ -38,13 +41,12 @@ export default function LoginPage() {
     setFirebaseError(null);
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      router.push('/dashboard'); // Redirect to dashboard on successful login
+      router.push('/dashboard'); 
     } catch (error: any) {
-      // Handle Firebase errors
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-        setFirebaseError('電子郵件或密碼不正確。');
+        setFirebaseError(t('login.errorInvalidCredential'));
       } else {
-        setFirebaseError('登入失敗，請稍後再試。');
+        setFirebaseError(t('login.errorDefault'));
       }
       console.error("Login error:", error);
     } finally {
@@ -59,37 +61,48 @@ export default function LoginPage() {
           <Link href="/" className="inline-block mb-4">
              <ScrollText className="h-12 w-12 text-primary mx-auto" />
           </Link>
-          <CardTitle className="text-3xl font-artistic text-primary">歡迎回來</CardTitle>
-          <CardDescription>登入以繼續您的紅樓慧讀之旅</CardDescription>
+          <CardTitle className="text-3xl font-artistic text-primary">{t('login.welcomeBack')}</CardTitle>
+          <CardDescription>{t('login.pageDescription')}</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             {firebaseError && (
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>登入錯誤</AlertTitle>
+                  <AlertTitle>{t('login.errorTitle')}</AlertTitle>
                   <AlertDescription>{firebaseError}</AlertDescription>
                 </Alert>
               )}
             <div className="space-y-2">
-              <Label htmlFor="email">電子郵件</Label>
-              <Input id="email" type="email" placeholder="m@example.com" {...register("email")} className={`bg-background/70 ${errors.email ? 'border-destructive' : ''}`} />
+              <Label htmlFor="email">{t('login.emailLabel')}</Label>
+              <Input 
+                id="email" 
+                type="email" 
+                placeholder={t('placeholders.emailExample')} 
+                {...register("email")} 
+                className={`bg-background/70 ${errors.email ? 'border-destructive' : ''}`} 
+              />
               {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">密碼</Label>
-              <Input id="password" type="password" {...register("password")} className={`bg-background/70 ${errors.password ? 'border-destructive' : ''}`} />
+              <Label htmlFor="password">{t('login.passwordLabel')}</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                {...register("password")} 
+                className={`bg-background/70 ${errors.password ? 'border-destructive' : ''}`} 
+              />
               {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
             </div>
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
-              {isLoading ? "登入中..." : "登入"}
+              {isLoading ? t('login.loggingIn') : t('buttons.login')}
             </Button>
           </CardContent>
         </form>
         <CardFooter className="text-center text-sm">
-          還沒有帳戶?{' '}
+          {t('login.noAccount')}{' '}
           <Link href="/register" className="text-accent underline hover:text-accent/80">
-            立即註冊
+            {t('login.registerNow')}
           </Link>
         </CardFooter>
       </Card>

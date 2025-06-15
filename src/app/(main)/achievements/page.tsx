@@ -10,30 +10,31 @@ import { Award, Star, Target, BookOpen, CalendarDays, CheckCircle, Users, Trophy
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from '@/hooks/useLanguage';
 
-// Placeholder Data
-const achievedAchievementsData = [
+// Placeholder Data - In a real app, these would come from a backend or state management
+const getAchievedAchievementsData = (t: (key: string) => string) => [
   { id: "ach1", icon: Award, name: "初窺門徑", description: "完成《紅樓夢》第一回閱讀", date: "2024-05-10", points: 50, category: "閱讀進度" },
   { id: "ach2", icon: Star, name: "日積月累", description: "連續學習 7 天", date: "2024-05-15", points: 100, category: "學習習慣" },
   { id: "ach3", icon: BookOpen, name: "博覽群書", description: "閱讀 3 部專家解讀著作", date: "2024-06-01", points: 150, category: "知識廣度" },
   { id: "ach4", icon: ShieldCheck, name: "判詞解析者", description: "完成所有金陵十二釵判詞筆記", date: "2024-06-20", points: 200, category: "深度理解" },
 ];
 
-const learningStatsData = {
-  totalReadingTime: "42 小時",
+const getLearningStatsData = (t: (key: string) => string) => ({
+  totalReadingTime: `42 ${t('achievements.totalReadingTime').includes('Hours') ? 'Hours' : '小時'}`, // Example dynamic unit
   chaptersCompleted: 35,
   totalChapters: 120,
   notesTaken: 12,
   currentStreak: 10,
-};
+});
 
-const achievableGoalsData = [
-  { id: "goal1", icon: Target, name: "完成前四十回", description: "繼續您的閱讀旅程，完成《紅樓夢》前四十回。", currentProgress: 35, targetProgress: 40, unit: "回" },
-  { id: "goal2", icon: CalendarDays, name: "持續學習獎章", description: "保持連續學習15天，解鎖新的獎章。", currentProgress: 10, targetProgress: 15, unit: "天" },
-  { id: "goal3", icon: Edit, name: "筆記大師", description: "撰寫至少20篇有深度的閱讀筆記。", currentProgress: 12, targetProgress: 20, unit: "篇" },
+const getAchievableGoalsData = (t: (key: string) => string) => [
+  { id: "goal1", icon: Target, name: "完成前四十回", description: "繼續您的閱讀旅程，完成《紅樓夢》前四十回。", currentProgress: 35, targetProgress: 40, unit: t('achievements.chaptersUnit') },
+  { id: "goal2", icon: CalendarDays, name: "持續學習獎章", description: "保持連續學習15天，解鎖新的獎章。", currentProgress: 10, targetProgress: 15, unit: t('achievements.currentStreak').includes('Days') ? 'Days' : '天' },
+  { id: "goal3", icon: Edit, name: "筆記大師", description: "撰寫至少20篇有深度的閱讀筆記。", currentProgress: 12, targetProgress: 20, unit: t('dashboard.notesCount').includes('Notes') ? 'Notes' : '篇' },
 ];
 
-const challengesData = {
+const getChallengesData = (t: (key: string) => string) => ({
   daily: [
     { id: "daily1", name: "今日閱讀挑戰", description: "今日閱讀《紅樓夢》30分鐘", reward: "20 成就點", active: true },
     { id: "daily2", name: "每日一問", description: "回答一個關於今日閱讀內容的問題", reward: "10 成就點", active: false },
@@ -44,12 +45,18 @@ const challengesData = {
   special: [
     { id: "special1", name: "紅樓詩詞大賞", description: "參與《紅樓夢》詩詞賞析與創作活動", reward: "特殊徽章 + 200點", active: false },
   ],
-};
+});
 
 
 export default function AchievementsPage() {
+  const { t } = useLanguage();
+  
+  const achievedAchievementsData = getAchievedAchievementsData(t);
+  const learningStatsData = getLearningStatsData(t);
+  const achievableGoalsData = getAchievableGoalsData(t);
+  const challengesData = getChallengesData(t);
+  
   const [userAchievements, setUserAchievements] = useState(achievedAchievementsData);
-  // In a real app, you would fetch and manage these states
 
   return (
     <div className="space-y-8">
@@ -58,18 +65,17 @@ export default function AchievementsPage() {
           <div className="flex items-center gap-3">
             <Trophy className="h-8 w-8 text-primary" />
             <div>
-              <CardTitle className="text-3xl font-artistic text-primary">我的成就與目標</CardTitle>
-              <CardDescription>追蹤您的學習成果，設定新目標，迎接挑戰，不斷進步。</CardDescription>
+              <CardTitle className="text-3xl font-artistic text-primary">{t('achievements.title')}</CardTitle>
+              <CardDescription>{t('achievements.description')}</CardDescription>
             </div>
           </div>
         </CardHeader>
       </Card>
 
-      {/* 我的成就 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Star className="text-yellow-400" /> 我獲得的成就</CardTitle>
-          <CardDescription>記錄您在紅樓慧讀旅程中達成的每一個里程碑。</CardDescription>
+          <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Star className="text-yellow-400" /> {t('achievements.myAchievements')}</CardTitle>
+          <CardDescription>{t('achievements.myAchievementsDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           {userAchievements.length > 0 ? (
@@ -88,14 +94,14 @@ export default function AchievementsPage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground mb-2">{ach.description}</p>
-                      <p className="text-xs text-primary">獲得於：{ach.date} (+{ach.points}點)</p>
+                      <p className="text-xs text-primary">{t('achievements.rewardPrefix')}{ach.date} (+{ach.points}點)</p>
                     </CardContent>
                     <CardFooter className="flex justify-end gap-2">
-                       <Button variant="ghost" size="sm" onClick={() => alert(`分享成就：${ach.name} (功能示意)`)}>
-                        <Share2 className="mr-1.5 h-3.5 w-3.5" /> 分享
+                       <Button variant="ghost" size="sm" onClick={() => alert(`${t('buttons.share')}: ${ach.name}`)}>
+                        <Share2 className="mr-1.5 h-3.5 w-3.5" /> {t('buttons.share')}
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => alert(`查看 ${ach.name} 詳細資訊 (功能示意)`)}>
-                        查看詳情
+                      <Button variant="outline" size="sm" onClick={() => alert(`${t('buttons.viewDetails')} ${ach.name}`)}>
+                        {t('buttons.viewDetails')}
                       </Button>
                     </CardFooter>
                   </Card>
@@ -104,38 +110,37 @@ export default function AchievementsPage() {
               <ScrollBar orientation="vertical" />
             </ScrollArea>
           ) : (
-            <p className="text-muted-foreground">您目前尚未獲得任何成就，繼續努力吧！</p>
+            <p className="text-muted-foreground">{t('achievements.noAchievements')}</p>
           )}
         </CardContent>
       </Card>
 
-      {/* 學習進度總覽 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><BarChart3 className="text-blue-400" /> 學習進度總覽</CardTitle>
-          <CardDescription>全面了解您的學習投入與成果。</CardDescription>
+          <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><BarChart3 className="text-blue-400" /> {t('achievements.learningStats')}</CardTitle>
+          <CardDescription>{t('achievements.learningStatsDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div className="bg-card/50 p-4 rounded-lg">
               <p className="text-2xl font-bold text-primary">{learningStatsData.totalReadingTime}</p>
-              <p className="text-sm text-muted-foreground">總閱讀時長</p>
+              <p className="text-sm text-muted-foreground">{t('achievements.totalReadingTime')}</p>
             </div>
             <div className="bg-card/50 p-4 rounded-lg">
               <p className="text-2xl font-bold text-primary">{learningStatsData.chaptersCompleted} <span className="text-base text-muted-foreground">/ {learningStatsData.totalChapters}</span></p>
-              <p className="text-sm text-muted-foreground">已完成章回</p>
+              <p className="text-sm text-muted-foreground">{t('achievements.chaptersCompletedFull')}</p>
             </div>
             <div className="bg-card/50 p-4 rounded-lg">
               <p className="text-2xl font-bold text-primary">{learningStatsData.notesTaken}</p>
-              <p className="text-sm text-muted-foreground">筆記數量</p>
+              <p className="text-sm text-muted-foreground">{t('achievements.notesTaken')}</p>
             </div>
             <div className="bg-card/50 p-4 rounded-lg">
-              <p className="text-2xl font-bold text-primary">{learningStatsData.currentStreak} 天</p>
-              <p className="text-sm text-muted-foreground">連續學習</p>
+              <p className="text-2xl font-bold text-primary">{learningStatsData.currentStreak} {t('achievements.currentStreak').includes('Days') ? 'Days' : '天'}</p>
+              <p className="text-sm text-muted-foreground">{t('achievements.currentStreak')}</p>
             </div>
           </div>
           <div>
-            <Label htmlFor="overallProgress" className="text-sm text-muted-foreground">整體閱讀進度</Label>
+            <Label htmlFor="overallProgress" className="text-sm text-muted-foreground">{t('achievements.overallProgress')}</Label>
             <Progress 
               id="overallProgress"
               value={(learningStatsData.chaptersCompleted / learningStatsData.totalChapters) * 100} 
@@ -143,23 +148,22 @@ export default function AchievementsPage() {
               indicatorClassName="bg-gradient-to-r from-primary to-yellow-400"
             />
              <p className="text-xs text-right text-muted-foreground mt-1">
-              {learningStatsData.chaptersCompleted} / {learningStatsData.totalChapters} 章回
+              {learningStatsData.chaptersCompleted} / {learningStatsData.totalChapters} {t('achievements.chaptersUnit')}
             </p>
           </div>
            <div className="text-right">
-            <Button variant="link" onClick={() => alert("查看詳細學習分析 (功能示意)")} className="text-primary">
-              查看詳細學習分析 &rarr;
+            <Button variant="link" onClick={() => alert(t('achievements.viewDetailedAnalysis'))} className="text-primary">
+              {t('achievements.viewDetailedAnalysis')} &rarr;
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* 可達成的目標 / 設定新目標 */}
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Target className="text-green-400" /> 下一步目標</CardTitle>
-            <CardDescription>系統為您推薦或您正在進行的目標。</CardDescription>
+            <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Target className="text-green-400" /> {t('achievements.nextGoals')}</CardTitle>
+            <CardDescription>{t('achievements.nextGoalsDesc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {achievableGoalsData.map(goal => (
@@ -174,8 +178,8 @@ export default function AchievementsPage() {
                   </div>
                 </div>
                 <div className="flex justify-end mt-2">
-                  <Button size="sm" variant="outline" onClick={() => alert(`開始或編輯目標：${goal.name} (功能示意)`)}>
-                    {goal.currentProgress > 0 && goal.currentProgress < goal.targetProgress ? "繼續努力" : "開始目標"}
+                  <Button size="sm" variant="outline" onClick={() => alert(`${t('buttons.startGoal')}: ${goal.name}`)}>
+                    {goal.currentProgress > 0 && goal.currentProgress < goal.targetProgress ? t('buttons.continueEffort') : t('buttons.startGoal')}
                   </Button>
                 </div>
               </Card>
@@ -185,54 +189,53 @@ export default function AchievementsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Settings2 className="text-purple-400" /> 設定新的學習目標</CardTitle>
-            <CardDescription>根據您的偏好，設定個人化的學習計畫。</CardDescription>
+            <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Settings2 className="text-purple-400" /> {t('achievements.setNewGoals')}</CardTitle>
+            <CardDescription>{t('achievements.setNewGoalsDesc')}</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert("設定每日閱讀時間 (功能示意)")}>
+            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert(t('achievements.goalDailyReadingTime'))}>
               <Clock className="mr-2 h-5 w-5 text-purple-400" />
               <div>
-                <p className="font-medium">每日閱讀時間</p>
-                <p className="text-xs text-muted-foreground">設定每天的閱讀時長</p>
+                <p className="font-medium">{t('achievements.goalDailyReadingTime')}</p>
+                <p className="text-xs text-muted-foreground">{t('achievements.goalDailyReadingTimeDesc')}</p>
               </div>
             </Button>
-            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert("設定章回完成目標 (功能示意)")}>
+            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert(t('achievements.goalChapterCompletion'))}>
               <ListChecks className="mr-2 h-5 w-5 text-purple-400" />
               <div>
-                <p className="font-medium">章回完成目標</p>
-                <p className="text-xs text-muted-foreground">設定要完成的章回數量</p>
+                <p className="font-medium">{t('achievements.goalChapterCompletion')}</p>
+                <p className="text-xs text-muted-foreground">{t('achievements.goalChapterCompletionDesc')}</p>
               </div>
             </Button>
-            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert("設定連續學習天數 (功能示意)")}>
+            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert(t('achievements.goalStreak'))}>
               <CalendarDays className="mr-2 h-5 w-5 text-purple-400" />
               <div>
-                <p className="font-medium">連續學習天數</p>
-                <p className="text-xs text-muted-foreground">挑戰連續學習的紀錄</p>
+                <p className="font-medium">{t('achievements.goalStreak')}</p>
+                <p className="text-xs text-muted-foreground">{t('achievements.goalStreakDesc')}</p>
               </div>
             </Button>
-            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert("設定閱讀正確率目標 (功能示意)")}>
+            <Button variant="outline" className="w-full justify-start h-auto py-3 text-left" onClick={() => alert(t('achievements.goalAccuracy'))}>
               <CheckCircle className="mr-2 h-5 w-5 text-purple-400" />
                <div>
-                <p className="font-medium">閱讀正確率</p>
-                <p className="text-xs text-muted-foreground">提升對內容的理解準確度</p>
+                <p className="font-medium">{t('achievements.goalAccuracy')}</p>
+                <p className="text-xs text-muted-foreground">{t('achievements.goalAccuracyDesc')}</p>
               </div>
             </Button>
           </CardContent>
         </Card>
       </div>
 
-      {/* 學習挑戰賽 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Zap className="text-orange-400" /> 學習挑戰賽</CardTitle>
-          <CardDescription>參與社群挑戰，與其他讀者一同進步，贏取獎勵。</CardDescription>
+          <CardTitle className="text-xl font-artistic text-white flex items-center gap-2"><Zap className="text-orange-400" /> {t('achievements.challenges')}</CardTitle>
+          <CardDescription>{t('achievements.challengesDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="daily" className="w-full">
             <TabsList className="grid w-full grid-cols-3 mb-4">
-              <TabsTrigger value="daily">每日挑戰</TabsTrigger>
-              <TabsTrigger value="weekly">週間挑戰</TabsTrigger>
-              <TabsTrigger value="special">特別活動</TabsTrigger>
+              <TabsTrigger value="daily">{t('achievements.tabDaily')}</TabsTrigger>
+              <TabsTrigger value="weekly">{t('achievements.tabWeekly')}</TabsTrigger>
+              <TabsTrigger value="special">{t('achievements.tabSpecial')}</TabsTrigger>
             </TabsList>
             <TabsContent value="daily">
               {challengesData.daily.length > 0 ? (
@@ -243,16 +246,16 @@ export default function AchievementsPage() {
                         <div>
                           <h4 className="font-semibold text-white">{challenge.name}</h4>
                           <p className="text-xs text-muted-foreground">{challenge.description}</p>
-                          <p className="text-xs text-amber-400 mt-1">獎勵：{challenge.reward}</p>
+                          <p className="text-xs text-amber-400 mt-1">{t('achievements.rewardPrefix')}{challenge.reward}</p>
                         </div>
-                        <Button size="sm" variant={challenge.active ? "default" : "outline"} onClick={() => alert(`參與挑戰：${challenge.name} (功能示意)`)}>
-                          {challenge.active ? "進行中" : "參與挑戰"}
+                        <Button size="sm" variant={challenge.active ? "default" : "outline"} onClick={() => alert(`${t('achievements.joinChallenge')}: ${challenge.name}`)}>
+                          {challenge.active ? t('achievements.challengeInProgress') : t('achievements.joinChallenge')}
                         </Button>
                       </div>
                     </Card>
                   ))}
                 </div>
-              ) : <p className="text-muted-foreground text-center py-4">今日暫無挑戰。</p>}
+              ) : <p className="text-muted-foreground text-center py-4">{t('achievements.noDailyChallenges')}</p>}
             </TabsContent>
             <TabsContent value="weekly">
               {challengesData.weekly.length > 0 ? (
@@ -263,16 +266,16 @@ export default function AchievementsPage() {
                         <div>
                           <h4 className="font-semibold text-white">{challenge.name}</h4>
                           <p className="text-xs text-muted-foreground">{challenge.description}</p>
-                          <p className="text-xs text-amber-400 mt-1">獎勵：{challenge.reward}</p>
+                          <p className="text-xs text-amber-400 mt-1">{t('achievements.rewardPrefix')}{challenge.reward}</p>
                         </div>
-                        <Button size="sm" variant={challenge.active ? "default" : "outline"} onClick={() => alert(`參與挑戰：${challenge.name} (功能示意)`)}>
-                          {challenge.active ? "進行中" : "參與挑戰"}
+                        <Button size="sm" variant={challenge.active ? "default" : "outline"} onClick={() => alert(`${t('achievements.joinChallenge')}: ${challenge.name}`)}>
+                          {challenge.active ? t('achievements.challengeInProgress') : t('achievements.joinChallenge')}
                         </Button>
                       </div>
                     </Card>
                   ))}
                 </div>
-              ) : <p className="text-muted-foreground text-center py-4">本週暫無挑戰。</p>}
+              ) : <p className="text-muted-foreground text-center py-4">{t('achievements.noWeeklyChallenges')}</p>}
             </TabsContent>
             <TabsContent value="special">
               {challengesData.special.length > 0 ? (
@@ -283,16 +286,16 @@ export default function AchievementsPage() {
                         <div>
                           <h4 className="font-semibold text-white">{challenge.name}</h4>
                           <p className="text-xs text-muted-foreground">{challenge.description}</p>
-                          <p className="text-xs text-amber-400 mt-1">獎勵：{challenge.reward}</p>
+                          <p className="text-xs text-amber-400 mt-1">{t('achievements.rewardPrefix')}{challenge.reward}</p>
                         </div>
-                        <Button size="sm" variant={challenge.active ? "default" : "outline"} onClick={() => alert(`參與挑戰：${challenge.name} (功能示意)`)}>
-                          {challenge.active ? "進行中" : "查看活動"}
+                        <Button size="sm" variant={challenge.active ? "default" : "outline"} onClick={() => alert(`${t('achievements.joinChallenge')}: ${challenge.name}`)}>
+                          {challenge.active ? t('achievements.challengeInProgress') : t('achievements.viewActivity')}
                         </Button>
                       </div>
                     </Card>
                   ))}
                 </div>
-              ) : <p className="text-muted-foreground text-center py-4">目前尚無特別活動。</p>}
+              ) : <p className="text-muted-foreground text-center py-4">{t('achievements.noSpecialChallenges')}</p>}
             </TabsContent>
           </Tabs>
         </CardContent>

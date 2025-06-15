@@ -9,13 +9,15 @@ import { BookOpen, Activity, BarChart3, TrendingUp, Target, Edit3, ListChecks, C
 import Link from "next/link";
 import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
+import { useLanguage } from '@/hooks/useLanguage';
 
 // Example goals for dashboard display (can be replaced with actual data)
-const exampleUserGoals = [
-  { id: "d1", text: "完成《紅樓夢》前二十回閱讀", isAchieved: true },
-  { id: "d2", text: "理解主要人物（寶、黛、釵）的性格特點", isAchieved: false },
+const getExampleUserGoals = (t: (key: string) => string) => [
+  { id: "d1", text: t('dashboard.myLearningGoalsDesc'), isAchieved: true }, // Example, adjust key
+  { id: "d2", text: "理解主要人物（寶、黛、釵）的性格特點", isAchieved: false }, // Keep some Chinese for context
   { id: "d3", text: "整理金陵十二釵判詞筆記", isAchieved: false },
 ];
+
 
 interface StatCardProps {
   value: string;
@@ -41,17 +43,19 @@ interface RecentActivityItem {
 }
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [completedChapters, setCompletedChapters] = useState(20);
   const totalChapters = 120;
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
+  const exampleUserGoals = getExampleUserGoals(t);
+
+
   useEffect(() => {
-    // For stroke-dasharray animation
     const targetProgressForDasharray = (completedChapters / totalChapters) * 100;
     
-    // Animate the progress value for strokeDasharray
     let startTimestamp: number | null = null;
-    const animationDuration = 1500; // 1.5 seconds
+    const animationDuration = 1500; 
 
     const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
@@ -67,10 +71,10 @@ export default function DashboardPage() {
   }, [completedChapters, totalChapters]);
 
   const statsData: StatCardProps[] = [
-    { value: "75%", label: "平均理解度", icon: TrendingUp },
-    { value: "35 小時", label: "總學習時長", icon: Activity },
-    { value: "5 篇", label: "筆記數量", icon: Edit3 },
-    { value: "8 個", label: "已達目標", icon: Target },
+    { value: "75%", label: t('dashboard.avgUnderstanding'), icon: TrendingUp },
+    { value: "35 小時", label: t('dashboard.totalLearningTime'), icon: Activity }, // "小時" can be part of translation if needed
+    { value: "5 篇", label: t('dashboard.notesCount'), icon: Edit3 }, // "篇"
+    { value: "8 個", label: t('dashboard.goalsAchieved'), icon: Target }, // "個"
   ];
 
   const recentActivityData: RecentActivityItem[] = [
@@ -86,10 +90,8 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-8 py-6">
-      {/* Learning Progress Overview Block */}
       <Card className="h-[300px] p-6 shadow-xl hover:shadow-primary/20 transition-shadow">
         <div className="flex h-full items-center">
-          {/* Progress Ring (Left Side) */}
           <div className="w-1/2 flex flex-col items-center justify-center pr-6 border-r border-border/50">
             <div className="relative w-[180px] h-[180px]">
               <svg className="w-full h-full" viewBox="0 0 36 36" transform="rotate(-90)">
@@ -120,13 +122,11 @@ export default function DashboardPage() {
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-3xl font-bold text-foreground">{completedChapters}</span>
-                <span className="text-sm text-muted-foreground">/ {totalChapters} 章</span>
+                <span className="text-sm text-muted-foreground">/ {totalChapters} {t('dashboard.chaptersCompleted')}</span>
               </div>
             </div>
-            <p className="mt-3 text-lg font-semibold text-foreground">學習總覽</p>
+            <p className="mt-3 text-lg font-semibold text-foreground">{t('dashboard.learningOverview')}</p>
           </div>
-
-          {/* Stats Cards (Right Side) */}
           <div className="w-1/2 grid grid-cols-2 grid-rows-2 gap-4 pl-6">
             {statsData.map(stat => (
               <StatCard key={stat.label} value={stat.value} label={stat.label} icon={stat.icon} />
@@ -135,11 +135,10 @@ export default function DashboardPage() {
         </div>
       </Card>
 
-      {/* Recent Reading Activity Block */}
       <Card className="shadow-xl hover:shadow-primary/20 transition-shadow">
         <CardHeader>
-          <CardTitle className="text-2xl font-artistic text-primary">最近閱讀活動</CardTitle>
-          <CardDescription>快速返回您上次閱讀的書籍，或回顧最近的學習內容。</CardDescription>
+          <CardTitle className="text-2xl font-artistic text-primary">{t('dashboard.recentReading')}</CardTitle>
+          <CardDescription>{t('dashboard.recentReadingDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="w-full whitespace-nowrap">
@@ -157,7 +156,7 @@ export default function DashboardPage() {
                       <div className="h-[80px] relative overflow-hidden bg-muted/30 flex items-center justify-center rounded-t-md">
                         <i className="fa fa-book text-5xl text-primary/60" aria-hidden="true"></i>
                         {item.current && (
-                          <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-sm shadow">繼續閱讀</div>
+                          <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded-sm shadow">{t('dashboard.continueReading')}</div>
                         )}
                       </div>
                       <div className="p-3 flex flex-col flex-grow justify-between bg-card">
@@ -177,14 +176,13 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
       
-      {/* Placeholder for User-Set Goals - similar to old dashboard but styled consistently */}
       <Card className="shadow-xl hover:shadow-primary/20 transition-shadow">
         <CardHeader>
           <CardTitle className="text-xl font-artistic text-primary flex items-center">
             <ListChecks className="h-6 w-6 mr-2" />
-            我的學習目標 (示例)
+            {t('dashboard.myLearningGoals')}
           </CardTitle>
-          <CardDescription>追蹤您的個人學習目標，保持學習動力。</CardDescription>
+          <CardDescription>{t('dashboard.myLearningGoalsDesc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -197,13 +195,12 @@ export default function DashboardPage() {
               </div>
             ))}
              <Button variant="link" className="px-0 text-primary hover:text-primary/80 mt-2 text-sm" asChild>
-                <Link href="/goals">管理所有目標 &rarr;</Link>
+                <Link href="/achievements">{t('dashboard.manageAllGoals')} &rarr;</Link> 
+                {/* Assuming goals management is part of achievements page now */}
               </Button>
           </div>
         </CardContent>
       </Card>
-
     </div>
   );
 }
-
