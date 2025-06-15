@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { cn } from "@/lib/utils";
 
 export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>) {
-  const imageUrl = "https://storage.googleapis.com/project-ai-prototyper.appspot.com/sandbox/c3e81d33-d52d-4f66-97c7-aa8901a54197.png";
+  const imageUrl = "https://github.com/user-attachments/assets/9c6080c1-53ea-4d33-8d8c-0d050aa4bdf4";
 
   return (
     <div

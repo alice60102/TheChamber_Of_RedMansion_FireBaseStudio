@@ -27,7 +27,13 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
         port: '',
-        pathname: '/project-ai-prototyper.appspot.com/**', // More specific pathname
+        pathname: '/project-ai-prototyper.appspot.com/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'github.com',
+        port: '',
+        pathname: '/user-attachments/assets/**',
       },
     ],
   },
