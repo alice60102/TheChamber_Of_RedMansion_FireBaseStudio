@@ -10,19 +10,19 @@ export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLPro
   return (
     <div
       className={cn(
-        "relative w-full border rounded-md bg-card/50 shadow-inner overflow-hidden", // Base styles for the container
-        className // Styles from parent, e.g., w-full min-h-[300px]
+        "relative overflow-hidden", // Minimal base styles
+        "border border-dashed border-primary/50 bg-muted/20", // Debug styles to see the container
+        className // This is where w-full min-h-[300px] from parent should apply
       )}
       {...props}
       data-ai-hint="character relationship map"
     >
       <Image
         src={imageUrl}
-        alt="章回知識圖譜 - 紅樓夢人物關係圖"
+        alt="知識圖譜 - 紅樓夢人物關係與事件脈絡圖" // Standardized alt text
         layout="fill"
         objectFit="contain" // Ensures the whole image is visible and aspect ratio is maintained
-        quality={90}
-        priority // Consider if this image is critical for Largest Contentful Paint
+        quality={75}
       />
     </div>
   );
