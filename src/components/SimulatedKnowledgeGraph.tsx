@@ -10,20 +10,30 @@ export function SimulatedKnowledgeGraph({ className, ...props }: DetailedHTMLPro
   return (
     <div
       className={cn(
-        "relative overflow-hidden", // Minimal base styles
-        "border border-dashed border-primary/50 bg-muted/20", // Debug styles to see the container
-        className // This is where w-full min-h-[300px] from parent should apply
+        "w-full flex items-center justify-center", // Takes full width from parent
+        className // Parent should provide min-height, e.g., min-h-[300px] or specific height
       )}
       {...props}
       data-ai-hint="character relationship map"
     >
-      <Image
-        src={imageUrl}
-        alt="知識圖譜 - 紅樓夢人物關係與事件脈絡圖" // Standardized alt text
-        layout="fill"
-        objectFit="contain" // Ensures the whole image is visible and aspect ratio is maintained
-        quality={75}
-      />
+      {/* Inner div with explicit size and relative positioning for Image fill */}
+      <div style={{
+        width: '100%', // Takes full width of its flex container
+        height: '400px', // Explicit height for testing visibility
+        position: 'relative',
+        border: '3px dashed red', // Highly visible debug border
+        backgroundColor: 'rgba(200, 200, 200, 0.5)' // Debug background to see the area
+      }}>
+        <Image
+          src={imageUrl}
+          alt="章回知識圖譜 - 紅樓夢人物關係與事件脈絡圖" // Alt text in Traditional Chinese
+          layout="fill"
+          objectFit="contain" // Ensures the whole image is visible and aspect ratio is maintained
+          quality={75}
+          // Using unoptimized in dev can help rule out Next.js image optimizer issues
+          unoptimized={process.env.NODE_ENV === 'development'}
+        />
+      </div>
     </div>
   );
 }

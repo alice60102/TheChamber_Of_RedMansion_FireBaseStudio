@@ -33,7 +33,7 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'github.com',
         port: '',
-        pathname: '/user-attachments/assets/**',
+        pathname: '/user-attachments/assets/**', // Ensures this specific path pattern is allowed
       },
     ],
   },
