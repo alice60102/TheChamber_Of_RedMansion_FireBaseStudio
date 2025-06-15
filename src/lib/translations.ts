@@ -123,7 +123,6 @@ export function transformTextForLang(text: string | undefined, lang: Language, t
       .replace(/壞/g, '坏')
       .replace(/災/g, '灾')
       .replace(/鄉/g, '乡')
-      .replace(/宦/g, '宦')
       .replace(/遊/g, '游')
       .replace(/蹤/g, '踪')
       .replace(/跡/g, '迹')
@@ -252,7 +251,7 @@ export const translations: Record<Language, Translations> = {
       painPoint3Title: '專業資源難整合',
       painPoint3Desc: '權威解讀與學術資源雖多，但分布零散，無法在閱讀當下即時輔助，也缺乏系統化學習指導，難建清晰理解框架。',
       solutionsTitle: '紅樓慧讀：智能方案',
-      solutionsSubtitle: '我們運用 AI 技術，打造互動化、個性化的學習體驗，助您輕鬆跨越閱讀障礙，領略經典魅力。',
+      solutionsSubtitle: '我們運用 AI 技術，打造互動化、個性化的學習體驗，助您輕鬆跨越閱讀障碍，領略經典魅力。',
       solution1Title: '點燃持續動力',
       solution1Desc: '採用遊戲化學習設計，將閱讀化為任務。透過成就徽章、進度追蹤、個性化目標与即時回饋，打造闖關般的愉悅體驗。',
       solution2Title: 'AI 降低理解門檻',
@@ -428,67 +427,67 @@ export const translations: Record<Language, Translations> = {
     },
     // Book shelf translations
     bookShelf: {
-      hlmTimesEdition: {
+      hlmtimesedition: {
         title: '紅樓夢上中下三冊',
         author: '時報出版',
         description: '時報出版發行的《紅樓夢》全集，分為上、中、下三冊。',
       },
-      hlmV3: {
+      hlmv3: {
         title: '紅樓夢 (第三版)',
         author: '[清] 曹雪芹',
         description: '以寶黛愛情悲劇為主線，展現清代貴族生活畫卷。',
       },
-      hlmChengjia: {
+      hlmchengjia: {
         title: '紅樓夢 (程甲本影印)',
         author: '[清] 曹雪芹 高鶚',
         description: '清代程偉元、高鶚整理的《紅樓夢》早期印本之一。',
       },
-      hlmGengchen: {
+      hlmgengchen: {
         title: '紅樓夢 (庚辰本校注)',
         author: '[清] 曹雪芹 著；俞平伯 校注',
         description: '以庚辰本為底本，參校各脂本，進行詳細校勘與註釋。',
       },
-      hlmZhiyan: {
+      hlmzhiyan: {
         title: '脂硯齋重評石頭記 (校訂本)',
         author: '[清] 曹雪芹；脂硯齋 評',
         description: '彙集了帶有脂硯齋等人大量批語的早期抄本。',
       },
-      hlmMenggao: {
+      hlmmenggao: {
         title: '紅樓夢 (夢稿本整理版)',
         author: '[清] 曹雪芹',
         description: '根據「夢稿本」整理排印，保留早期稿本特色。',
       },
-      hlmAnniversary: {
+      hlmanniversary: {
         title: '紅樓夢 (百年紀念版)',
         author: '[清] 曹雪芹',
         description: '紀念《紅樓夢》研究百年，匯集名家點評的珍藏版本。',
       },
-      jiangxunYouth: {
+      jiangxunyouth: {
         title: '蔣勳說紅樓夢青春版',
         author: '蔣勳',
         description: '除了文字之外，附加了很多的圖，閱讀的易讀性增加了許多。詳細講解每一回，並且排版很舒服。文筆柔和，內容也沒有多大門檻、生活化，適合青少年讀。',
       },
-      jiangxunDream: {
+      jiangxundream: {
         title: '蔣勳 夢紅樓',
         author: '蔣勳',
         description: '為入門的紅樓夢書籍 可以作為讀紅樓夢之前的概觀 不用太多的專業知識也能讀懂 和生活連結性強。',
       },
-      jiangxunMicrodust: {
+      jiangxunmicrodust: {
         title: '蔣勳 微塵眾',
         author: '蔣勳',
         description: '也是入門的紅樓夢書籍 一一介紹了紅樓夢的各個人物',
       },
-      baixianyongDetailed: {
+      baixianyongdetailed: {
         title: '白先勇細說紅樓夢',
         author: '白先勇',
-        description: '也詳細講了每一回，和蔣勳老師不同之處在於生活的部分少了很多。詳細講的全面、深入，較為深思型的，有另一個不一樣的視角。需要一點中國文學的背景知識。書中有文字也有圖。',
+        description: '也詳細講了每一回，和蔣勳老師不同之處在於生活的部分少了很多。詳細講的全面、深入，較為深思型的，有另一个不一样的视角。需要一点中国文学的背景知识。书中有文字也有图。',
       },
-      oulijuanSixviews: {
+      oulijuanviews: { // Corrected key from oulijuansixviews to oulijuanviews
         title: '歐麗娟 六觀紅樓(綜論卷)、紅樓夢公開課',
         author: '歐麗娟',
         description: '歐麗娟老師的適合讀完紅樓夢整本，以及對紅樓夢有較整體認識來讀的，並且學術性較多，多為專題式的研究。',
       },
-      dongmeiThorough: {
+      dongmeithorough: {
         title: '董梅講透紅樓夢',
         author: '董梅',
         description: '介於生活和學術之間，需要的閱讀能力有點在白先勇的前面一些，門檻沒有很高。但是為主題式的說明，從各個角度，例如生活美學、文學傑作、生活符號綜合來了解紅樓夢。',
@@ -783,67 +782,67 @@ export const translations: Record<Language, Translations> = {
       errorAIContextAnalysis: 'AI模型未能生成有效的文本脉络分析。',
     },
     bookShelf: {
-      hlmTimesEdition: {
+      hlmtimesedition: {
         title: '红楼梦上中下三册',
         author: '时报出版',
         description: '时报出版发行的《红楼梦》全集，分为上、中、下三册。',
       },
-      hlmV3: {
+      hlmv3: {
         title: '红楼梦 (第三版)',
         author: '[清] 曹雪芹',
         description: '以宝黛爱情悲剧为主线，展现清代贵族生活画卷。',
       },
-      hlmChengjia: {
+      hlmchengjia: {
         title: '红楼梦 (程甲本影印)',
         author: '[清] 曹雪芹 高鹗',
         description: '清代程伟元、高鹗整理的《红楼梦》早期印本之一。',
       },
-      hlmGengchen: {
+      hlmgengchen: {
         title: '红楼梦 (庚辰本校注)',
         author: '[清] 曹雪芹 著；俞平伯 校注',
         description: '以庚辰本为底本，参校各脂本，进行详细校勘与注释。',
       },
-      hlmZhiyan: {
+      hlmzhiyan: {
         title: '脂砚斋重评石头记 (校订本)',
         author: '[清] 曹雪芹；脂砚斋 评',
         description: '汇集了带有脂砚斋等人大量批语的早期抄本。',
       },
-      hlmMenggao: {
+      hlmmenggao: {
         title: '红楼梦 (梦稿本整理版)',
         author: '[清] 曹雪芹',
         description: '根据“梦稿本”整理排印，保留早期稿本特色。',
       },
-      hlmAnniversary: {
+      hlmanniversary: {
         title: '红楼梦 (百年纪念版)',
         author: '[清] 曹雪芹',
         description: '纪念《红楼梦》研究百年，汇集名家点评的珍藏版本。',
       },
-      jiangxunYouth: {
+      jiangxunyouth: {
         title: '蒋勋说红楼梦青春版',
         author: '蒋勋',
         description: '除了文字之外，附加了很多的图，阅读的易读性增加了许多。详细讲解每一回，并且排版很舒服。文笔柔和，内容也没有多大门槛、生活化，适合青少年读。',
       },
-      jiangxunDream: {
+      jiangxundream: {
         title: '蒋勋 梦红楼',
         author: '蒋勋',
         description: '为入门的红楼梦书籍 可以作为读红楼梦之前的概观 不用太多的专业知识也能读懂 和生活连结性强。',
       },
-      jiangxunMicrodust: {
+      jiangxunmicrodust: {
         title: '蒋勋 微尘众',
         author: '蒋勋',
         description: '也是入门的红楼梦书籍 一一介绍了红楼梦的各个人物',
       },
-      baixianyongDetailed: {
+      baixianyongdetailed: {
         title: '白先勇细说红楼梦',
         author: '白先勇',
         description: '也详细讲了每一回，和蒋勋老师不同之处在于生活的部分少了很多。详细讲的全面、深入，较为深思型的，有另一个不一样的视角。需要一点中国文学的背景知识。书中有文字也有图。',
       },
-      oulijuanSixviews: {
+      oulijuanviews: { // Corrected key from oulijuansixviews to oulijuanviews
         title: '欧丽娟 六观红楼(综论卷)、红楼梦公开课',
         author: '欧丽娟',
         description: '欧丽娟老师的适合读完红楼梦整本，以及对红楼梦有较整体认识来读的，并且学术性较多，多为专题式的研究。',
       },
-      dongmeiThorough: {
+      dongmeithorough: {
         title: '董梅讲透红楼梦',
         author: '董梅',
         description: '介于生活和学术之间，需要的阅读能力有点在白先勇的前面一些，门槛没有很高。但是为主题式的说明，从各个角度，例如生活美学、文学杰作、生活符号综合来了解红楼梦。',
@@ -1135,67 +1134,67 @@ export const translations: Record<Language, Translations> = {
       errorAIContextAnalysis: 'The AI model failed to generate a valid context analysis.',
     },
     bookShelf: {
-        hlmTimesEdition: {
+        hlmtimesedition: {
             title: 'Dream of the Red Chamber (3 Vol. Set)',
             author: 'China Times Publishing',
             description: 'The complete "Dream of the Red Chamber" published by China Times, in three volumes.',
         },
-        hlmV3: {
+        hlmv3: {
             title: 'Dream of the Red Chamber (3rd Edition)',
             author: '[Qing] Cao Xueqin',
             description: 'Focuses on the tragic love story of Baoyu and Daiyu, depicting the life of aristocratic families in the Qing Dynasty.',
         },
-        hlmChengjia: {
+        hlmchengjia: {
             title: 'Dream of the Red Chamber (Chengjia Edition Reprint)',
             author: '[Qing] Cao Xueqin, Gao E',
             description: 'One of the early printed editions of "Dream of the Red Chamber" compiled by Cheng Weiyuan and Gao E in the Qing Dynasty.',
         },
-        hlmGengchen: {
+        hlmgengchen: {
             title: 'Dream of the Red Chamber (Gengchen Edition, Annotated)',
             author: '[Qing] Cao Xueqin; Annotated by Yu Pingbo',
             description: 'Based on the Gengchen manuscript, collated with various Zhipingben (manuscripts with commentary by Zhiyanzhai), with detailed annotations.',
         },
-        hlmZhiyan: {
+        hlmzhiyan: {
             title: 'Zhiyanzhai\'s Re-commentary on the Story of the Stone (Revised Edition)',
             author: '[Qing] Cao Xueqin; Commentary by Zhiyanzhai',
             description: 'A collection of early manuscripts with extensive commentary by Zhiyanzhai and others.',
         },
-        hlmMenggao: {
+        hlmmenggao: {
             title: 'Dream of the Red Chamber (Menggao Manuscript, Edited Edition)',
             author: '[Qing] Cao Xueqin',
             description: 'Typeset and arranged based on the "Menggao manuscript," preserving the characteristics of early manuscripts.',
         },
-        hlmAnniversary: {
+        hlmanniversary: {
             title: 'Dream of the Red Chamber (Centennial Memorial Edition)',
             author: '[Qing] Cao Xueqin',
             description: 'A collector\'s edition commemorating a century of "Dream of the Red Chamber" research, featuring commentary from renowned scholars.',
         },
-        jiangxunYouth: {
+        jiangxunyouth: {
             title: 'Jiang Xun on Dream of the Red Chamber (Youth Edition)',
             author: 'Jiang Xun',
             description: 'Includes many illustrations alongside the text, significantly enhancing readability. Detailed explanations for each chapter with comfortable typesetting. Gentle writing style, accessible content, relatable to daily life, suitable for young readers.',
         },
-        jiangxunDream: {
+        jiangxundream: {
             title: 'Jiang Xun\'s Dream of the Red Chamber',
             author: 'Jiang Xun',
             description: 'An introductory book to "Dream of the Red Chamber," serving as an overview before reading the novel. Understandable without extensive professional knowledge and strongly connected to life.',
         },
-        jiangxunMicrodust: {
+        jiangxunmicrodust: {
             title: 'Jiang Xun\'s Myriad Dust Motes (Characters of Red Chamber)',
             author: 'Jiang Xun',
             description: 'Also an introductory book, introducing various characters from "Dream of the Red Chamber" one by one.',
         },
-        baixianyongDetailed: {
+        baixianyongdetailed: {
             title: 'Pai Hsien-yung\'s Detailed Talk on Dream of the Red Chamber',
             author: 'Pai Hsien-yung (Bai Xianyong)',
             description: 'Also provides detailed explanations for each chapter, differing from Jiang Xun by focusing less on daily life aspects. Offers comprehensive, in-depth, and thought-provoking analysis from a different perspective. Requires some background in Chinese literature. Contains both text and illustrations.',
         },
-        oulijuanSixviews: {
+        oulijuanviews: { // Corrected key from oulijuansixviews to oulijuanviews
             title: 'Ou Lijuan\'s Six Perspectives on Red Chamber (Comprehensive Volume) & Public Lectures',
             author: 'Ou Lijuan',
             description: 'Suitable for those who have read the entire novel and have a relatively holistic understanding. More academic, focusing on thematic research.',
         },
-        dongmeiThorough: {
+        dongmeithorough: {
             title: 'Dong Mei\'s Thorough Explanation of Dream of the Red Chamber',
             author: 'Dong Mei',
             description: 'Strikes a balance between daily life and academic analysis. Slightly more accessible than Pai Hsien-yung\'s work. Thematic explanations covering various angles like life aesthetics, literary masterpiece, and life symbols to understand the novel.',
@@ -1286,3 +1285,4 @@ export function getTranslation(lang: Language, key: string, translationsObj: Rec
   }
   return result as string;
 }
+
