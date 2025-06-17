@@ -176,3 +176,4 @@ This project is part of a senior capstone project for Information Management. Te
 
 This platform is designed to make classical Chinese literature more accessible to modern learners by combining traditional scholarship with cutting-edge AI technology. The goal is to preserve cultural heritage while making it engaging for contemporary students.
 ---
+jackbbjack test
