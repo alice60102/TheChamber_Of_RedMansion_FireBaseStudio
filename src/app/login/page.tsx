@@ -1,26 +1,78 @@
 
-"use client";
+/**
+ * @fileOverview Login Page Component for Red Mansion Learning Platform
+ * 
+ * This component provides a secure authentication interface for existing users to access
+ * their accounts. It implements Firebase Authentication with email/password login,
+ * comprehensive form validation, and multilingual support.
+ * 
+ * Key features:
+ * - Firebase Authentication integration with email/password signin
+ * - React Hook Form with Zod schema validation for robust input validation
+ * - Internationalization support with dynamic error messages
+ * - Elegant loading states and error handling with user-friendly feedback
+ * - Responsive design with classical Chinese aesthetic
+ * - Secure authentication flow with automatic redirect to dashboard
+ * - Accessibility-compliant form structure and error announcements
+ * 
+ * Security considerations:
+ * - Client-side validation with server-side Firebase validation
+ * - Protected routing after successful authentication
+ * - Clear error messages without revealing sensitive information
+ * - Secure password handling with no client-side storage
+ * 
+ * The design maintains consistency with the overall platform aesthetic while
+ * providing a professional and trustworthy login experience.
+ */
 
+"use client"; // Required for client-side authentication and form handling
+
+// Next.js imports for navigation and routing
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+// Form handling and validation imports
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+
+// UI component imports from the design system
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollText } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+// Icon imports for visual elements
+import { ScrollText, AlertTriangle } from 'lucide-react';
+
+// Firebase authentication imports
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+
+// React hooks for state management
 import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+
+// Custom hooks for internationalization
 import { useLanguage } from '@/hooks/useLanguage';
 
+/**
+ * Dynamic Login Form Validation Schema
+ * 
+ * Creates a Zod validation schema with internationalized error messages.
+ * This approach allows for dynamic error messages that change based on the
+ * user's selected language, providing a localized experience.
+ * 
+ * @param t - Translation function from useLanguage hook
+ * @returns Zod schema object with validation rules and error messages
+ */
 const getLoginSchema = (t: (key: string) => string) => z.object({
-  email: z.string().email({ message: t('register.errors.emailInvalid') }),
-  password: z.string().min(1, { message: t('register.errors.passwordMinLength') }), // Assuming same message or create a new one
+  email: z.string().email({ 
+    message: t('register.errors.emailInvalid') // Internationalized email validation error
+  }),
+  password: z.string().min(1, { 
+    message: t('register.errors.passwordMinLength') // Internationalized password validation error
+  }),
 });
 
 

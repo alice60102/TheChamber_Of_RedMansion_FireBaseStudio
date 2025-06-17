@@ -1,33 +1,93 @@
 
-"use client";
+/**
+ * @fileOverview User Registration Page Component for Red Mansion Learning Platform
+ * 
+ * This component provides a comprehensive multi-step registration process for new users
+ * to create accounts and set up their learning profiles. It combines secure authentication
+ * with personalized onboarding to tailor the learning experience from the start.
+ * 
+ * Key features:
+ * - Multi-step registration wizard with progressive disclosure
+ * - Firebase Authentication with email/password account creation
+ * - User profile setup with learning preferences and goals
+ * - React Hook Form with step-by-step validation
+ * - Internationalization support throughout the process
+ * - Elegant error handling and loading states
+ * - Responsive design maintaining classical Chinese aesthetic
+ * - Accessibility-compliant form navigation and feedback
+ * 
+ * Registration steps:
+ * 1. Basic Information (name, email, password) - Required for account creation
+ * 2. Learning Background - Skill level assessment for content personalization
+ * 3. Reading Interests - Preference gathering for recommendation system
+ * 4. Learning Goals - Goal setting for progress tracking and motivation
+ * 
+ * The multi-step approach reduces cognitive load while gathering necessary information
+ * to provide a personalized learning experience from day one.
+ */
 
+"use client"; // Required for client-side form handling and authentication
+
+// Next.js imports for navigation and routing
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
+// Form handling and validation imports
 import { useForm, type SubmitHandler, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+
+// UI component imports from the design system
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollText, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+// Icon imports for visual elements and navigation
+import { ScrollText, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
+
+// Firebase authentication imports
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+
+// React hooks for state management
 import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+
+// Custom hooks for internationalization
 import { useLanguage } from '@/hooks/useLanguage';
 
+/**
+ * Dynamic Registration Form Validation Schema
+ * 
+ * Creates a comprehensive Zod validation schema with internationalized error messages.
+ * The schema includes both required fields for account creation and optional fields
+ * for learning profile setup, allowing for flexible validation across registration steps.
+ * 
+ * @param t - Translation function from useLanguage hook
+ * @returns Zod schema object with validation rules for all registration fields
+ */
 const getRegisterSchema = (t: (key: string) => string) => z.object({
-  firstName: z.string().min(1, { message: t('register.errors.firstNameRequired') }),
-  lastName: z.string().min(1, { message: t('register.errors.lastNameRequired') }),
-  email: z.string().email({ message: t('register.errors.emailInvalid') }),
-  password: z.string().min(6, { message: t('register.errors.passwordMinLength') }),
-  learningBackground: z.string().optional(),
-  readingInterests: z.string().optional(),
-  learningGoals: z.string().optional(),
+  // Required fields for account creation (Step 1)
+  firstName: z.string().min(1, { 
+    message: t('register.errors.firstNameRequired') 
+  }),
+  lastName: z.string().min(1, { 
+    message: t('register.errors.lastNameRequired') 
+  }),
+  email: z.string().email({ 
+    message: t('register.errors.emailInvalid') 
+  }),
+  password: z.string().min(6, { 
+    message: t('register.errors.passwordMinLength') 
+  }),
+  
+  // Optional fields for learning profile setup (Steps 2-4)
+  learningBackground: z.string().optional(),  // User's current skill level
+  readingInterests: z.string().optional(),    // Areas of interest for recommendations
+  learningGoals: z.string().optional(),       // Personal learning objectives
 });
 
 

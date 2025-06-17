@@ -1,14 +1,69 @@
 
-"use client";
+/**
+ * @fileOverview Community Discussion Platform for Red Chamber Learning
+ * 
+ * This component provides a social learning environment where users can share insights,
+ * discuss themes, ask questions, and engage in scholarly discourse about the Dream of
+ * the Red Chamber. It fosters collaborative learning and knowledge sharing among users.
+ * 
+ * Key features:
+ * - User-generated content posting with rich text support
+ * - Interactive commenting system for discussions
+ * - Like/reaction system for content engagement
+ * - Content moderation through character limits and validation
+ * - Tag-based categorization for better content organization
+ * - Responsive design for mobile and desktop interaction
+ * - Real-time updates for community engagement
+ * - User authentication integration for personalized experience
+ * 
+ * Educational value:
+ * - Encourages active participation and critical thinking
+ * - Facilitates peer-to-peer learning and knowledge exchange
+ * - Provides platform for scholarly discussion and debate
+ * - Supports different perspectives and interpretations
+ * - Creates sense of community among learners
+ * 
+ * Technical implementation:
+ * - React functional components with hooks for state management
+ * - Form validation and content length restrictions
+ * - Dynamic content rendering with expand/collapse functionality
+ * - Integration with authentication system for user identity
+ * - Multi-language support for international users
+ * - Optimistic UI updates for responsive user experience
+ * 
+ * Design principles:
+ * - Clean, readable interface promoting focused discussion
+ * - Clear visual hierarchy distinguishing posts and comments
+ * - Consistent theming with classical Chinese aesthetic
+ * - Accessibility features for inclusive participation
+ * - Mobile-first responsive design for cross-platform usage
+ */
 
+"use client"; // Required for interactive community features and state management
+
+// React hooks for component state and lifecycle management
 import { useState, useEffect } from 'react';
+
+// UI component imports for community interface
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Users, MessageSquare, Search, ThumbsUp, MessageCircle, Send, Pencil } from "lucide-react";
-import { useAuth } from '@/hooks/useAuth';
 import { Label } from '@/components/ui/label';
+
+// Icon imports for community interactions
+import { 
+  Users,          // Community/group indicator
+  MessageSquare,  // Discussion/posts indicator
+  Search,         // Search functionality
+  ThumbsUp,       // Like/approval actions
+  MessageCircle,  // Comments and replies
+  Send,           // Submit/send actions
+  Pencil          // Edit/compose actions
+} from "lucide-react";
+
+// Custom hooks for application functionality
+import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 
 

@@ -1,10 +1,40 @@
-// src/lib/firebase.ts
-import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-// import { getFirestore } from 'firebase/firestore'; // Uncomment if you need Firestore
-// import { getStorage } from 'firebase/storage'; // Uncomment if you need Storage
-// import { getAnalytics } from "firebase/analytics"; // Uncomment if you need Analytics
+/**
+ * @fileOverview Firebase configuration and initialization for the Red Mansion platform.
+ * 
+ * This file handles the complete Firebase setup including:
+ * - App initialization with environment-based configuration
+ * - Authentication service setup for user management
+ * - Optional services (Firestore, Storage, Analytics) ready for future use
+ * - Development debugging and error handling
+ * 
+ * The configuration uses environment variables for security and flexibility
+ * across different deployment environments (development, staging, production).
+ */
 
+// Import Firebase core functionality
+import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
+// Import authentication services for user login/logout functionality
+import { getAuth } from 'firebase/auth';
+// Import optional Firebase services (commented out until needed)
+// import { getFirestore } from 'firebase/firestore'; // Database for storing user data and progress
+// import { getStorage } from 'firebase/storage'; // File storage for user uploads and assets
+// import { getAnalytics } from "firebase/analytics"; // Analytics for usage tracking and insights
+
+/**
+ * Firebase configuration object
+ * 
+ * All values are loaded from environment variables prefixed with NEXT_PUBLIC_
+ * to ensure they are available on both client and server sides.
+ * 
+ * Environment variables must be set in .env.local file:
+ * - NEXT_PUBLIC_FIREBASE_API_KEY: Firebase project API key
+ * - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: Authentication domain
+ * - NEXT_PUBLIC_FIREBASE_PROJECT_ID: Unique project identifier
+ * - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Cloud storage bucket name
+ * - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: FCM sender ID
+ * - NEXT_PUBLIC_FIREBASE_APP_ID: Firebase app identifier
+ * - NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: Google Analytics measurement ID
+ */
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,

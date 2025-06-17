@@ -1,31 +1,93 @@
 
-"use client";
+/**
+ * @fileOverview Interactive Book Reading Interface for Dream of the Red Chamber
+ * 
+ * This is the core reading experience component that provides an immersive, AI-powered
+ * interface for studying classical Chinese literature. It combines traditional text
+ * with modern technology to create an engaging and educational reading experience.
+ * 
+ * Key features:
+ * - Immersive full-screen reading interface with customizable themes and typography
+ * - AI-powered text analysis and explanation using Google GenKit and Gemini 2.0 Flash
+ * - Interactive text selection with contextual AI assistance
+ * - Side-by-side classical and vernacular Chinese text display
+ * - Knowledge graph visualization for character relationships
+ * - Advanced search functionality with text highlighting
+ * - Responsive column layouts (single, double, triple) for different reading preferences
+ * - Text-to-speech integration for accessibility
+ * - Chapter navigation with table of contents
+ * - Note-taking capabilities with text annotation
+ * - Customizable reading settings (themes, fonts, sizes)
+ * - Multi-language support with dynamic content transformation
+ * 
+ * Educational design principles:
+ * - Minimizes cognitive load while maximizing learning opportunities
+ * - Provides multiple ways to engage with classical text
+ * - Supports different learning styles through varied interaction modes
+ * - Maintains cultural authenticity while leveraging modern UX practices
+ */
+
+"use client"; // Required for client-side interactivity and AI integration
+
+// React imports for state management and lifecycle
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+
+// Next.js navigation for routing
+import { useRouter } from 'next/navigation';
+
+// UI component imports from design system
 import { Button } from "@/components/ui/button";
-import {
-  Search as SearchIcon, Maximize, Map, X, Edit3,
-  Eye, EyeOff, AlignLeft, AlignCenter, AlignJustify, CornerUpLeft, List, Lightbulb, Minus, Plus, Check, Minimize, Trash2 as ClearSearchIcon,
-  Baseline, 
-  Volume2,  
-  Copy,     
-  Quote,
-  ChevronDown 
-} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { explainTextSelection } from '@/ai/flows/explain-text-selection';
-import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
-import ReactMarkdown from 'react-markdown';
-import { cn } from "@/lib/utils";
-import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
-import { useRouter } from 'next/navigation';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+
+// Icon imports for reading interface controls
+import {
+  Search as SearchIcon,         // Text search functionality
+  Maximize,                     // Fullscreen toggle
+  Map,                          // Knowledge graph access
+  X,                            // Close/cancel actions
+  Edit3,                        // Note-taking features
+  Eye,                          // Show vernacular text
+  EyeOff,                       // Hide vernacular text
+  AlignLeft,                    // Single column layout
+  AlignCenter,                  // Double column layout
+  AlignJustify,                 // Triple column layout
+  CornerUpLeft,                 // Return/back navigation
+  List,                         // Table of contents
+  Lightbulb,                    // AI assistance indicator
+  Minus,                        // Decrease font size
+  Plus,                         // Increase font size
+  Check,                        // Confirm/accept actions
+  Minimize,                     // Exit fullscreen
+  Trash2 as ClearSearchIcon,    // Clear search
+  Baseline,                     // Typography settings
+  Volume2,                      // Text-to-speech
+  Copy,                         // Copy selected text
+  Quote,                        // Quote/annotation
+  ChevronDown                   // Dropdown indicators
+} from "lucide-react";
+
+// Third-party libraries for content rendering
+import ReactMarkdown from 'react-markdown'; // For rendering AI response markdown
+
+// Custom components and utilities
+import { cn } from "@/lib/utils";
+import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
+
+// AI integration for text analysis
+import { explainTextSelection } from '@/ai/flows/explain-text-selection';
+import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection';
+
+// Custom hooks for application functionality
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from '@/hooks/useLanguage';
-import { transformTextForLang } from '@/lib/translations'; // Import the transformation utility
+
+// Utility for text transformation based on language
+import { transformTextForLang } from '@/lib/translations';
 
 interface Annotation {
   text: string;

@@ -1,32 +1,68 @@
 
-// use server'
-'use server';
-
 /**
- * @fileOverview Provides context-aware word sense analysis and interactive character relationship graphs.
- *
- * - analyzeContext - A function that performs context analysis and generates character relationship graphs.
- * - ContextAnalysisInput - The input type for the analyzeContext function.
- * - ContextAnalysisOutput - The return type for the analyzeContext function.
+ * @fileOverview Context-aware analysis AI flow for classical Chinese literature comprehension.
+ * 
+ * This AI flow provides intelligent analysis of text passages from "Dream of the Red Chamber"
+ * by combining word sense disambiguation with character relationship mapping. It helps students
+ * understand difficult classical Chinese vocabulary and track complex character dynamics.
+ * 
+ * Key features:
+ * - Word sense analysis for archaic and classical Chinese terms
+ * - Context-sensitive explanations based on current chapter and surrounding text
+ * - Character relationship analysis relevant to the current reading passage
+ * - Markdown-formatted output for rich text display in the UI
+ * - Traditional Chinese output for native speaker accessibility
+ * 
+ * Usage: Called when students need deeper understanding of complex passages
+ * 
+ * Functions:
+ * - analyzeContext: Main function that performs comprehensive context analysis
+ * - ContextAnalysisInput: Input schema defining required text and chapter information
+ * - ContextAnalysisOutput: Output schema for word analysis and character relationships
  */
 
+'use server'; // Required for server-side AI processing
+
+// Import the configured AI instance from GenKit
 import {ai} from '@/ai/genkit';
+// Import Zod for schema validation and type inference
 import {z} from 'genkit';
 
+/**
+ * Input schema for context analysis
+ * 
+ * Defines the required information for the AI to perform comprehensive
+ * text analysis including word sense disambiguation and character mapping.
+ */
 const ContextAnalysisInputSchema = z.object({
-  text: z.string().describe('The current text being read by the student.'),
-  chapter: z.string().describe('The current chapter of the book.'),
+  text: z.string().describe('The current text passage being read by the student. Should be a meaningful segment from the novel that contains enough context for analysis.'),
+  chapter: z.string().describe('The current chapter number or title being read. Used to provide broader narrative context for the analysis.'),
 });
 
+/**
+ * TypeScript type inferred from the input schema
+ * Used throughout the application for type safety when calling this AI flow
+ */
 export type ContextAnalysisInput = z.infer<typeof ContextAnalysisInputSchema>;
 
+/**
+ * Output schema for context analysis results
+ * 
+ * Defines the structure of AI-generated analysis including word explanations
+ * and character relationship insights. All outputs are formatted in Markdown
+ * for rich text display in the user interface.
+ */
 const ContextAnalysisOutputSchema = z.object({
-  wordSenseAnalysis: z.string().describe('Analysis of difficult words or phrases in the current context. 請使用 Markdown 格式化您的回答，例如使用標題（例如：## 標題）、列表（例如：- 項目）、粗體（例如：**重要文字**）、斜體（例如：*強調文字*）等。'),
+  wordSenseAnalysis: z.string().describe('Detailed analysis of difficult words, phrases, or literary devices in the current context. Includes classical Chinese terminology explanations, historical context, and literary significance. Uses Markdown formatting with headers (## Title), lists (- Item), bold (**Important**), italic (*Emphasis*), etc.'),
   characterRelationships: z
     .string()
-    .describe('An interactive graph or description of character relationships relevant to the current text. 請使用 Markdown 格式化您的回答，例如使用標題（例如：## 標題）、列表（例如：- 項目）、粗體（例如：**重要文字**）、斜體（例如：*強調文字*）等。'),
+    .describe('Analysis of character relationships and interactions relevant to the current text passage. Describes family connections, romantic relationships, social hierarchies, and conflicts. Formatted as Markdown with clear structure using headers (## Title), lists (- Item), bold (**Important**), italic (*Emphasis*), etc.'),
 });
 
+/**
+ * TypeScript type inferred from the output schema
+ * Used for type safety when processing AI analysis results
+ */
 export type ContextAnalysisOutput = z.infer<typeof ContextAnalysisOutputSchema>;
 
 export async function analyzeContext(input: ContextAnalysisInput): Promise<ContextAnalysisOutput> {

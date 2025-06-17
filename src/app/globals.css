@@ -1,150 +1,247 @@
+/**
+ * Global CSS Styles for the Red Mansion Learning Platform
+ * 
+ * This file defines the core visual identity and styling foundation for the entire application.
+ * It implements a sophisticated dark theme inspired by classical Chinese aesthetics with
+ * rich reds, warm golds, and traditional typography.
+ * 
+ * Key design elements:
+ * - Classical Chinese typography using Noto Serif SC for authentic feel
+ * - Dark, sophisticated color palette evoking traditional Chinese art
+ * - Gold accents representing luxury and classical literature importance
+ * - Custom scrollbars and interactive elements for enhanced user experience
+ * - Consistent design tokens for maintainable theming
+ * - Responsive design support through Tailwind CSS utilities
+ * 
+ * Color scheme reasoning:
+ * - Deep reds: Traditional Chinese color symbolizing good fortune and learning
+ * - Gold accents: Representing the value and prestige of classical literature
+ * - Warm off-whites: Providing readable contrast while maintaining warmth
+ * - Dark backgrounds: Creating focus and reducing eye strain during reading
+ */
+
+/* Import Google Fonts for classical Chinese typography */
+/* Noto Serif SC provides excellent support for Traditional and Simplified Chinese characters */
+/* with elegant serif styling appropriate for classical literature */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Import Tailwind CSS layers for utility-first styling */
+@tailwind base;       /* Base styles and CSS resets */
+@tailwind components; /* Component-level styles */
+@tailwind utilities;  /* Utility classes for rapid development */
 
+/* Set global font family for consistent Chinese text rendering */
 body {
-  font-family: 'Noto Serif SC', serif;
+  font-family: 'Noto Serif SC', serif; /* Primary font for Chinese text with serif fallback */
 }
 
+/**
+ * CSS Custom Properties (Design Tokens)
+ * 
+ * This layer defines the core design system using CSS custom properties for consistent theming.
+ * All colors are defined in HSL format for easier manipulation and better color relationships.
+ * The color system is carefully crafted to evoke traditional Chinese aesthetics while
+ * maintaining modern usability and accessibility standards.
+ */
 @layer base {
   :root {
-    --background: 0 60% 25%; /* #662929 */
-    --foreground: 30 40% 90%; /* Warm off-white */
+    /* Primary background and text colors */
+    --background: 0 60% 25%;    /* Deep red-brown background (#662929) - main app background */
+    --foreground: 30 40% 90%;   /* Warm off-white text - primary text color for readability */
 
-    --card: 0 65% 15%;
-    --card-foreground: 30 40% 90%;
+    /* Card and container colors */
+    --card: 0 65% 15%;          /* Darker red for card backgrounds - creates depth and hierarchy */
+    --card-foreground: 30 40% 90%; /* Consistent text color on cards */
 
-    --popover: 0 65% 15%;
-    --popover-foreground: 30 40% 90%;
+    /* Popover and dropdown colors */
+    --popover: 0 65% 15%;       /* Same as card for consistency in floating elements */
+    --popover-foreground: 30 40% 90%; /* Readable text on popovers */
 
-    --primary: 45 56% 62%; /* Gold - Changed from red */
-    --primary-foreground: 0 70% 11%; /* Dark Red-Brown for contrast on gold buttons - Changed from warm off-white */
+    /* Primary action colors (buttons, links) */
+    --primary: 45 56% 62%;      /* Gold (#D4B76A) - represents value and importance of learning */
+    --primary-foreground: 0 70% 11%; /* Dark red-brown for high contrast on gold backgrounds */
 
-    --secondary: 0 50% 25%;
-    --secondary-foreground: 30 40% 90%;
+    /* Secondary element colors */
+    --secondary: 0 50% 25%;     /* Medium red for secondary buttons and elements */
+    --secondary-foreground: 30 40% 90%; /* Consistent light text */
 
-    --muted: 0 70% 8%;
-    --muted-foreground: 0 0% 60%;
+    /* Muted/disabled element colors */
+    --muted: 0 70% 8%;          /* Very dark red for disabled backgrounds */
+    --muted-foreground: 0 0% 60%; /* Gray text for disabled/muted content */
 
-    --accent: 45 56% 62%; /* #D4B76A */
-    --accent-foreground: 0 70% 11%;
+    /* Accent colors for highlights and special elements */
+    --accent: 45 56% 62%;       /* Gold accent (#D4B76A) - same as primary for consistency */
+    --accent-foreground: 0 70% 11%; /* Dark text on accent backgrounds */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    /* Error and warning colors */
+    --destructive: 0 84.2% 60.2%; /* Bright red for errors and dangerous actions */
+    --destructive-foreground: 0 0% 98%; /* White text on error backgrounds */
 
-    --border: 45 56% 30%; /* Dark Gold */
-    --input: 0 65% 20%; /* Darker, less prominent input border */
-    --ring: 45 56% 62%; /* Accent Gold for focus rings */
+    /* Border and input styling */
+    --border: 45 56% 30%;       /* Dark gold for borders - subtle but elegant */
+    --input: 0 65% 20%;         /* Darker red for input borders - less prominent */
+    --ring: 45 56% 62%;         /* Gold focus rings for accessibility */
 
-    --radius: 0.5rem;
+    /* Border radius for consistent rounded corners */
+    --radius: 0.5rem;           /* 8px - moderate rounding for modern but not overly rounded feel */
 
-    /* Chart colors - can be adjusted if needed */
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 60% 75%; /* Light Teal/Cyan - Was 173 58% 39% (Dark Teal) */
-    --chart-3: 197 50% 65%; /* Lighter Blue/Cyan for daily reading progress line */
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    /* Chart and data visualization colors */
+    /* These colors are chosen to work well together and provide good contrast */
+    --chart-1: 12 76% 61%;      /* Orange-red for primary data series */
+    --chart-2: 173 60% 75%;     /* Light teal/cyan for secondary data series */
+    --chart-3: 197 50% 65%;     /* Lighter blue/cyan for progress indicators */
+    --chart-4: 43 74% 66%;      /* Yellow-orange for tertiary data */
+    --chart-5: 27 87% 67%;      /* Orange for quaternary data */
 
-    /* Sidebar specific colors */
-    --sidebar-background: 0 68% 13%;
-    --sidebar-foreground: 30 30% 85%;
-    --sidebar-primary: 45 56% 62%; /* Gold for active/primary items */
-    --sidebar-primary-foreground: 0 70% 11%;
-    --sidebar-accent: 0 63% 35%; /* Red for hover/accent items */
-    --sidebar-accent-foreground: 30 40% 90%;
-    --sidebar-border: 45 56% 30%; /* Dark Gold border */
-    --sidebar-ring: 45 56% 62%; /* Gold for focus rings */
+    /* Sidebar navigation specific colors */
+    /* Optimized for the collapsible navigation component */
+    --sidebar-background: 0 68% 13%;    /* Very dark red background for sidebar */
+    --sidebar-foreground: 30 30% 85%;   /* Light text for sidebar items */
+    --sidebar-primary: 45 56% 62%;      /* Gold for active/selected navigation items */
+    --sidebar-primary-foreground: 0 70% 11%; /* Dark text on active items */
+    --sidebar-accent: 0 63% 35%;        /* Medium red for hover states */
+    --sidebar-accent-foreground: 30 40% 90%; /* Light text on hover */
+    --sidebar-border: 45 56% 30%;       /* Dark gold for sidebar borders */
+    --sidebar-ring: 45 56% 62%;         /* Gold focus rings for navigation accessibility */
   }
 
+  /**
+   * Dark Mode Theme Colors
+   * 
+   * Currently maintaining consistency with light mode for this specific classical Chinese theme.
+   * The application uses a dark theme by default, so dark mode keeps the same sophisticated
+   * red and gold color palette. In the future, this could be customized for true dark mode
+   * if user preference data suggests different dark mode colors would be beneficial.
+   */
   .dark {
-    /* Keeping dark mode consistent with light mode for this specific theme */
-    --background: 0 60% 25%;
-    --foreground: 30 40% 90%;
+    /* Core colors - identical to light mode for consistent classical theme */
+    --background: 0 60% 25%;        /* Same deep red-brown background */
+    --foreground: 30 40% 90%;       /* Same warm off-white text */
 
-    --card: 0 65% 15%;
-    --card-foreground: 30 40% 90%;
+    /* Container colors */
+    --card: 0 65% 15%;              /* Same dark red for cards */
+    --card-foreground: 30 40% 90%;  /* Same text color on cards */
 
-    --popover: 0 65% 15%;
-    --popover-foreground: 30 40% 90%;
+    --popover: 0 65% 15%;           /* Same popover background */
+    --popover-foreground: 30 40% 90%; /* Same popover text */
 
-    --primary: 45 56% 62%; /* Gold - Changed from red */
-    --primary-foreground: 0 70% 11%; /* Dark Red-Brown for contrast on gold buttons - Changed from warm off-white */
+    /* Action colors */
+    --primary: 45 56% 62%;          /* Same gold for primary actions */
+    --primary-foreground: 0 70% 11%; /* Same dark contrast text */
 
-    --secondary: 0 50% 25%;
-    --secondary-foreground: 30 40% 90%;
+    --secondary: 0 50% 25%;         /* Same secondary red */
+    --secondary-foreground: 30 40% 90%; /* Same secondary text */
 
-    --muted: 0 70% 8%;
-    --muted-foreground: 0 0% 60%;
+    /* State colors */
+    --muted: 0 70% 8%;              /* Same very dark red for muted elements */
+    --muted-foreground: 0 0% 60%;   /* Same gray for muted text */
 
-    --accent: 45 56% 62%;
-    --accent-foreground: 0 70% 11%;
+    --accent: 45 56% 62%;           /* Same gold accent */
+    --accent-foreground: 0 70% 11%; /* Same accent text */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    /* Error colors - slightly adjusted for dark mode */
+    --destructive: 0 62.8% 30.6%;   /* Darker red for errors in dark mode */
+    --destructive-foreground: 0 0% 98%; /* Same white text on errors */
 
-    --border: 45 56% 30%;
-    --input: 0 65% 20%;
-    --ring: 45 56% 62%;
+    /* Interactive element colors */
+    --border: 45 56% 30%;           /* Same dark gold borders */
+    --input: 0 65% 20%;             /* Same input styling */
+    --ring: 45 56% 62%;             /* Same gold focus rings */
     
-    --chart-1: 220 70% 50%;
-    --chart-2: 173 60% 75%; /* Light Teal/Cyan - Was 160 60% 45% (Teal/Greenish) */
-    --chart-3: 197 50% 65%; /* Lighter Blue/Cyan for daily reading progress line */
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Chart colors - slightly different palette for dark mode data visualization */
+    --chart-1: 220 70% 50%;         /* Blue for primary data in dark mode */
+    --chart-2: 173 60% 75%;         /* Light teal/cyan - consistent with light mode */
+    --chart-3: 197 50% 65%;         /* Lighter blue/cyan for progress - consistent */
+    --chart-4: 280 65% 60%;         /* Purple for tertiary data */
+    --chart-5: 340 75% 55%;         /* Pink for quaternary data */
 
-    --sidebar-background: 0 68% 13%;
-    --sidebar-foreground: 30 30% 85%;
-    --sidebar-primary: 45 56% 62%;
-    --sidebar-primary-foreground: 0 70% 11%;
-    --sidebar-accent: 0 63% 35%;
-    --sidebar-accent-foreground: 30 40% 90%;
-    --sidebar-border: 45 56% 30%;
-    --sidebar-ring: 45 56% 62%;
+    /* Sidebar colors - same as light mode for consistency */
+    --sidebar-background: 0 68% 13%;    /* Same very dark red */
+    --sidebar-foreground: 30 30% 85%;   /* Same light text */
+    --sidebar-primary: 45 56% 62%;      /* Same gold for active items */
+    --sidebar-primary-foreground: 0 70% 11%; /* Same dark text on active */
+    --sidebar-accent: 0 63% 35%;        /* Same medium red for hover */
+    --sidebar-accent-foreground: 30 40% 90%; /* Same light text on hover */
+    --sidebar-border: 45 56% 30%;       /* Same gold borders */
+    --sidebar-ring: 45 56% 62%;         /* Same gold focus rings */
   }
 }
 
+/**
+ * Base Layer Styles
+ * 
+ * This layer applies foundational styles to all elements and sets up the global
+ * visual appearance of the application. These styles work in conjunction with
+ * the CSS custom properties defined above.
+ */
 @layer base {
+  /* Apply border color to all elements for consistency */
   * {
-    @apply border-border;
+    @apply border-border; /* Uses the --border custom property for all borders */
   }
+  
+  /* Global body styling with theme colors and typography optimization */
   body {
-    @apply bg-background text-foreground;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply bg-background text-foreground; /* Apply theme background and text colors */
+    -webkit-font-smoothing: antialiased;  /* Smooth font rendering on WebKit browsers */
+    -moz-osx-font-smoothing: grayscale;   /* Smooth font rendering on Firefox/macOS */
   }
 }
 
-/* Custom scrollbar for a more thematic feel */
+/**
+ * Custom Scrollbar Styling
+ * 
+ * Creates an elegant scrollbar that matches the classical Chinese theme.
+ * Uses theme colors for consistency and provides a more refined user experience
+ * than default browser scrollbars.
+ */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
-  border-radius: var(--radius);
-}
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--accent) / 0.7);
-  border-radius: var(--radius);
-}
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--accent));
+  width: 8px;   /* Narrow scrollbar for elegance */
+  height: 8px;  /* Same width for horizontal scrollbars */
 }
 
-/* Simple ink-like transition for elements */
+/* Scrollbar track (background area) */
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));    /* Use muted theme color for subtle track */
+  border-radius: var(--radius);     /* Rounded corners matching theme */
+}
+
+/* Scrollbar thumb (draggable part) */
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--accent) / 0.7); /* Semi-transparent accent color */
+  border-radius: var(--radius);          /* Rounded corners matching theme */
+}
+
+/* Scrollbar thumb on hover - more prominent */
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--accent)); /* Full opacity accent color on hover */
+}
+
+/**
+ * Ink-like Transition Effect
+ * 
+ * Provides a subtle, elegant hover effect reminiscent of traditional Chinese
+ * ink paintings. Used for interactive elements that should feel organic and
+ * culturally appropriate to the classical literature theme.
+ */
 .ink-transition {
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
+
 .ink-transition:hover {
-  opacity: 0.85;
+  opacity: 0.85; /* Slight fade effect like ink bleeding into paper */
 }
 
-/* Placeholder for artistic calligraphy titles */
+/**
+ * Artistic Typography Class
+ * 
+ * Used for headings and important text that should evoke traditional Chinese
+ * calligraphy and classical literature. Currently uses Noto Serif SC but
+ * could be enhanced with a dedicated calligraphy font for even more authenticity.
+ */
 .font-artistic {
-  font-family: 'Noto Serif SC', serif; /* Fallback, ideally a calligraphy font */
-  font-weight: 700; /* Bolder for titles */
+  font-family: 'Noto Serif SC', serif; /* Chinese serif font with fallback */
+  font-weight: 700;                     /* Bold weight for prominence and readability */
 }
 
     
