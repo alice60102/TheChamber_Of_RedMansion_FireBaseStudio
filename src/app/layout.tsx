@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Root layout component for the Red Mansion learning platform.
  * 
@@ -31,6 +30,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/context/AuthContext';
 // Import language/internationalization context provider
 import { LanguageProvider } from '@/context/LanguageContext';
+// Import hydration debugger for development (only active in dev mode)
+import HydrationDebugger from '@/components/HydrationDebugger';
 
 // Note: Noto Serif SC (Chinese serif font) is imported in globals.css for classical literature display
 
@@ -65,7 +66,9 @@ export default function RootLayout({
 }>) {
   return (
     // HTML document with initial language setting (will be updated by LanguageProvider)
-    <html lang="zh-TW"> 
+    // suppressHydrationWarning prevents hydration errors caused by browser extensions
+    // or third-party scripts that modify the HTML after server-side rendering
+    <html lang="zh-TW" suppressHydrationWarning={true}> 
       <head>
         {/* External Font Awesome CSS for icon display throughout the application */}
         <link 
@@ -88,6 +91,9 @@ export default function RootLayout({
             
             {/* Toast notification system for user feedback messages */}
             <Toaster />
+            
+            {/* Development-only hydration debugger */}
+            <HydrationDebugger />
           </LanguageProvider>
         </AuthProvider>
       </body>

@@ -15,9 +15,9 @@
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
 // Import authentication services for user login/logout functionality
 import { getAuth } from 'firebase/auth';
-// Import optional Firebase services (commented out until needed)
-// import { getFirestore } from 'firebase/firestore'; // Database for storing user data and progress
-// import { getStorage } from 'firebase/storage'; // File storage for user uploads and assets
+// Import Firebase services for database and storage functionality
+import { getFirestore } from 'firebase/firestore'; // Database for storing user data and progress
+import { getStorage } from 'firebase/storage'; // File storage for user uploads and assets
 // import { getAnalytics } from "firebase/analytics"; // Analytics for usage tracking and insights
 
 /**
@@ -63,8 +63,8 @@ if (!firebaseConfig.projectId) {
 // This pattern prevents re-initializing the app on hot reloads in development
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
-// const db = getFirestore(app); // Uncomment if you need Firestore
-// const storage = getStorage(app); // Uncomment if you need Storage
-// const analytics = getAnalytics(app); // Uncomment if you need Analytics (ensure measurementId is also set)
+const db = getFirestore(app); // Firestore database for community posts and user data
+const storage = getStorage(app); // Storage for user uploads and media files
+// const analytics = getAnalytics(app); // Analytics for usage tracking and insights
 
-export { app, auth /*, db, storage, analytics */ };
+export { app, auth, db, storage };
