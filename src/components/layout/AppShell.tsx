@@ -149,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                      * - Path starts with item.href (for nested routes)
                      * - Special case: /read-book should highlight /read nav item
                      */
-                    variant={pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/') || (pathname === '/read-book' && item.href === '/read') ? "default" : "ghost"}
+                    variant={pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/') || (pathname === '/read-book' && item.href === '/read') ? "default" : "outline"}
                     isActive={pathname === item.href || (pathname.startsWith(item.href + '/') && item.href !== '/') || (pathname === '/read-book' && item.href === '/read')}
                     tooltip={t(item.labelKey)}
                   >
