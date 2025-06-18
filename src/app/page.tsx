@@ -1,58 +1,123 @@
 
-"use client";
+/**
+ * @fileOverview Homepage component for the Red Mansion learning platform.
+ * 
+ * This is the main landing page that introduces visitors to the platform and its capabilities.
+ * It serves as the marketing and onboarding entry point for new users, showcasing:
+ * 
+ * Key sections:
+ * - Hero section with compelling visuals and primary call-to-action
+ * - Problem identification (challenges students face with classical literature)
+ * - Solution presentation (how our AI platform addresses these challenges)
+ * - Call-to-action section encouraging user registration
+ * - Footer with branding and navigation
+ * 
+ * Features:
+ * - Multilingual support with language selector in navigation
+ * - Responsive design optimized for mobile and desktop
+ * - Rich visual design with classical Chinese art backgrounds
+ * - Interactive elements with hover effects and animations
+ * - Accessibility-compliant navigation and content structure
+ * - SEO-friendly semantic HTML structure
+ * 
+ * The page uses the translation system extensively to support multiple languages
+ * and provide a localized experience for different user communities.
+ */
 
+"use client"; // Required for client-side interactivity and hooks
+
+// Import Next.js components for navigation and image optimization
 import Link from 'next/link';
+import Image from 'next/image';
+
+// Import custom UI components from the design system
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, TrendingDown, BookLock, Puzzle, Award, Lightbulb, Library, ScrollText, ChevronDown } from 'lucide-react';
-import Image from 'next/image';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+// Import icons from Lucide React for consistent iconography
+import { 
+  ArrowRight,      // Call-to-action arrows
+  TrendingDown,    // Problem indicator icons
+  BookLock,        // Literature accessibility challenges
+  Puzzle,          // Complexity challenges
+  Award,           // Achievement and gamification
+  Lightbulb,       // AI insights and learning
+  Library,         // Knowledge and resources
+  ScrollText,      // Main brand icon (classical scroll)
+  ChevronDown      // Dropdown indicator
+} from 'lucide-react';
+
+// Import language/internationalization functionality
 import { useLanguage } from '@/hooks/useLanguage';
 import { LANGUAGES } from '@/lib/translations';
 import type { Language } from '@/lib/translations';
 
 
+/**
+ * Homepage Component
+ * 
+ * The main landing page component that showcases the Red Mansion learning platform.
+ * Implements a modern, responsive design with internationalization support.
+ * 
+ * @returns {JSX.Element} Complete homepage with header, hero, content sections, and footer
+ */
 export default function HomePage() {
+  // Access language context for internationalization
   const { language, setLanguage, t } = useLanguage();
 
+  /**
+   * Problem/Challenge data structure
+   * 
+   * Defines the main challenges that students face when studying classical Chinese literature.
+   * Each item includes an icon, translated title, and description to create compelling
+   * problem statements that our platform addresses.
+   */
   const painPoints = [
     {
-      icon: TrendingDown,
-      title: t('page.painPoint1Title'),
-      description: t('page.painPoint1Desc'),
+      icon: TrendingDown,                    // Icon representing declining interest
+      title: t('page.painPoint1Title'),     // Translated title for first challenge
+      description: t('page.painPoint1Desc'), // Translated description explaining the problem
     },
     {
-      icon: BookLock,
-      title: t('page.painPoint2Title'),
-      description: t('page.painPoint2Desc'),
+      icon: BookLock,                        // Icon representing accessibility barriers
+      title: t('page.painPoint2Title'),     // Translated title for second challenge
+      description: t('page.painPoint2Desc'), // Translated description of access difficulties
     },
     {
-      icon: Puzzle,
-      title: t('page.painPoint3Title'),
-      description: t('page.painPoint3Desc'),
+      icon: Puzzle,                          // Icon representing complexity challenges
+      title: t('page.painPoint3Title'),     // Translated title for third challenge
+      description: t('page.painPoint3Desc'), // Translated description of comprehension issues
     },
   ];
 
+  /**
+   * Solution/Feature data structure
+   * 
+   * Defines how our AI-powered platform addresses the identified challenges.
+   * Each solution corresponds to a problem and showcases platform capabilities
+   * with positive, engaging iconography and messaging.
+   */
   const solutions = [
     {
-      icon: Award,
-      title: t('page.solution1Title'),
-      description: t('page.solution1Desc'),
+      icon: Award,                           // Icon representing achievements and gamification
+      title: t('page.solution1Title'),      // Translated title for first solution
+      description: t('page.solution1Desc'), // Translated description of gamified learning
     },
     {
-      icon: Lightbulb,
-      title: t('page.solution2Title'),
-      description: t('page.solution2Desc'),
+      icon: Lightbulb,                       // Icon representing AI insights and intelligence
+      title: t('page.solution2Title'),      // Translated title for second solution
+      description: t('page.solution2Desc'), // Translated description of AI assistance
     },
     {
-      icon: Library,
-      title: t('page.solution3Title'),
-      description: t('page.solution3Desc'),
+      icon: Library,                         // Icon representing comprehensive resources
+      title: t('page.solution3Title'),      // Translated title for third solution
+      description: t('page.solution3Desc'), // Translated description of resource access
     },
   ];
 

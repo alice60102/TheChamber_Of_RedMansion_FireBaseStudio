@@ -1,15 +1,84 @@
 
-"use client";
+/**
+ * @fileOverview Achievements and Gamification System for Learning Motivation
+ * 
+ * This component implements a comprehensive gamification system designed to motivate
+ * and reward learners throughout their journey with the Dream of the Red Chamber.
+ * It combines achievement tracking, goal setting, progress visualization, and 
+ * challenge systems to maintain engagement and provide clear learning milestones.
+ * 
+ * Key features:
+ * - Achievement badge system with categorized accomplishments
+ * - Learning statistics dashboard with progress visualization
+ * - Customizable goal setting and tracking system
+ * - Daily, weekly, and special challenge systems
+ * - Social sharing features for achievements
+ * - Progress analytics with detailed insights
+ * - Reward point system for motivation
+ * - Streak tracking for consistent learning habits
+ * 
+ * Gamification design principles:
+ * - Clear progress indicators to maintain motivation
+ * - Achievable short-term goals alongside long-term objectives
+ * - Variety in challenge types to prevent monotony
+ * - Social elements to encourage community engagement
+ * - Visual feedback through badges, progress bars, and statistics
+ * - Meaningful rewards that enhance the learning experience
+ * 
+ * Educational psychology considerations:
+ * - Intrinsic motivation through meaningful achievements
+ * - Scaffolded goal progression from simple to complex
+ * - Recognition of different learning styles and preferences
+ * - Balance between challenge and achievability
+ * - Continuous feedback loops for learning reinforcement
+ * 
+ * Technical implementation:
+ * - State management for dynamic achievement updates
+ * - Progress calculations and animated visualizations
+ * - Flexible data structures for different achievement types
+ * - Integration with user authentication for personalization
+ * - Multi-language support for international users
+ * - Responsive design for cross-platform accessibility
+ * 
+ * The system is designed to transform traditional reading into an engaging,
+ * game-like experience while maintaining focus on genuine learning outcomes.
+ */
 
+"use client"; // Required for interactive gamification features and state updates
+
+// UI component imports for achievement interface
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Award, Star, Target, BookOpen, CalendarDays, CheckCircle, Users, Trophy, Share2, ShieldCheck, BarChart3, Edit, Settings2, ListChecks, Clock, Zap } from "lucide-react";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { useState } from "react";
 import { Label } from "@/components/ui/label";
+
+// Icon imports for achievement categories and actions
+import { 
+  Award,          // Achievement badges and recognition
+  Star,           // Favorite/rating achievements
+  Target,         // Goal-setting and objectives
+  BookOpen,       // Reading-related achievements
+  CalendarDays,   // Time-based achievements and streaks
+  CheckCircle,    // Completion indicators
+  Users,          // Community and social achievements
+  Trophy,         // Major accomplishments and milestones
+  Share2,         // Social sharing functionality
+  ShieldCheck,    // Mastery and expertise badges
+  BarChart3,      // Statistics and analytics
+  Edit,           // Writing and note-taking achievements
+  Settings2,      // Goal customization and settings
+  ListChecks,     // Task completion and checklists
+  Clock,          // Time-based goals and tracking
+  Zap             // Special achievements and power-ups
+} from "lucide-react";
+
+// React hooks for component state management
+import { useState } from "react";
+
+// Custom hooks for application functionality
 import { useLanguage } from '@/hooks/useLanguage';
 
 // Placeholder Data - In a real app, these would come from a backend or state management

@@ -1,12 +1,68 @@
 
-"use client";
+/**
+ * @fileOverview Book Selection and Reading Library Interface
+ * 
+ * This component provides a comprehensive digital library interface for accessing
+ * different editions and interpretations of the Dream of the Red Chamber. It serves
+ * as the primary navigation hub for users to explore various textual resources
+ * and scholarly interpretations of the classical Chinese novel.
+ * 
+ * Key features:
+ * - Categorized book collections (Original texts, Expert interpretations)
+ * - Interactive book cards with metadata and access controls
+ * - Recent reading history and progress tracking
+ * - Responsive grid layout for optimal viewing across devices
+ * - Multi-language support for international accessibility
+ * - Visual indicators for book types and reading status
+ * - Direct navigation to immersive reading experiences
+ * - Filter and sorting capabilities for library management
+ * 
+ * Educational value:
+ * - Provides access to multiple authoritative editions
+ * - Offers scholarly interpretations alongside original texts
+ * - Supports comparative reading and analysis
+ * - Enables progression from guided to independent reading
+ * - Facilitates exploration of different academic perspectives
+ * 
+ * Technical implementation:
+ * - Dynamic book data generation with translation keys
+ * - Responsive grid system for various screen sizes
+ * - Tab-based navigation for organized content access
+ * - Integration with translation system for multilingual support
+ * - Placeholder book covers with fallback to icon representations
+ * - Flexible data structure supporting future content expansion
+ * 
+ * Design principles:
+ * - Library-like aesthetic maintaining cultural authenticity
+ * - Clear visual hierarchy distinguishing content types
+ * - Intuitive navigation patterns familiar to digital readers
+ * - Accessibility features for diverse user needs
+ * - Consistent theming with the overall application design
+ * 
+ * The interface balances comprehensive content access with user-friendly
+ * navigation, making classical Chinese literature approachable for modern learners.
+ */
 
+"use client"; // Required for interactive book selection and state management
+
+// React hooks for component state management
 import { useState } from 'react';
+
+// Next.js navigation for seamless routing
 import Link from 'next/link';
+
+// UI component imports for library interface
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Edit } from 'lucide-react'; 
+
+// Icon imports for book-related actions
+import { 
+  BookOpen,    // Reading action and book representation
+  Edit         // Library management and editing features
+} from 'lucide-react'; 
+
+// Custom hooks for application functionality
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface Book {
