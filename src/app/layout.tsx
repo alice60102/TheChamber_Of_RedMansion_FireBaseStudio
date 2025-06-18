@@ -45,6 +45,7 @@ import HydrationDebugger from '@/components/HydrationDebugger';
  * - Social media sharing previews
  * - Accessibility screen readers
  */
+
 export const metadata: Metadata = {
   title: '紅樓慧讀', // "Red Mansion Intelligent Reading" - May become dynamic for specific pages
   description: '探索《紅樓夢》的智能閱讀夥伴 (An intelligent reading companion for exploring "Dream of the Red Chamber")',
