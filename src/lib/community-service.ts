@@ -42,7 +42,10 @@ import {
   arrayRemove,
   serverTimestamp,
   onSnapshot,
-  Timestamp
+  Timestamp,
+  QuerySnapshot,
+  QueryDocumentSnapshot,
+  DocumentData
 } from 'firebase/firestore';
 import { db } from './firebase';
 
@@ -63,6 +66,11 @@ export interface CommunityPost {
   isEdited: boolean;
   category?: string;
   status: 'active' | 'hidden' | 'deleted';
+  /**
+   * Array of user IDs who have bookmarked this post.
+   * Used for user-specific post collections (favorites/bookmarks).
+   */
+  bookmarkedBy: string[];
 }
 
 export interface PostComment {
@@ -124,7 +132,12 @@ export class CommunityService {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         isEdited: false,
-        status: 'active' as const
+        status: 'active' as const,
+        /**
+         * Initialize bookmarkedBy as an empty array for new posts.
+         * This allows users to bookmark posts later.
+         */
+        bookmarkedBy: []
       };
 
       const docRef = await addDoc(this.postsCollection, newPost);
@@ -173,7 +186,7 @@ export class CommunityService {
       const querySnapshot = await getDocs(postsQuery);
       const posts: CommunityPost[] = [];
 
-      querySnapshot.forEach((doc) => {
+      querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
         const data = doc.data();
         posts.push({
           id: doc.id,
@@ -373,10 +386,10 @@ export class CommunityService {
       postsQuery = query(postsQuery, where('category', '==', filters.category));
     }
 
-    return onSnapshot(postsQuery, (querySnapshot) => {
+    return onSnapshot(postsQuery, (querySnapshot: QuerySnapshot<DocumentData>) => {
       const posts: CommunityPost[] = [];
       
-      querySnapshot.forEach((doc) => {
+      querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
         const data = doc.data();
         posts.push({
           id: doc.id,
@@ -387,7 +400,7 @@ export class CommunityService {
       });
 
       callback(posts);
-    }, (error) => {
+    }, (error: Error) => {
       console.error('Error in posts listener:', error);
     });
   }
@@ -409,10 +422,10 @@ export class CommunityService {
       orderBy('createdAt', 'asc')
     );
 
-    return onSnapshot(commentsQuery, (querySnapshot) => {
+    return onSnapshot(commentsQuery, (querySnapshot: QuerySnapshot<DocumentData>) => {
       const comments: PostComment[] = [];
       
-      querySnapshot.forEach((doc) => {
+      querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
         const data = doc.data();
         comments.push({
           id: doc.id,
@@ -424,9 +437,137 @@ export class CommunityService {
       });
 
       callback(comments);
-    }, (error) => {
+    }, (error: Error) => {
       console.error('Error in comments listener:', error);
     });
+  }
+
+  /**
+   * Add a bookmark for a post by a user.
+   * This will add the user's ID to the post's bookmarkedBy array.
+   * @param postId - The ID of the post to bookmark
+   * @param userId - The ID of the user bookmarking the post
+   */
+  async addBookmark(postId: string, userId: string): Promise<void> {
+    try {
+      const postRef = doc(this.postsCollection, postId);
+      await updateDoc(postRef, {
+        bookmarkedBy: arrayUnion(userId),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error adding bookmark:', error);
+      throw new Error('Failed to add bookmark. Please try again.');
+    }
+  }
+
+  /**
+   * Remove a bookmark for a post by a user.
+   * This will remove the user's ID from the post's bookmarkedBy array.
+   * @param postId - The ID of the post to unbookmark
+   * @param userId - The ID of the user removing the bookmark
+   */
+  async removeBookmark(postId: string, userId: string): Promise<void> {
+    try {
+      const postRef = doc(this.postsCollection, postId);
+      await updateDoc(postRef, {
+        bookmarkedBy: arrayRemove(userId),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error removing bookmark:', error);
+      throw new Error('Failed to remove bookmark. Please try again.');
+    }
+  }
+
+  /**
+   * Get all posts bookmarked by a specific user.
+   * This queries posts where bookmarkedBy array contains the userId.
+   * @param userId - The ID of the user whose bookmarks to fetch
+   * @returns Array of CommunityPost
+   */
+  async getBookmarkedPosts(userId: string): Promise<CommunityPost[]> {
+    try {
+      const postsQuery = query(
+        this.postsCollection,
+        where('bookmarkedBy', 'array-contains', userId),
+        where('status', '==', 'active'),
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(postsQuery);
+      const posts: CommunityPost[] = [];
+      querySnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
+        const data = doc.data();
+        posts.push({
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt || Timestamp.now(),
+          updatedAt: data.updatedAt || Timestamp.now()
+        } as CommunityPost);
+      });
+      return posts;
+    } catch (error) {
+      console.error('Error fetching bookmarked posts:', error);
+      throw new Error('Failed to fetch bookmarked posts. Please try again.');
+    }
+  }
+
+  /**
+   * Update the status of a post (for moderation/approval).
+   * Only admin or authorized users should call this method.
+   * @param postId - The ID of the post to update
+   * @param status - The new status ('active', 'hidden', 'deleted')
+   */
+  async updatePostStatus(postId: string, status: 'active' | 'hidden' | 'deleted'): Promise<void> {
+    try {
+      const postRef = doc(this.postsCollection, postId);
+      await updateDoc(postRef, {
+        status,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error updating post status:', error);
+      throw new Error('Failed to update post status. Please try again.');
+    }
+  }
+
+  /**
+   * Permanently delete a post from Firestore (cannot be recovered).
+   * This will remove the post document entirely from the 'posts' collection.
+   * @param postId - The ID of the post to delete
+   */
+  async deletePost(postId: string): Promise<void> {
+    try {
+      const postRef = doc(this.postsCollection, postId);
+      await deleteDoc(postRef);
+      // Note: This does NOT delete sub-collections (e.g., comments) automatically.
+      // If you want to also delete all comments, you need to recursively delete them.
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      throw new Error('Failed to delete post. Please try again.');
+    }
+  }
+
+  /**
+   * Permanently delete a comment from Firestore (cannot be recovered).
+   * This will remove the comment document entirely from the 'comments' sub-collection under the specified post.
+   * @param postId - The ID of the post containing the comment
+   * @param commentId - The ID of the comment to delete
+   */
+  async deleteComment(postId: string, commentId: string): Promise<void> {
+    try {
+      const commentRef = doc(db, 'posts', postId, 'comments', commentId);
+      await deleteDoc(commentRef);
+      // After deleting the comment, decrement the commentCount on the parent post
+      const postRef = doc(db, 'posts', postId);
+      await updateDoc(postRef, {
+        commentCount: increment(-1),
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      throw new Error('Failed to delete comment. Please try again.');
+    }
   }
 }
 
