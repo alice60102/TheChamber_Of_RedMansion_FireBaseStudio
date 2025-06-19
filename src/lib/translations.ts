@@ -286,6 +286,13 @@ export const translations: Record<Language, Translations> = {
       noAccount: '還沒有帳戶?',
       registerNow: '立即註冊',
       loggingIn: '登入中...',
+      orContinueWith: '或使用以下方式登入',
+      errorGoogleSignIn: 'Google 登入失敗，請稍後再試',
+      errorPopupClosed: '登入視窗已關閉',
+      errorPopupBlocked: '登入視窗被阻擋，請允許彈窗',
+      errorCancelled: '登入已取消',
+      errorNetwork: '網絡連接錯誤，請檢查網絡',
+      errorTooManyRequests: '登入嘗試次數過多，請稍後再試',
     },
     register: {
       joinApp: '加入紅樓慧讀',

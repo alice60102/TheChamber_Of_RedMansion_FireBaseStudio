@@ -44,7 +44,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Icon imports for visual elements
-import { ScrollText, AlertTriangle } from 'lucide-react';
+import { ScrollText, AlertTriangle, Chrome, Crown } from 'lucide-react';
 
 // Firebase authentication imports
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -53,8 +53,9 @@ import { auth } from '@/lib/firebase';
 // React hooks for state management
 import { useState } from 'react';
 
-// Custom hooks for internationalization
+// Custom hooks for internationalization and authentication
 import { useLanguage } from '@/hooks/useLanguage';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Dynamic Login Form Validation Schema
@@ -79,8 +80,11 @@ const getLoginSchema = (t: (key: string) => string) => z.object({
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { signInWithGoogle, createDemoUser } = useAuth();
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
 
   type LoginFormValues = z.infer<ReturnType<typeof getLoginSchema>>;
 
@@ -103,6 +107,36 @@ export default function LoginPage() {
       console.error("Login error:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle Google Sign-In for demo phase
+  const handleGoogleSignIn = async () => {
+    setIsGoogleLoading(true);
+    setFirebaseError(null);
+    try {
+      await signInWithGoogle();
+      router.push('/dashboard');
+    } catch (error: any) {
+      setFirebaseError(error.message || t('login.errorGoogleSignIn'));
+      console.error("Google sign-in error:", error);
+    } finally {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  // Handle Demo User Creation for presentations
+  const handleDemoSignIn = async () => {
+    setIsDemoLoading(true);
+    setFirebaseError(null);
+    try {
+      await createDemoUser();
+      router.push('/dashboard');
+    } catch (error: any) {
+      setFirebaseError(error.message || t('demo.errorCreateUser'));
+      console.error("Demo user creation error:", error);
+    } finally {
+      setIsDemoLoading(false);
     }
   };
 
@@ -149,6 +183,50 @@ export default function LoginPage() {
             <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={isLoading}>
               {isLoading ? t('login.loggingIn') : t('buttons.login')}
             </Button>
+            
+            {/* Demo Phase: Social and Demo Login Options */}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  {t('login.orContinueWith')}
+                </span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isGoogleLoading || isLoading}
+                className="w-full"
+              >
+                {isGoogleLoading ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Chrome className="h-4 w-4" />
+                )}
+                <span className="ml-2">Google</span>
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDemoSignIn}
+                disabled={isDemoLoading || isLoading}
+                className="w-full border-amber-200 text-amber-700 hover:bg-amber-50"
+              >
+                {isDemoLoading ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Crown className="h-4 w-4" />
+                )}
+                <span className="ml-2">{t('demo.quickLogin')}</span>
+              </Button>
+            </div>
           </CardContent>
         </form>
         <CardFooter className="text-center text-sm">
