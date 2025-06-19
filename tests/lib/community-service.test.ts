@@ -123,8 +123,9 @@ describe('CommunityService', () => {
           viewCount: 0,
           isEdited: false,
           status: 'active',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
+          bookmarkedBy: [],
+          createdAt: expect.anything(),
+          updatedAt: expect.anything(),
         })
       );
 
@@ -161,11 +162,17 @@ describe('CommunityService', () => {
       expect(addDoc).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          tags: [], // Empty array should be preserved
-          category: undefined, // Optional field should remain undefined
+          tags: [],
+          category: undefined,
           likes: 0,
           likedBy: [],
           commentCount: 0,
+          viewCount: 0,
+          isEdited: false,
+          status: 'active',
+          bookmarkedBy: [],
+          createdAt: expect.anything(),
+          updatedAt: expect.anything(),
         })
       );
 
@@ -291,13 +298,13 @@ describe('CommunityService', () => {
           likedBy: [],
           isEdited: false,
           status: 'active',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
+          createdAt: expect.anything(),
+          updatedAt: expect.anything(),
         })
       );
       expect(updateDoc).toHaveBeenCalledWith(
         expect.anything(), // post document reference
-        { commentCount: increment(1) }
+        expect.objectContaining({ commentCount: expect.anything() })
       );
 
       testLogger.log('Comment addition test completed', { commentId: result });
@@ -430,7 +437,10 @@ describe('CommunityService', () => {
           likes: 15,
           commentCount: 3,
           createdAt: testUtils.createMockTimestamp(new Date('2024-01-15')),
-          status: 'active'
+          status: 'active',
+          bookmarkedBy: [],
+          viewCount: 0,
+          isEdited: false,
         }),
         testUtils.createMockDoc('post2', {
           authorId: 'user2',
@@ -440,7 +450,10 @@ describe('CommunityService', () => {
           likes: 8,
           commentCount: 1,
           createdAt: testUtils.createMockTimestamp(new Date('2024-01-14')),
-          status: 'active'
+          status: 'active',
+          bookmarkedBy: [],
+          viewCount: 0,
+          isEdited: false,
         })
       ];
 

@@ -94,6 +94,10 @@ type LocalPost = {
   commentCount: number;
   isLiked?: boolean;
   comments?: LocalComment[];
+  /**
+   * Array of user IDs who have bookmarked this post. Optional for backward compatibility.
+   */
+  bookmarkedBy?: string[];
 };
 
 type LocalComment = {
@@ -135,7 +139,8 @@ const convertFirebasePost = (firebasePost: CommunityPost, currentUserId?: string
   tags: firebasePost.tags,
   commentCount: firebasePost.commentCount,
   isLiked: currentUserId ? firebasePost.likedBy.includes(currentUserId) : false,
-  comments: []
+  comments: [],
+  bookmarkedBy: Array.isArray((firebasePost as any).bookmarkedBy) ? (firebasePost as any).bookmarkedBy : []
 });
 
 function NewPostForm({ onPostSubmit, t, isLoading }: { 
@@ -222,13 +227,15 @@ function PostCard({
   t, 
   onLike, 
   onComment, 
-  isLoading 
+  isLoading,
+  onDelete
 }: { 
   post: LocalPost; 
   t: (key: string) => string;
   onLike: (postId: string, isLiking: boolean) => Promise<void>;
   onComment: (postId: string, content: string) => Promise<void>;
   isLoading: boolean;
+  onDelete: (postId: string) => Promise<void>;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const showMoreButton = initialPost.content.length > CONTENT_TRUNCATE_LENGTH;
@@ -251,6 +258,26 @@ function PostCard({
     setCurrentLikes(initialPost.likes);
     setCurrentCommentsCount(initialPost.commentCount);
   }, [initialPost]);
+
+  // 即時監聽留言變化，當留言有新增、刪除、修改時自動更新
+  useEffect(() => {
+    if (!showCommentInput) return;
+    // 設定 Firestore onSnapshot 監聽
+    const unsubscribe = communityService.setupCommentsListener(
+      initialPost.id,
+      (firebaseComments) => {
+        const localComments: LocalComment[] = firebaseComments.map(comment => ({
+          id: comment.id,
+          author: comment.authorName,
+          text: comment.content,
+          timestamp: formatTimestamp(comment.createdAt)
+        }));
+        setComments(localComments);
+        setCurrentCommentsCount(localComments.length); // 即時同步留言數
+      }
+    );
+    return () => unsubscribe();
+  }, [showCommentInput, initialPost.id]);
 
   const handleLike = async () => {
     if (!user || isLiking) return;
@@ -276,9 +303,9 @@ function PostCard({
 
   const loadComments = async () => {
     if (comments.length > 0) return; // Already loaded
-
     setIsLoadingComments(true);
     try {
+      // 只在第一次展開時載入（即時監聽會自動更新）
       const firebaseComments = await communityService.getComments(initialPost.id);
       const localComments: LocalComment[] = firebaseComments.map(comment => ({
         id: comment.id,
@@ -297,7 +324,7 @@ function PostCard({
   const handleToggleComments = () => {
     const newShowState = !showCommentInput;
     setShowCommentInput(newShowState);
-    
+    // 第一次展開時載入一次，之後交給即時監聽
     if (newShowState && comments.length === 0) {
       loadComments();
     }
@@ -309,25 +336,38 @@ function PostCard({
     setIsCommenting(true);
     try {
       await onComment(initialPost.id, newComment.trim());
-      
-      // Add comment optimistically to local state
-      const newCommentEntry: LocalComment = {
-        id: `temp-${Date.now()}`, // Temporary ID
-        author: user.displayName || t('community.anonymousUser'),
-        text: newComment.trim(),
-        timestamp: '剛剛'
-      };
-      
-      setComments(prev => [newCommentEntry, ...prev]);
-      setCurrentCommentsCount(prev => prev + 1);
-      setNewComment('');
-      
-      // Reload comments to get the real data
-      setTimeout(() => loadComments(), 1000);
+      setNewComment(''); // 只清空輸入框，不再 optimistic setComments
+      // Firestore 監聽會自動同步留言內容與數量
     } catch (error) {
       console.error('Error submitting comment:', error);
     } finally {
       setIsCommenting(false);
+    }
+  };
+
+  // Handler for deleting a post (only for the author)
+  const handleDelete = async () => {
+    if (!user || user.uid !== initialPost.authorId) return;
+    if (!window.confirm('確定要永久刪除此貼文？此操作無法復原。')) return;
+    try {
+      await onDelete(initialPost.id);
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('刪除失敗，請稍後再試。');
+    }
+  };
+
+  // Handler for deleting a comment (only for the author)
+  const handleDeleteComment = async (commentId: string, commentAuthor: string) => {
+    if (!user || user.displayName !== commentAuthor) return;
+    if (!window.confirm('確定要永久刪除此留言？此操作無法復原。')) return;
+    try {
+      await communityService.deleteComment(initialPost.id, commentId);
+      // 主動刷新一次留言，確保畫面立即更新
+      await loadComments();
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('刪除留言失敗，請稍後再試。');
     }
   };
 
@@ -344,6 +384,18 @@ function PostCard({
             <p className="font-semibold text-white">{initialPost.authorName}</p>
             <p className="text-xs text-muted-foreground">{initialPost.timestamp}</p>
           </div>
+          {/* Show delete button only for the author */}
+          {user && user.uid === initialPost.authorId && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="ml-auto"
+              onClick={handleDelete}
+              disabled={isLoading}
+            >
+              刪除
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -410,10 +462,22 @@ function PostCard({
                     aria-hidden="true"
                     style={{ fontSize: '20px', width: '20px', height: '20px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
                   ></i>
-                  <div className="text-foreground/80 leading-relaxed whitespace-pre-line">
+                  <div className="text-foreground/80 leading-relaxed whitespace-pre-line flex-1">
                     <span className="font-semibold text-white">{comment.author}: </span>
                     <span>{comment.text}</span>
                   </div>
+                  {/* Show delete button only for the comment author */}
+                  {user && user.displayName === comment.author && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="ml-2"
+                      onClick={() => handleDeleteComment(comment.id, comment.author)}
+                      disabled={isLoading}
+                    >
+                      刪除
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
@@ -517,14 +581,15 @@ export default function CommunityPage() {
         authorId: user.uid,
         authorName: user.displayName || '匿名用戶',
         timestamp: '剛剛',
-      content: content,
-      likes: 0,
+        content: content,
+        likes: 0,
         likedBy: [],
-      tags: [t('community.postTagNew')],
+        tags: [t('community.postTagNew')],
         commentCount: 0,
         isLiked: false,
-        comments: []
-    };
+        comments: [],
+        bookmarkedBy: []
+      };
 
       setPosts(prevPosts => [newPost, ...prevPosts]);
       
@@ -570,6 +635,22 @@ export default function CommunityPage() {
     } catch (error) {
       console.error('Error adding comment:', error);
       throw error;
+    }
+  };
+
+  // Handler for deleting a post
+  const handleDeletePost = async (postId: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await communityService.deletePost(postId);
+      // Remove the deleted post from local state
+      setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      setError('刪除貼文失敗，請稍後再試。');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -659,6 +740,7 @@ export default function CommunityPage() {
                       onLike={handleLike}
                       onComment={handleComment}
                       isLoading={isLoading || isPostingNew}
+                      onDelete={handleDeletePost}
                     />
               ))}
             </div>
