@@ -265,35 +265,30 @@ describe('CommunityService', () => {
 
   describe('Comment Management - Expected Use Cases', () => {
     /**
-     * Test Case 1: Expected Use - Add comment to post
-     * 
-     * This test verifies the comment functionality including proper
-     * comment count incrementation and data structure.
+     * Test Case: Add a comment successfully
+     * 應能正確新增留言，並讓父貼文 commentCount +1
      */
-    it('should add comment to post and update comment count', async () => {
-      testLogger.log('Testing comment addition');
-
-      // Arrange: Set up comment data and mock responses
-      const commentData: CreateCommentData = {
-        postId: 'post123',
+    it('should add a comment and increment commentCount', async () => {
+      // Arrange
+      const mockCommentData = {
+        postId: 'post_abc',
         authorId: 'user456',
-        authorName: '王熙鳳',
-        content: '寶玉哥哥此番見解深刻，實在佩服！'
+        authorName: '林黛玉',
+        content: '寶玉哥哥說得好！',
       };
-
-      const mockCommentId = 'comment_789';
-      (addDoc as jest.Mock).mockResolvedValue({ id: mockCommentId });
+      const mockDocRef = { id: 'comment_001' };
+      (addDoc as jest.Mock).mockResolvedValue(mockDocRef);
       (updateDoc as jest.Mock).mockResolvedValue(undefined);
 
-      // Act: Add comment
-      const result = await communityService.addComment(commentData);
+      // Act
+      const result = await communityService.addComment(mockCommentData);
 
-      // Assert: Verify comment creation and post update
-      expect(result).toBe(mockCommentId);
+      // Assert
+      expect(result).toBe('comment_001');
       expect(addDoc).toHaveBeenCalledWith(
-        expect.anything(), // comments collection reference
+        expect.anything(),
         expect.objectContaining({
-          ...commentData,
+          ...mockCommentData,
           likes: 0,
           likedBy: [],
           isEdited: false,
@@ -303,55 +298,76 @@ describe('CommunityService', () => {
         })
       );
       expect(updateDoc).toHaveBeenCalledWith(
-        expect.anything(), // post document reference
-        expect.objectContaining({ commentCount: expect.anything() })
+        expect.anything(),
+        expect.objectContaining({
+          commentCount: increment(1),
+          updatedAt: expect.anything(),
+        })
       );
-
-      testLogger.log('Comment addition test completed', { commentId: result });
     });
 
     /**
-     * Test Case 2: Expected Use - Retrieve comments for a post
-     * 
-     * This test verifies comment retrieval with proper ordering and formatting.
+     * Test Case: Get comments for a post
+     * 應能正確取得所有留言
      */
-    it('should retrieve comments for a post correctly', async () => {
-      testLogger.log('Testing comment retrieval');
-
+    it('should get comments for a post', async () => {
       // Arrange
-      const postId = 'test_post_123';
-      const mockComments = [
-        testUtils.createMockDoc('comment1', {
-          postId,
-          authorName: '賈寶玉',
-          content: '這個觀點很有趣',
-          likes: 5,
-          createdAt: testUtils.createMockTimestamp(),
-        }),
-        testUtils.createMockDoc('comment2', {
-          postId,
-          authorName: '林黛玉',
-          content: '我也這麼認為',
-          likes: 2,
-          createdAt: testUtils.createMockTimestamp(),
-        })
-      ];
-
-      const mockQuerySnapshot = testUtils.createMockQuerySnapshot(mockComments);
-      (getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
+      const mockSnapshot = {
+        forEach: (cb: any) => {
+          cb({ id: 'c1', data: () => ({ authorName: 'A', content: 'Hi', createdAt: Timestamp.now(), updatedAt: Timestamp.now(), likes: 0, likedBy: [], isEdited: false, status: 'active' }) });
+          cb({ id: 'c2', data: () => ({ authorName: 'B', content: 'Hello', createdAt: Timestamp.now(), updatedAt: Timestamp.now(), likes: 0, likedBy: [], isEdited: false, status: 'active' }) });
+        }
+      };
+      (getDocs as jest.Mock).mockResolvedValue(mockSnapshot);
 
       // Act
-      const result = await communityService.getComments(postId);
+      const comments = await communityService.getComments('post_abc');
 
       // Assert
-      expect(result).toHaveLength(2);
-      expect(result[0]).toMatchObject({
-        id: 'comment1',
-        authorName: '賈寶玉',
-        content: '這個觀點很有趣',
-      });
+      expect(comments.length).toBe(2);
+      expect(comments[0].authorName).toBe('A');
+      expect(comments[1].content).toBe('Hello');
+    });
 
-      testLogger.log('Comment retrieval test completed', { commentCount: result.length });
+    /**
+     * Test Case: Delete a comment and decrement commentCount
+     * 應能正確刪除留言，並讓父貼文 commentCount -1
+     */
+    it('should delete a comment and decrement commentCount', async () => {
+      // Arrange
+      (deleteDoc as jest.Mock).mockResolvedValue(undefined);
+      (updateDoc as jest.Mock).mockResolvedValue(undefined);
+
+      // Act
+      await communityService.deleteComment('post_abc', 'comment_001');
+
+      // Assert
+      expect(deleteDoc).toHaveBeenCalledWith(expect.anything());
+      expect(updateDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          commentCount: increment(-1),
+          updatedAt: expect.anything(),
+        })
+      );
+    });
+
+    /**
+     * Test Case: Error handling for addComment
+     * 應能正確處理新增留言時的異常
+     */
+    it('should throw error if addComment fails', async () => {
+      (addDoc as jest.Mock).mockRejectedValue(new Error('add error'));
+      await expect(communityService.addComment({ postId: 'p', authorId: 'u', authorName: 'n', content: 'c' })).rejects.toThrow('Failed to add comment. Please try again.');
+    });
+
+    /**
+     * Test Case: Error handling for deleteComment
+     * 應能正確處理刪除留言時的異常
+     */
+    it('should throw error if deleteComment fails', async () => {
+      (deleteDoc as jest.Mock).mockRejectedValue(new Error('delete error'));
+      await expect(communityService.deleteComment('p', 'c')).rejects.toThrow('Failed to delete comment. Please try again.');
     });
   });
 
@@ -607,6 +623,204 @@ describe('CommunityService', () => {
       );
 
       testLogger.log('Long content test completed', { contentLength: longContent.length });
+    });
+  });
+
+  // --- Bookmark Feature Tests ---
+  describe('Bookmark Feature', () => {
+    /**
+     * 預期使用測試：成功加入書籤
+     */
+    it('should add a bookmark to a post for a user', async () => {
+      testLogger.log('Testing addBookmark expected use');
+      const postId = 'post_bookmark_1';
+      const userId = 'user_bookmark_1';
+      (updateDoc as jest.Mock).mockResolvedValue(undefined);
+      await communityService.addBookmark(postId, userId);
+      expect(updateDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          bookmarkedBy: arrayUnion(userId),
+          updatedAt: expect.anything(),
+        })
+      );
+      testLogger.log('addBookmark expected use completed');
+    });
+
+    /**
+     * 邊界案例：重複加入同一書籤
+     */
+    it('should not duplicate user in bookmarkedBy when adding bookmark twice', async () => {
+      testLogger.log('Testing addBookmark edge case: duplicate');
+      const postId = 'post_bookmark_2';
+      const userId = 'user_bookmark_2';
+      (updateDoc as jest.Mock).mockResolvedValue(undefined);
+      await communityService.addBookmark(postId, userId);
+      await communityService.addBookmark(postId, userId);
+      expect(updateDoc).toHaveBeenCalledTimes(2);
+      expect(updateDoc).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          bookmarkedBy: arrayUnion(userId),
+          updatedAt: expect.anything(),
+        })
+      );
+      testLogger.log('addBookmark edge case completed');
+    });
+
+    /**
+     * 失敗案例：Firebase 錯誤
+     */
+    it('should handle error when addBookmark fails', async () => {
+      testLogger.log('Testing addBookmark failure case');
+      const postId = 'post_bookmark_3';
+      const userId = 'user_bookmark_3';
+      (updateDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
+      await expect(communityService.addBookmark(postId, userId)).rejects.toThrow('Failed to add bookmark');
+      testLogger.log('addBookmark failure case completed');
+    });
+
+    /**
+     * 預期使用測試：成功移除書籤
+     */
+    it('should remove a bookmark from a post for a user', async () => {
+      testLogger.log('Testing removeBookmark expected use');
+      const postId = 'post_bookmark_4';
+      const userId = 'user_bookmark_4';
+      (updateDoc as jest.Mock).mockResolvedValue(undefined);
+      await communityService.removeBookmark(postId, userId);
+      expect(updateDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          bookmarkedBy: arrayRemove(userId),
+          updatedAt: expect.anything(),
+        })
+      );
+      testLogger.log('removeBookmark expected use completed');
+    });
+
+    /**
+     * 邊界案例：移除不存在的書籤
+     */
+    it('should not fail when removing a bookmark that does not exist', async () => {
+      testLogger.log('Testing removeBookmark edge case: non-existent');
+      const postId = 'post_bookmark_5';
+      const userId = 'user_bookmark_5';
+      (updateDoc as jest.Mock).mockResolvedValue(undefined);
+      await communityService.removeBookmark(postId, userId);
+      expect(updateDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          bookmarkedBy: arrayRemove(userId),
+          updatedAt: expect.anything(),
+        })
+      );
+      testLogger.log('removeBookmark edge case completed');
+    });
+
+    /**
+     * 失敗案例：Firebase 錯誤
+     */
+    it('should handle error when removeBookmark fails', async () => {
+      testLogger.log('Testing removeBookmark failure case');
+      const postId = 'post_bookmark_6';
+      const userId = 'user_bookmark_6';
+      (updateDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
+      await expect(communityService.removeBookmark(postId, userId)).rejects.toThrow('Failed to remove bookmark');
+      testLogger.log('removeBookmark failure case completed');
+    });
+
+    /**
+     * 預期使用測試：取得用戶所有書籤貼文
+     */
+    it('should get all bookmarked posts for a user', async () => {
+      testLogger.log('Testing getBookmarkedPosts expected use');
+      const userId = 'user_bookmark_7';
+      const mockPosts = [
+        testUtils.createMockDoc('postA', { bookmarkedBy: [userId], status: 'active', createdAt: testUtils.createMockTimestamp(), updatedAt: testUtils.createMockTimestamp() }),
+        testUtils.createMockDoc('postB', { bookmarkedBy: [userId], status: 'active', createdAt: testUtils.createMockTimestamp(), updatedAt: testUtils.createMockTimestamp() })
+      ];
+      const mockQuerySnapshot = testUtils.createMockQuerySnapshot(mockPosts);
+      (getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
+      const result = await communityService.getBookmarkedPosts(userId);
+      expect(getDocs).toHaveBeenCalled();
+      expect(result).toHaveLength(2);
+      expect(result[0].bookmarkedBy).toContain(userId);
+      testLogger.log('getBookmarkedPosts expected use completed');
+    });
+
+    /**
+     * 邊界案例：用戶沒有任何書籤
+     */
+    it('should return empty array if user has no bookmarked posts', async () => {
+      testLogger.log('Testing getBookmarkedPosts edge case: no bookmarks');
+      const userId = 'user_bookmark_8';
+      const mockQuerySnapshot = testUtils.createMockQuerySnapshot([]);
+      (getDocs as jest.Mock).mockResolvedValue(mockQuerySnapshot);
+      const result = await communityService.getBookmarkedPosts(userId);
+      expect(result).toEqual([]);
+      testLogger.log('getBookmarkedPosts edge case completed');
+    });
+
+    /**
+     * 失敗案例：Firestore 查詢失敗
+     */
+    it('should handle error when getBookmarkedPosts fails', async () => {
+      testLogger.log('Testing getBookmarkedPosts failure case');
+      const userId = 'user_bookmark_9';
+      (getDocs as jest.Mock).mockRejectedValue(new Error('Firestore error'));
+      await expect(communityService.getBookmarkedPosts(userId)).rejects.toThrow('Failed to fetch bookmarked posts');
+      testLogger.log('getBookmarkedPosts failure case completed');
+    });
+  });
+
+  // --- Post Moderation Feature Tests ---
+  describe('Post Moderation Feature', () => {
+    /**
+     * 預期使用測試：管理員成功更新貼文狀態
+     */
+    it('should update post status successfully', async () => {
+      testLogger.log('Testing updatePostStatus expected use');
+      const postId = 'post_moderate_1';
+      (updateDoc as jest.Mock).mockResolvedValue(undefined);
+      await communityService.updatePostStatus(postId, 'hidden');
+      expect(updateDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          status: 'hidden',
+          updatedAt: expect.anything(),
+        })
+      );
+      testLogger.log('updatePostStatus expected use completed');
+    });
+
+    /**
+     * 邊界案例：重複設為同一狀態
+     */
+    it('should not fail when updating to the same status', async () => {
+      testLogger.log('Testing updatePostStatus edge case: same status');
+      const postId = 'post_moderate_2';
+      (updateDoc as jest.Mock).mockResolvedValue(undefined);
+      await communityService.updatePostStatus(postId, 'active');
+      expect(updateDoc).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          status: 'active',
+          updatedAt: expect.anything(),
+        })
+      );
+      testLogger.log('updatePostStatus edge case completed');
+    });
+
+    /**
+     * 失敗案例：Firestore 更新失敗
+     */
+    it('should handle error when updatePostStatus fails', async () => {
+      testLogger.log('Testing updatePostStatus failure case');
+      const postId = 'post_moderate_3';
+      (updateDoc as jest.Mock).mockRejectedValue(new Error('Firestore error'));
+      await expect(communityService.updatePostStatus(postId, 'deleted')).rejects.toThrow('Failed to update post status');
+      testLogger.log('updatePostStatus failure case completed');
     });
   });
 }); 
