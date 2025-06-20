@@ -22,18 +22,28 @@ const { TextEncoder, TextDecoder } = require('util');
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
 
+// Mock environment variables for Firebase testing
+process.env.NEXT_PUBLIC_FIREBASE_API_KEY = 'mock-api-key';
+process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = 'mock-project.firebaseapp.com';
+process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'mock-project';
+process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'mock-project.appspot.com';
+process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
+process.env.NEXT_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:abcdef123456';
+
 // Mock Firebase Auth for testing
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(() => ({
     currentUser: null,
-    onAuthStateChanged: jest.fn(),
+    onAuthStateChanged: jest.fn(() => jest.fn()), // Return unsubscribe function
     signOut: jest.fn(),
   })),
-  onAuthStateChanged: jest.fn(),
+  onAuthStateChanged: jest.fn(() => jest.fn()), // Return unsubscribe function
   signInWithEmailAndPassword: jest.fn(),
   createUserWithEmailAndPassword: jest.fn(),
   signOut: jest.fn(),
   updateProfile: jest.fn(),
+  GoogleAuthProvider: jest.fn(),
+  signInWithPopup: jest.fn(),
 }));
 
 // Mock Firebase Firestore for testing

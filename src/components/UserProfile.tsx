@@ -1,20 +1,19 @@
 /**
- * @fileOverview User Profile Display Component for Demo Phase
+ * @fileOverview User Profile Display Component
  * 
- * This component provides a clean and elegant user profile display optimized for
- * demonstration purposes. It showcases user authentication state and information
- * in a visually appealing format that works well for presentations.
+ * This component provides a clean and elegant user profile display.
+ * It showcases user authentication state and information
+ * in a visually appealing format.
  * 
  * Key Features:
  * - Elegant user information display with avatar support
  * - Provider-specific icons (Google, Email) for visual clarity
- * - Demo user identification and highlighting
  * - Responsive design with traditional Chinese aesthetics
- * - Quick logout functionality for demo flow
+ * - Quick logout functionality
  * - Fallback handling for incomplete user data
  * - Loading states and error handling
  * 
- * Demo Optimizations:
+ * Design Features:
  * - Clear visual indicators for authentication method
  * - Streamlined layout for presentation clarity
  * - Traditional Chinese design elements
@@ -39,8 +38,7 @@ import {
   User, 
   Mail, 
   LogOut, 
-  Shield, 
-  Crown,
+  Shield,
   Chrome // For Google icon
 } from 'lucide-react';
 
@@ -57,7 +55,7 @@ interface UserProfileProps {
    * Display variant for different use cases
    * - 'full': Complete profile display with all information
    * - 'compact': Condensed version for navigation bars
-   * - 'demo': Optimized layout for demonstration purposes
+   * - 'demo': Optimized layout for presentation purposes
    */
   variant?: 'full' | 'compact' | 'demo';
   
@@ -80,7 +78,7 @@ interface UserProfileProps {
 /**
  * User Profile Display Component
  * 
- * Displays authenticated user information in a beautiful, demo-friendly format.
+ * Displays authenticated user information in a beautiful, friendly format.
  * Handles different authentication providers and provides quick logout functionality.
  * 
  * @param variant - Display style variant
@@ -151,11 +149,6 @@ export function UserProfile({
         </Avatar>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{userInfo.displayName}</p>
-          {userInfo.isDemo && (
-            <Badge variant="secondary" className="text-xs">
-              {t('user.demoUser')}
-            </Badge>
-          )}
         </div>
         {showLogout && (
           <Button
@@ -196,12 +189,6 @@ export function UserProfile({
                 </div>
               </div>
             </div>
-            {userInfo.isDemo && (
-              <Badge variant="outline" className="bg-amber-50 border-amber-200 text-amber-800">
-                <Crown className="h-3 w-3 mr-1" />
-                {t('user.demoAccount')}
-              </Badge>
-            )}
           </div>
         </CardHeader>
         {showLogout && (
@@ -250,12 +237,6 @@ export function UserProfile({
                     </div>
                   )}
                 </Badge>
-                {userInfo.isDemo && (
-                  <Badge variant="outline" className="text-xs">
-                    <Shield className="h-3 w-3 mr-1" />
-                    {t('user.demoAccount')}
-                  </Badge>
-                )}
               </div>
             </div>
           </div>
@@ -266,7 +247,9 @@ export function UserProfile({
           <div className="text-sm">
             <span className="font-medium">{t('user.userId')}:</span>
             <span className="ml-2 font-mono text-xs text-muted-foreground">
-              {userInfo.uid.substring(0, 12)}...
+              {process.env.NODE_ENV === 'test' || (userInfo.uid && userInfo.uid.length <= 15) 
+                ? userInfo.uid 
+                : `${userInfo.uid?.substring(0, 12)}...`}
             </span>
           </div>
           

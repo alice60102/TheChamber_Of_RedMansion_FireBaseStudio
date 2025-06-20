@@ -50,7 +50,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ScrollText, ArrowLeft, ArrowRight, AlertTriangle } from 'lucide-react';
 
 // Firebase authentication imports
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, fetchSignInMethodsForEmail } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 // React hooks for state management
@@ -96,14 +96,63 @@ export default function RegisterPage() {
   const { t } = useLanguage();
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
 
   type RegisterFormValues = z.infer<ReturnType<typeof getRegisterSchema>>;
 
-  const { register, handleSubmit, control, formState: { errors }, trigger } = useForm<RegisterFormValues>({
+  const { register, handleSubmit, control, formState: { errors }, trigger, getValues } = useForm<RegisterFormValues>({
     resolver: zodResolver(getRegisterSchema(t)),
     mode: "onChange", 
   });
+
+  /**
+   * Check if email is already registered and determine sign-in methods
+   * 
+   * This function uses Firebase's fetchSignInMethodsForEmail to check:
+   * - If the email is already registered
+   * - What authentication providers are linked to this email
+   * - Whether it's a third-party login (Google, etc.) or email/password
+   * 
+   * @param email - Email address to check
+   * @returns Promise resolving to check result with provider information
+   */
+  const checkEmailAvailability = async (email: string) => {
+          try {
+        // Fetch all sign-in methods for this email
+        const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+        
+        if (signInMethods.length > 0) {
+          // Email is already registered
+          const hasGoogleProvider = signInMethods.includes('google.com');
+          const hasEmailProvider = signInMethods.includes('password');
+        
+        // Determine which providers are linked
+        if (hasGoogleProvider && hasEmailProvider) {
+          // Both Google and email/password are linked
+          setFirebaseError(t('register.errorEmailExistsMultipleProviders'));
+        } else if (hasGoogleProvider) {
+          // Only Google is linked
+          setFirebaseError(t('register.errorEmailExistsGoogleOnly'));
+        } else if (hasEmailProvider) {
+          // Only email/password is linked
+          setFirebaseError(t('register.errorEmailExistsEmailOnly'));
+        } else {
+          // Other provider (Facebook, etc.)
+          setFirebaseError(t('register.errorEmailExistsOtherProvider'));
+        }
+        return false; // Email is not available
+      }
+      
+              // Email is available for registration
+        return true;
+    } catch (error: any) {
+      console.error('Error checking email availability:', error);
+      // Set error message for network/API failures
+      setFirebaseError(t('register.errorEmailCheckFailed'));
+      return false; // Don't allow proceeding when there's an error
+    }
+  };
 
   const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
     setIsLoading(true);
@@ -147,6 +196,34 @@ export default function RegisterPage() {
         return; 
       }
     }
+
+    // Special handling for step 1: Check email availability before proceeding
+    if (currentStep === 1) {
+      setIsCheckingEmail(true);
+      setFirebaseError(null); // Clear any previous errors
+      
+      try {
+        const email = getValues('email');
+        const isEmailAvailable = await checkEmailAvailability(email);
+        
+        setIsCheckingEmail(false); // Reset loading state
+        
+        if (!isEmailAvailable) {
+          // Email is already registered, don't proceed to next step
+          return;
+        }
+        
+        // Email is available, clear any errors and proceed
+        setFirebaseError(null);
+      } catch (error) {
+        console.error('Error during email check:', error);
+        setFirebaseError(t('register.errorEmailCheckFailed'));
+        setIsCheckingEmail(false);
+        return;
+      }
+    }
+    
+    // Only proceed to next step if all validations pass
     setCurrentStep((prev) => prev + 1);
   };
 
@@ -278,9 +355,18 @@ export default function RegisterPage() {
                   <Button
                     type="button"
                     onClick={handleNextStep}
+                    disabled={isCheckingEmail}
                     className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1"
                   >
-                    {t('buttons.next')} <ArrowRight className="ml-2 h-4 w-4" />
+                    {isCheckingEmail && currentStep === 1 
+                      ? t('register.checkingEmail') 
+                      : t('buttons.next')
+                    } 
+                    {isCheckingEmail && currentStep === 1 ? (
+                      <div className="ml-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    )}
                   </Button>
                 )}
                 {currentStep === 4 && (

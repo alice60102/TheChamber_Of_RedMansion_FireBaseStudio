@@ -13,7 +13,6 @@
  * 2. Form Validation Tests  
  * 3. Authentication Integration Tests
  * 4. Error Handling Tests
- * 5. Demo User Creation Tests
  */
 
 import React from 'react';
@@ -89,7 +88,6 @@ describe('LoginPage Component - Task D.1.1 Firebase Authentication', () => {
   const mockPush = jest.fn();
   const mockUseAuth = {
     signInWithGoogle: jest.fn(),
-    createDemoUser: jest.fn(),
   };
 
   beforeEach(() => {
@@ -138,14 +136,7 @@ describe('LoginPage Component - Task D.1.1 Firebase Authentication', () => {
       expect(googleButton).toBeInTheDocument();
     });
 
-    test('should render demo user creation button', () => {
-      renderLoginPage();
 
-      // Verify demo user functionality for presentations
-      const demoButton = screen.getByTestId('demo-signin-button') || 
-                        screen.getByText(/demo/i);
-      expect(demoButton).toBeInTheDocument();
-    });
 
     test('should display link to registration page', () => {
       renderLoginPage();
@@ -292,34 +283,7 @@ describe('LoginPage Component - Task D.1.1 Firebase Authentication', () => {
       });
     });
 
-    test('should handle demo user creation for presentations', async () => {
-      const user = userEvent.setup();
-      
-      // Mock successful demo user creation
-      mockUseAuth.createDemoUser.mockResolvedValue({
-        uid: 'demo123',
-        email: 'demo@redmansion.edu.tw',
-        displayName: '示範用戶 (Demo User)'
-      });
 
-      renderLoginPage();
-
-      const demoButton = screen.getByTestId('demo-signin-button') || 
-                        screen.getByText(/demo/i);
-
-      // Click demo user creation button
-      await user.click(demoButton);
-
-      // Wait for demo user creation to complete
-      await waitFor(() => {
-        expect(mockUseAuth.createDemoUser).toHaveBeenCalled();
-      });
-
-      // Verify successful navigation to dashboard
-      await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/dashboard');
-      });
-    });
   });
 
   /**
@@ -377,27 +341,7 @@ describe('LoginPage Component - Task D.1.1 Firebase Authentication', () => {
       });
     });
 
-    test('should handle demo user creation errors', async () => {
-      const user = userEvent.setup();
-      
-      // Mock demo user creation error
-      mockUseAuth.createDemoUser.mockRejectedValue(
-        new Error('Demo user creation failed')
-      );
 
-      renderLoginPage();
-
-      const demoButton = screen.getByTestId('demo-signin-button') || 
-                        screen.getByText(/demo/i);
-
-      // Click demo user creation button
-      await user.click(demoButton);
-
-      // Wait for error message to appear
-      await waitFor(() => {
-        expect(screen.getByText(/demo.*failed/i)).toBeInTheDocument();
-      });
-    });
   });
 
   /**
@@ -492,6 +436,62 @@ describe('LoginPage Component - Task D.1.1 Firebase Authentication', () => {
       await waitFor(() => {
         const errorMessage = screen.getByText(/invalid email/i);
         expect(errorMessage).toBeInTheDocument();
+      });
+    });
+  });
+
+  /**
+   * Test Category 4: Google OAuth Integration Tests
+   * 
+   * Tests Google OAuth functionality for social login
+   */
+  describe('Google OAuth Integration', () => {
+    test('should handle Google sign-in success', async () => {
+      const mockGoogleUser = {
+        uid: 'google-123',
+        email: 'test@gmail.com',
+        displayName: 'Google User'
+      };
+
+      // Mock successful Google sign-in
+      mockUseAuth.signInWithGoogle.mockResolvedValue(mockGoogleUser);
+
+      render(
+        <TestWrapper>
+          <LoginPage />
+        </TestWrapper>
+      );
+
+      // Click Google sign-in button
+      const googleButton = screen.getByRole('button', { name: /google/i });
+      fireEvent.click(googleButton);
+
+      // Wait for navigation
+      await waitFor(() => {
+        expect(mockUseAuth.signInWithGoogle).toHaveBeenCalled();
+        expect(mockPush).toHaveBeenCalledWith('/dashboard');
+      });
+    });
+
+    test('should handle Google sign-in errors', async () => {
+      // Mock Google sign-in error
+      mockUseAuth.signInWithGoogle.mockRejectedValue(
+        new Error('Google sign-in failed')
+      );
+
+      render(
+        <TestWrapper>
+          <LoginPage />
+        </TestWrapper>
+      );
+
+      // Click Google sign-in button
+      const googleButton = screen.getByRole('button', { name: /google/i });
+      fireEvent.click(googleButton);
+
+      // Wait for error to be displayed
+      await waitFor(() => {
+        expect(screen.getByText(/Google.*failed/i)).toBeInTheDocument();
       });
     });
   });

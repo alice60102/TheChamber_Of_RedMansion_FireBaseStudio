@@ -1,22 +1,20 @@
 /**
- * @fileOverview Enhanced Authentication Hook for Demo Phase
+ * @fileOverview Enhanced Authentication Hook
  * 
  * This hook provides a comprehensive interface for accessing authentication state and
- * performing authentication operations throughout the application. Enhanced for demo
- * phase with Google sign-in and simplified user management.
+ * performing authentication operations throughout the application.
  * 
  * Key Features:
  * - Centralized authentication state access
  * - Google OAuth integration for social login
  * - Built-in error handling with internationalization
  * - Type-safe authentication operations
- * - Demo-friendly user profile management
+ * - User profile management
  * - Simplified component integration
  * 
- * Demo Enhancements:
- * - Quick Google sign-in for demonstrations
+ * Features:
+ * - Google sign-in for social authentication
  * - User profile display helpers
- * - Demo account creation utilities
  * - Streamlined authentication flow
  */
 
@@ -42,11 +40,10 @@ import { auth } from '@/lib/firebase';
 import { useLanguage } from '@/hooks/useLanguage';
 
 /**
- * Enhanced Authentication Hook with Demo Features
+ * Enhanced Authentication Hook
  * 
- * This hook provides comprehensive authentication functionality optimized for
- * demonstration purposes. It includes both the existing authentication state
- * access and new methods for Google sign-in and user management.
+ * This hook provides comprehensive authentication functionality including
+ * authentication state access and methods for Google sign-in and user management.
  * 
  * @returns {object} Object containing:
  *   - user: Current authenticated user (FirebaseUser | null)
@@ -55,7 +52,6 @@ import { useLanguage } from '@/hooks/useLanguage';
  *   - signInWithEmail: Function to authenticate with email/password
  *   - signUpWithEmail: Function to create new account with email/password
  *   - logout: Function to sign out current user
- *   - createDemoUser: Function to create demo account for presentations
  *   - getUserDisplayInfo: Function to get formatted user information
  * 
  * @throws {Error} If used outside of an AuthProvider component
@@ -205,33 +201,6 @@ export function useAuth() {
   };
 
   /**
-   * Create Demo User Account
-   * 
-   * Creates a pre-configured demo account for presentation purposes.
-   * Uses a standardized demo email and password for consistency.
-   * 
-   * @returns {Promise<FirebaseUser>} Demo user object
-   */
-  const createDemoUser = async (): Promise<FirebaseUser> => {
-    const demoEmail = 'demo@redmansion.edu.tw';
-    const demoPassword = 'RedMansion2025!';
-    const demoDisplayName = '示範用戶 (Demo User)';
-    
-    try {
-      // Try to sign in first (demo user might already exist)
-      try {
-        return await signInWithEmail(demoEmail, demoPassword);
-      } catch {
-        // If sign-in fails, create new demo user
-        return await signUpWithEmail(demoEmail, demoPassword, demoDisplayName);
-      }
-    } catch (error) {
-      console.error("Demo user creation error:", error);
-      throw new Error(t('demo.errorCreateUser'));
-    }
-  };
-
-  /**
    * Get Formatted User Display Information
    * 
    * Extracts and formats user information for display purposes.
@@ -264,7 +233,8 @@ export function useAuth() {
       .join('')
       .substring(0, 2);
 
-    const isDemo = currentUser.email === 'demo@redmansion.edu.tw';
+    // No longer checking for demo users - all users are regular users
+    const isDemo = false;
     
     // Determine authentication provider
     const provider = currentUser.providerData[0]?.providerId || 'email';
@@ -285,12 +255,11 @@ export function useAuth() {
     // Original context values
     ...context,
     
-    // Enhanced authentication methods for demo phase
+    // Enhanced authentication methods
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
     logout,
-    createDemoUser,
     getUserDisplayInfo
   };
 }

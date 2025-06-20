@@ -1,14 +1,14 @@
 /**
- * @fileOverview Test Suite for useAuth Hook (Task D.1.1)
+ * @fileOverview Test Suite for useAuth Hook - Enhanced Authentication Management
  * 
- * This test suite validates the authentication state management functionality
- * as required by Task D.1.1. Tests cover:
+ * This test suite validates the enhanced authentication state management functionality.
+ * Tests cover:
  * - Firebase authentication integration
  * - Google OAuth functionality
- * - Email/password authentication
- * - Demo user creation for presentations
+ * - Email/password authentication and registration
  * - User display information formatting
  * - Error handling and internationalization
+ * - Enhanced user information management
  */
 
 import { renderHook, act } from '@testing-library/react';
@@ -74,7 +74,7 @@ const mockEmailUser = {
 /**
  * Test Wrapper for useAuth Hook
  */
-const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <LanguageProvider>
     <AuthProvider>
       {children}
@@ -82,7 +82,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </LanguageProvider>
 );
 
-describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
+describe('useAuth Hook - Enhanced Authentication State Management', () => {
   // Mock functions and context
   const mockT = jest.fn((key: string) => key);
   const mockAuthContext = {
@@ -126,8 +126,10 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
       expect(result.current.signInWithEmail).toBeDefined();
       expect(result.current.signUpWithEmail).toBeDefined();
       expect(result.current.logout).toBeDefined();
-      expect(result.current.createDemoUser).toBeDefined();
       expect(result.current.getUserDisplayInfo).toBeDefined();
+      
+      // Verify no longer has demo user functionality
+      expect((result.current as any).createDemoUser).toBeUndefined();
     });
   });
 
@@ -152,26 +154,36 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
       expect(authResult).toEqual(mockGoogleUser);
     });
 
-    test('should handle Google auth popup errors', async () => {
-      const mockError = { code: 'auth/popup-closed-by-user' };
-      (signInWithPopup as jest.Mock).mockRejectedValue(mockError);
+    test('should handle Google auth popup errors with localized messages', async () => {
+      const testCases = [
+        { code: 'auth/popup-closed-by-user', expected: 'login.errorPopupClosed' },
+        { code: 'auth/popup-blocked', expected: 'login.errorPopupBlocked' },
+        { code: 'auth/cancelled-popup-request', expected: 'login.errorCancelled' },
+        { code: 'auth/network-request-failed', expected: 'login.errorNetwork' },
+        { code: 'auth/unknown-error', expected: 'login.errorDefault' }
+      ];
 
-      const { result } = renderHook(() => useAuth(), {
-        wrapper: TestWrapper,
-      });
+      for (const testCase of testCases) {
+        const mockError = { code: testCase.code };
+        (signInWithPopup as jest.Mock).mockRejectedValue(mockError);
 
-      await act(async () => {
-        try {
-          await result.current.signInWithGoogle();
-        } catch (error: any) {
-          expect(error.message).toBe('login.errorPopupClosed');
-        }
-      });
+        const { result } = renderHook(() => useAuth(), {
+          wrapper: TestWrapper,
+        });
+
+        await act(async () => {
+          try {
+            await result.current.signInWithGoogle();
+          } catch (error: any) {
+            expect(error.message).toBe(testCase.expected);
+          }
+        });
+      }
     });
 
     test('should configure Google provider with correct scopes', async () => {
       const mockProvider = { addScope: jest.fn() };
-      (GoogleAuthProvider as jest.Mock).mockReturnValue(mockProvider);
+      (GoogleAuthProvider as unknown as jest.Mock).mockReturnValue(mockProvider);
       (signInWithPopup as jest.Mock).mockResolvedValue({ user: mockGoogleUser });
 
       const { result } = renderHook(() => useAuth(), {
@@ -213,21 +225,31 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
       expect(authResult).toEqual(mockEmailUser);
     });
 
-    test('should handle invalid credentials error', async () => {
-      const mockError = { code: 'auth/invalid-credential' };
-      (signInWithEmailAndPassword as jest.Mock).mockRejectedValue(mockError);
+    test('should handle email sign-in errors with localized messages', async () => {
+      const testCases = [
+        { code: 'auth/user-not-found', expected: 'login.errorInvalidCredential' },
+        { code: 'auth/wrong-password', expected: 'login.errorInvalidCredential' },
+        { code: 'auth/invalid-credential', expected: 'login.errorInvalidCredential' },
+        { code: 'auth/too-many-requests', expected: 'login.errorTooManyRequests' },
+        { code: 'auth/unknown-error', expected: 'login.errorDefault' }
+      ];
 
-      const { result } = renderHook(() => useAuth(), {
-        wrapper: TestWrapper,
-      });
+      for (const testCase of testCases) {
+        const mockError = { code: testCase.code };
+        (signInWithEmailAndPassword as jest.Mock).mockRejectedValue(mockError);
 
-      await act(async () => {
-        try {
-          await result.current.signInWithEmail('test@example.com', 'wrong');
-        } catch (error: any) {
-          expect(error.message).toBe('login.errorInvalidCredential');
-        }
-      });
+        const { result } = renderHook(() => useAuth(), {
+          wrapper: TestWrapper,
+        });
+
+        await act(async () => {
+          try {
+            await result.current.signInWithEmail('test@example.com', 'wrong');
+          } catch (error: any) {
+            expect(error.message).toBe(testCase.expected);
+          }
+        });
+      }
     });
 
     test('should successfully sign up with email and password', async () => {
@@ -264,73 +286,68 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
       );
       expect(authResult).toEqual(mockResult.user);
     });
-  });
 
-  /**
-   * Test Category 4: Demo User Functionality Tests
-   */
-  describe('Demo User Functionality', () => {
-    test('should create demo user with predefined credentials', async () => {
-      const mockDemoUser = {
-        uid: 'demo-123',
-        email: 'demo@redmansion.edu.tw',
-        displayName: '示範用戶 (Demo User)',
+    test('should handle email sign-up errors with localized messages', async () => {
+      const testCases = [
+        { code: 'auth/email-already-in-use', expected: 'register.errorEmailInUse' },
+        { code: 'auth/weak-password', expected: 'register.errorWeakPassword' },
+        { code: 'auth/invalid-email', expected: 'register.errorInvalidEmail' },
+        { code: 'auth/unknown-error', expected: 'register.errorDefault' }
+      ];
+
+      for (const testCase of testCases) {
+        const mockError = { code: testCase.code };
+        (createUserWithEmailAndPassword as jest.Mock).mockRejectedValue(mockError);
+
+        const { result } = renderHook(() => useAuth(), {
+          wrapper: TestWrapper,
+        });
+
+        await act(async () => {
+          try {
+            await result.current.signUpWithEmail('test@example.com', 'weak', 'Test User');
+          } catch (error: any) {
+            expect(error.message).toBe(testCase.expected);
+          }
+        });
+      }
+    });
+
+    test('should sign up without display name', async () => {
+      const userData = { 
+        email: 'new@example.com', 
+        password: 'password123'
       };
-      
-      // Mock sign-in failure followed by successful sign-up
-      (signInWithEmailAndPassword as jest.Mock)
-        .mockRejectedValueOnce(new Error('User not found'))
-        .mockResolvedValue({ user: mockDemoUser });
+      const mockResult = { user: mockEmailUser };
+      (createUserWithEmailAndPassword as jest.Mock).mockResolvedValue(mockResult);
 
       const { result } = renderHook(() => useAuth(), {
         wrapper: TestWrapper,
       });
 
-      let demoUser;
+      let authResult;
       await act(async () => {
-        demoUser = await result.current.createDemoUser();
+        authResult = await result.current.signUpWithEmail(
+          userData.email, 
+          userData.password
+        );
       });
 
-      expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
+      expect(createUserWithEmailAndPassword).toHaveBeenCalledWith(
         expect.anything(),
-        'demo@redmansion.edu.tw',
-        'RedMansion2025!'
+        userData.email,
+        userData.password
       );
-      expect(demoUser).toEqual(mockDemoUser);
-    });
-
-    test('should sign in existing demo user', async () => {
-      const mockDemoUser = {
-        uid: 'demo-123',
-        email: 'demo@redmansion.edu.tw',
-        displayName: '示範用戶 (Demo User)',
-      };
-      
-      (signInWithEmailAndPassword as jest.Mock).mockResolvedValue({ user: mockDemoUser });
-
-      const { result } = renderHook(() => useAuth(), {
-        wrapper: TestWrapper,
-      });
-
-      let demoUser;
-      await act(async () => {
-        demoUser = await result.current.createDemoUser();
-      });
-
-      expect(signInWithEmailAndPassword).toHaveBeenCalledWith(
-        expect.anything(),
-        'demo@redmansion.edu.tw',
-        'RedMansion2025!'
-      );
-      expect(demoUser).toEqual(mockDemoUser);
+      expect(updateProfile).not.toHaveBeenCalled();
+      expect(authResult).toEqual(mockEmailUser);
     });
   });
 
   /**
-   * Test Category 5: User Display Information Tests
+   * Test Category 4: User Display Information Tests
    */
   describe('User Display Information', () => {
-    test('should format Google user display information', () => {
+    test('should format Google user display information correctly', () => {
       mockAuthContext.user = mockGoogleUser;
 
       const { result } = renderHook(() => useAuth(), {
@@ -344,9 +361,11 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
       expect(displayInfo.provider).toBe('google');
       expect(displayInfo.initials).toBe('GU');
       expect(displayInfo.isDemo).toBe(false);
+      expect(displayInfo.uid).toBe('google-123');
+      expect(displayInfo.photoURL).toBe('https://example.com/avatar.jpg');
     });
 
-    test('should format email user display information', () => {
+    test('should format email user display information correctly', () => {
       mockAuthContext.user = mockEmailUser;
 
       const { result } = renderHook(() => useAuth(), {
@@ -360,26 +379,11 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
       expect(displayInfo.provider).toBe('email');
       expect(displayInfo.initials).toBe('EU');
       expect(displayInfo.isDemo).toBe(false);
+      expect(displayInfo.uid).toBe('email-456');
+      expect(displayInfo.photoURL).toBe('');
     });
 
-    test('should identify demo users correctly', () => {
-      const demoUser = {
-        ...mockEmailUser,
-        email: 'demo@redmansion.edu.tw',
-        displayName: '示範用戶 (Demo User)',
-      };
-      mockAuthContext.user = demoUser;
-
-      const { result } = renderHook(() => useAuth(), {
-        wrapper: TestWrapper,
-      });
-
-      const displayInfo = result.current.getUserDisplayInfo();
-
-      expect(displayInfo.isDemo).toBe(true);
-    });
-
-    test('should handle users without display names', () => {
+    test('should handle users without display names using email fallback', () => {
       const userWithoutName = {
         ...mockEmailUser,
         displayName: null,
@@ -392,13 +396,115 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
 
       const displayInfo = result.current.getUserDisplayInfo();
 
-      expect(displayInfo.displayName).toBe('test@example.com'); // Falls back to email
-      expect(displayInfo.initials).toBe('T'); // First letter of email
+      expect(displayInfo.displayName).toBe('test'); // Falls back to email prefix
+      expect(displayInfo.initials).toBe('T'); // First letter of email prefix
+    });
+
+    test('should handle users with empty email gracefully', () => {
+      const userWithoutEmail = {
+        ...mockEmailUser,
+        email: null,
+        displayName: null,
+      };
+      mockAuthContext.user = userWithoutEmail;
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: TestWrapper,
+      });
+
+      const displayInfo = result.current.getUserDisplayInfo();
+
+      expect(displayInfo.displayName).toBe('user.anonymous');
+      expect(displayInfo.email).toBe('');
+      expect(displayInfo.initials).toBe('U'); // First letter of 'user.anonymous'
+    });
+
+    test('should generate correct initials for multi-word names', () => {
+      const userWithLongName = {
+        ...mockEmailUser,
+        displayName: 'John Michael Smith Jr',
+      };
+      mockAuthContext.user = userWithLongName;
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: TestWrapper,
+      });
+
+      const displayInfo = result.current.getUserDisplayInfo();
+
+      expect(displayInfo.initials).toBe('JM'); // Only first two initials
+    });
+
+    test('should handle null user returning guest information', () => {
+      mockAuthContext.user = null;
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: TestWrapper,
+      });
+
+      const displayInfo = result.current.getUserDisplayInfo();
+
+      expect(displayInfo.displayName).toBe('user.guest');
+      expect(displayInfo.email).toBe('');
+      expect(displayInfo.photoURL).toBe('');
+      expect(displayInfo.initials).toBe('G');
+      expect(displayInfo.isDemo).toBe(false);
+      expect(displayInfo.provider).toBe('none');
+    });
+
+    test('should correctly identify provider types', () => {
+      const testCases = [
+        { 
+          user: { ...mockEmailUser, providerData: [{ providerId: 'google.com' }] },
+          expectedProvider: 'google'
+        },
+        { 
+          user: { ...mockEmailUser, providerData: [{ providerId: 'password' }] },
+          expectedProvider: 'email'
+        },
+        { 
+          user: { ...mockEmailUser, providerData: [{ providerId: 'facebook.com' }] },
+          expectedProvider: 'email'
+        },
+        { 
+          user: { ...mockEmailUser, providerData: [] },
+          expectedProvider: 'email'
+        }
+      ];
+
+      testCases.forEach(({ user, expectedProvider }) => {
+        (mockAuthContext as any).user = user;
+
+        const { result } = renderHook(() => useAuth(), {
+          wrapper: TestWrapper,
+        });
+
+        const displayInfo = result.current.getUserDisplayInfo();
+        expect(displayInfo.provider).toBe(expectedProvider);
+      });
+    });
+
+    test('should handle custom user parameter override', () => {
+      const currentUser = mockEmailUser;
+      const customUser = mockGoogleUser;
+      
+      mockAuthContext.user = currentUser;
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: TestWrapper,
+      });
+
+      const displayInfo = result.current.getUserDisplayInfo(customUser);
+
+      // Should use custom user instead of context user
+      expect(displayInfo.displayName).toBe('Google User');
+      expect(displayInfo.email).toBe('test@gmail.com');
+      expect(displayInfo.provider).toBe('google');
     });
   });
 
   /**
-   * Test Category 6: Logout Functionality Tests
+   * Test Category 5: Logout Functionality Tests
    */
   describe('Logout Functionality', () => {
     test('should successfully log out user', async () => {
@@ -415,7 +521,7 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
       expect(signOut).toHaveBeenCalled();
     });
 
-    test('should handle logout errors', async () => {
+    test('should handle logout errors with localized message', async () => {
       const mockError = new Error('Logout failed');
       (signOut as jest.Mock).mockRejectedValue(mockError);
 
@@ -430,6 +536,46 @@ describe('useAuth Hook - Task D.1.1 Authentication State Management', () => {
           expect(error.message).toBe('auth.errorLogout');
         }
       });
+    });
+  });
+
+  /**
+   * Test Category 6: Context Integration Tests
+   */
+  describe('Context Integration', () => {
+    test('should return loading state from context', () => {
+      mockAuthContext.isLoading = true;
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: TestWrapper,
+      });
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    test('should return user state from context', () => {
+      mockAuthContext.user = mockEmailUser;
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: TestWrapper,
+      });
+
+      expect(result.current.user).toEqual(mockEmailUser);
+    });
+
+    test('should spread all context properties', () => {
+      mockAuthContext.user = mockGoogleUser;
+      mockAuthContext.isLoading = false;
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: TestWrapper,
+      });
+
+      expect(result.current.user).toEqual(mockGoogleUser);
+      expect(result.current.isLoading).toBe(false);
+      // Verify enhanced methods are also available
+      expect(result.current.signInWithGoogle).toBeDefined();
+      expect(result.current.getUserDisplayInfo).toBeDefined();
     });
   });
 }); 

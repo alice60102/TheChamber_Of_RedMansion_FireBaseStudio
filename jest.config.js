@@ -17,13 +17,27 @@
  * - Error logging and organized output storage
  */
 
-// Simple Jest configuration without Next.js complexity
+// Jest configuration with proper React/JSX support
 const config = {
   // Setup files that run before each test
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   
   // Test environment - use jsdom for React component tests
   testEnvironment: 'jsdom',
+  
+  // Use ts-jest preset for TypeScript and JSX support
+  preset: 'ts-jest',
+  
+  // Transform configuration - new ts-jest format
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', {
+      tsconfig: {
+        jsx: 'react-jsx', // Enable JSX support
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+      },
+    }],
+  },
   
   // Module name mapping for path aliases (matching tsconfig.json)
   moduleNameMapper: {
@@ -33,6 +47,8 @@ const config = {
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/context/(.*)$': '<rootDir>/src/context/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    // Mock lucide-react icons to avoid ES module issues
+    'lucide-react': '<rootDir>/tests/mocks/lucide-react.js',
   },
   
   // Test file patterns
@@ -71,9 +87,6 @@ const config = {
   // Test timeout (increased for Firebase operations)
   testTimeout: 30000,
   
-  // Transform configuration for TypeScript
-  preset: 'ts-jest',
-  
   // Module file extensions
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   
@@ -84,9 +97,9 @@ const config = {
     '<rootDir>/dist/',
   ],
   
-  // Transform ignore patterns
+  // Transform ignore patterns  
   transformIgnorePatterns: [
-    'node_modules/(?!(@testing-library/.*|@babel/.*)/)',
+    'node_modules/(?!(@testing-library))',
   ],
   
   // Verbose output for detailed test results

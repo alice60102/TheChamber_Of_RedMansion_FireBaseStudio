@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Login Page Component for Red Mansion Learning Platform
  * 
@@ -44,7 +43,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Icon imports for visual elements
-import { ScrollText, AlertTriangle, Chrome, Crown } from 'lucide-react';
+import { ScrollText, AlertTriangle, Chrome } from 'lucide-react';
 
 // Firebase authentication imports
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -80,11 +79,10 @@ const getLoginSchema = (t: (key: string) => string) => z.object({
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { signInWithGoogle, createDemoUser } = useAuth();
+  const { signInWithGoogle } = useAuth();
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isDemoLoading, setIsDemoLoading] = useState(false);
 
   type LoginFormValues = z.infer<ReturnType<typeof getLoginSchema>>;
 
@@ -110,7 +108,7 @@ export default function LoginPage() {
     }
   };
 
-  // Handle Google Sign-In for demo phase
+  // Handle Google Sign-In
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     setFirebaseError(null);
@@ -122,21 +120,6 @@ export default function LoginPage() {
       console.error("Google sign-in error:", error);
     } finally {
       setIsGoogleLoading(false);
-    }
-  };
-
-  // Handle Demo User Creation for presentations
-  const handleDemoSignIn = async () => {
-    setIsDemoLoading(true);
-    setFirebaseError(null);
-    try {
-      await createDemoUser();
-      router.push('/dashboard');
-    } catch (error: any) {
-      setFirebaseError(error.message || t('demo.errorCreateUser'));
-      console.error("Demo user creation error:", error);
-    } finally {
-      setIsDemoLoading(false);
     }
   };
 
@@ -184,7 +167,7 @@ export default function LoginPage() {
               {isLoading ? t('login.loggingIn') : t('buttons.login')}
             </Button>
             
-            {/* Demo Phase: Social and Demo Login Options */}
+            {/* Google Login Option */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -196,37 +179,20 @@ export default function LoginPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleGoogleSignIn}
-                disabled={isGoogleLoading || isLoading}
-                className="w-full"
-              >
-                {isGoogleLoading ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  <Chrome className="h-4 w-4" />
-                )}
-                <span className="ml-2">Google</span>
-              </Button>
-              
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleDemoSignIn}
-                disabled={isDemoLoading || isLoading}
-                className="w-full border-amber-200 text-amber-700 hover:bg-amber-50"
-              >
-                {isDemoLoading ? (
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                ) : (
-                  <Crown className="h-4 w-4" />
-                )}
-                <span className="ml-2">{t('demo.quickLogin')}</span>
-              </Button>
-            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleSignIn}
+              disabled={isGoogleLoading || isLoading}
+              className="w-full"
+            >
+              {isGoogleLoading ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Chrome className="h-4 w-4" />
+              )}
+              <span className="ml-2">Google {t('buttons.login')}</span>
+            </Button>
           </CardContent>
         </form>
         <CardFooter className="text-center text-sm">

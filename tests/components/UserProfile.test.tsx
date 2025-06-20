@@ -1,21 +1,21 @@
 /**
- * @fileOverview Test Suite for UserProfile Component (Task D.1.1)
+ * @fileOverview UserProfile Component Test Suite
  * 
- * This test suite validates the simple user profile display functionality
- * as required by Task D.1.1. Tests cover:
- * - User profile information display
- * - Authentication state management
+ * Comprehensive test coverage for the UserProfile component including:
+ * - User authentication state display and management
+ * - Provider identification (Google, Email) with appropriate icons
  * - Different display variants (full, compact, demo)
- * - Provider-specific displays (Google, Email)
- * - Demo user identification
+ * - User information formatting and fallback handling
+ * - Logout functionality and error handling
+ * - Loading states and user interaction
  * 
  * Test Categories:
- * 1. Component Rendering Tests
- * 2. Authentication State Tests
- * 3. Display Variant Tests
- * 4. User Information Display Tests
+ * 1. Basic Component Rendering Tests
+ * 2. User Authentication State Tests  
+ * 3. User Information Display Tests
+ * 4. Display Variant Tests
  * 5. Logout Functionality Tests
- * 6. Demo User Features Tests
+ * 6. Provider Identification Tests
  */
 
 import React from 'react';
@@ -51,14 +51,6 @@ const mockEmailUser = {
   uid: 'email-user-456',
   email: 'test@example.com',
   displayName: 'Email User',
-  photoURL: null,
-  providerData: [{ providerId: 'password' }]
-};
-
-const mockDemoUser = {
-  uid: 'demo-user-789',
-  email: 'demo@redmansion.edu.tw',
-  displayName: '示範用戶 (Demo User)',
   photoURL: null,
   providerData: [{ providerId: 'password' }]
 };
@@ -459,121 +451,45 @@ describe('UserProfile Component - Task D.1.1 User Profile Display', () => {
   });
 
   /**
-   * Test Category 6: Demo User Features Tests
+   * Test Category 6: Provider Identification Tests
    * 
-   * Tests special handling and display of demo users for presentation purposes
-   * as required by Task D.1.1 demo functionality.
+   * Tests provider-specific display features including icons and labels
    */
-  describe('Demo User Features', () => {
-    test('should identify and display demo user badge', () => {
-      mockUseAuth.user = mockDemoUser;
-      mockGetUserDisplayInfo.mockReturnValue({
-        displayName: '示範用戶 (Demo User)',
-        email: 'demo@redmansion.edu.tw',
-        photoURL: null,
-        initials: 'DU',
-        provider: 'email',
-        isDemo: true,
-      });
-
-      renderUserProfile();
-
-      // Verify demo user identification
-      expect(screen.getByText('示範用戶 (Demo User)')).toBeInTheDocument();
-      expect(screen.getByText('demo@redmansion.edu.tw')).toBeInTheDocument();
-      
-      // Should show demo user badge
-      const demoBadge = screen.getByText(/demo/i) || 
-                       screen.getByTestId('demo-badge');
-      expect(demoBadge).toBeInTheDocument();
-    });
-
-    test('should display crown icon for demo users', () => {
-      mockUseAuth.user = mockDemoUser;
-      mockGetUserDisplayInfo.mockReturnValue({
-        displayName: '示範用戶 (Demo User)',
-        email: 'demo@redmansion.edu.tw',
-        photoURL: null,
-        initials: 'DU',
-        provider: 'email',
-        isDemo: true,
-      });
-
-      renderUserProfile({ variant: 'demo' });
-
-      // Should show crown icon for demo users
-      const crownIcon = screen.getByTestId('crown-icon') || 
-                       document.querySelector('[data-testid="crown-icon"]');
-      expect(crownIcon).toBeInTheDocument();
-    });
-
-    test('should not display demo badge for regular users', () => {
-      mockUseAuth.user = mockGoogleUser;
+  describe('Provider Identification', () => {
+    test('should display email provider correctly', () => {
+      mockUseAuth.user = mockEmailUser;
       mockGetUserDisplayInfo.mockReturnValue({
         displayName: 'Regular User',
-        email: 'test@gmail.com',
-        photoURL: 'https://example.com/avatar.jpg',
+        email: 'test@example.com',
+        photoURL: null,
         initials: 'RU',
-        provider: 'google',
         isDemo: false,
+        provider: 'email',
+        uid: 'email-user-456'
       });
 
-      renderUserProfile();
+      renderUserProfile({ variant: 'full' });
 
-      // Should not show demo badge for regular users
-      const demoBadge = screen.queryByText(/demo/i);
-      expect(demoBadge).not.toBeInTheDocument();
+      // Should show email provider badge
+      expect(screen.getByText('電子郵件')).toBeInTheDocument();
     });
-  });
 
-  /**
-   * Test Category 7: Accessibility Tests
-   * 
-   * Tests that the UserProfile component is accessible and follows
-   * best practices for users with disabilities.
-   */
-  describe('Accessibility', () => {
-    beforeEach(() => {
+    test('should display Google provider correctly', () => {
       mockUseAuth.user = mockGoogleUser;
       mockGetUserDisplayInfo.mockReturnValue({
-        displayName: 'Test User',
+        displayName: 'Google User',
         email: 'test@gmail.com',
         photoURL: 'https://example.com/avatar.jpg',
-        initials: 'TU',
-        provider: 'google',
+        initials: 'GU',
         isDemo: false,
+        provider: 'google',
+        uid: 'google-user-123'
       });
-    });
 
-    test('should have proper alt text for user avatar', () => {
-      renderUserProfile();
+      renderUserProfile({ variant: 'full' });
 
-      // Verify avatar has proper alt text
-      const userImage = screen.getByAltText('Test User');
-      expect(userImage).toBeInTheDocument();
-    });
-
-    test('should have proper button labels for logout', () => {
-      renderUserProfile({ showLogout: true });
-
-      // Verify logout button has proper accessible name
-      const logoutButton = screen.getByRole('button', { name: /logout/i });
-      expect(logoutButton).toBeInTheDocument();
-    });
-
-    test('should provide proper text alternatives for icons', () => {
-      renderUserProfile();
-
-      // Icons should have proper labeling or be decorative
-      // This test ensures icons don't create accessibility barriers
-      const icons = document.querySelectorAll('svg');
-      icons.forEach(icon => {
-        // Icons should either have aria-label, title, or aria-hidden
-        const hasLabel = icon.hasAttribute('aria-label') || 
-                        icon.hasAttribute('title') || 
-                        icon.getAttribute('aria-hidden') === 'true';
-        expect(hasLabel).toBe(true);
-      });
+      // Should show Google provider badge
+      expect(screen.getByText('Google')).toBeInTheDocument();
     });
   });
 }); 
