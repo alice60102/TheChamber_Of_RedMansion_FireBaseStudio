@@ -15,6 +15,14 @@
 // Import Testing Library Jest DOM matchers
 require('@testing-library/jest-dom');
 
+// Set up test environment variables for Firebase to prevent warnings
+process.env.NEXT_PUBLIC_FIREBASE_API_KEY = 'fake-api-key-for-testing';
+process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = 'fake-project.firebaseapp.com';
+process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'fake-project-id-for-testing';
+process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = 'fake-project.appspot.com';
+process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = '123456789';
+process.env.NEXT_PUBLIC_FIREBASE_APP_ID = '1:123456789:web:fake-app-id';
+
 // Polyfill fetch for Node.js environment (needed for Firebase operations)
 const { TextEncoder, TextDecoder } = require('util');
 

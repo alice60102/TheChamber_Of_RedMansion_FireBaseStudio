@@ -99,7 +99,11 @@ const config = {
   
   // Transform ignore patterns  
   transformIgnorePatterns: [
+<<<<<<< HEAD
     'node_modules/(?!(@testing-library))',
+=======
+    'node_modules/(?!(@testing-library/.*)/)',
+>>>>>>> stonetext
   ],
   
   // Verbose output for detailed test results
