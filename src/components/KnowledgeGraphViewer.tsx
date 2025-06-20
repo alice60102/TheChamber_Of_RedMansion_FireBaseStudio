@@ -38,6 +38,7 @@ import * as d3 from 'd3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { loadChapterGraphData, type KnowledgeGraphData } from '@/lib/knowledgeGraphUtils';
 import { 
   Search, 
   RotateCcw, 
@@ -50,42 +51,38 @@ import {
 
 // Chapter 1 Knowledge Graph Data from R.6/R.11 Research (Expert-validated)
 // This data structure is based on final_results_20250619_182710.json with D3.js optimization
-interface KnowledgeGraphNode {
-  id: string;
-  name: string;
-  type: 'character' | 'location' | 'concept' | 'event' | 'artifact';
-  importance: 'primary' | 'secondary' | 'tertiary';
-  description: string;
-  category: string; // For grouping related entities
-  // D3.js specific properties
-  x?: number;
-  y?: number;
-  vx?: number;
-  vy?: number;
-  fx?: number | null; // Fixed position x
-  fy?: number | null; // Fixed position y
-  radius: number;
-  color: string;
-  group: number;
-}
+// Types are now imported from knowledgeGraphUtils
+import type { KnowledgeGraphNode, KnowledgeGraphLink } from '@/lib/knowledgeGraphUtils';
 
-interface KnowledgeGraphLink {
-  source: string | KnowledgeGraphNode;
-  target: string | KnowledgeGraphNode;
-  relationship: string;
-  strength: number; // 0-1 for physics simulation
-  type: 'family' | 'friendship' | 'conflict' | 'literary' | 'conceptual';
-  description: string;
-  distance: number; // For force simulation
-}
+// Loading and error states rendering
+const renderLoadingState = () => (
+  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="text-center">
+      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+      <p className="text-gray-600">載入知識圖譜中...</p>
+    </div>
+  </div>
+);
 
-interface KnowledgeGraphData {
-  nodes: KnowledgeGraphNode[];
-  links: KnowledgeGraphLink[];
-}
+const renderErrorState = (error: string) => (
+  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-red-50 to-red-100">
+    <div className="text-center">
+      <p className="text-red-600 mb-2">錯誤</p>
+      <p className="text-red-500 text-sm">{error}</p>
+    </div>
+  </div>
+);
 
-// Chapter 1 data extracted and transformed from kg-gen results
-const chapter1GraphData: KnowledgeGraphData = {
+const renderEmptyState = () => (
+  <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="text-center">
+      <p className="text-gray-600">暫無知識圖譜數據</p>
+    </div>
+  </div>
+);
+
+// Fallback chapter 1 data (will be replaced by dynamic loading)
+const fallbackGraphData: KnowledgeGraphData = {
   nodes: [
     // Primary Characters
     {
@@ -95,7 +92,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '煉石補天的古代神話人物，創造了通靈寶玉',
       category: '神話人物',
-      radius: 25,
+      radius: 35,
       color: '#DC2626', // Traditional Chinese red
       group: 1
     },
@@ -106,7 +103,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '女媧補天剩下的石頭，後來變成通靈寶玉',
       category: '神器',
-      radius: 22,
+      radius: 32,
       color: '#EAB308', // Golden yellow
       group: 1
     },
@@ -117,7 +114,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '神祕的僧人，與道士一起點化頑石',
       category: '神仙',
-      radius: 20,
+      radius: 30,
       color: '#7C3AED', // Purple for mystical
       group: 2
     },
@@ -128,7 +125,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '神祕的道士，與僧人一起帶走通靈寶玉',
       category: '神仙',
-      radius: 20,
+      radius: 30,
       color: '#7C3AED',
       group: 2
     },
@@ -139,7 +136,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '姑蘇鄉紳，甄費字士隱，後來看破紅塵出家',
       category: '世俗人物',
-      radius: 18,
+      radius: 28,
       color: '#059669', // Emerald green
       group: 3
     },
@@ -150,7 +147,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '窮儒，賈化字時飛別號雨村，後來高中進士',
       category: '世俗人物',
-      radius: 18,
+      radius: 28,
       color: '#059669',
       group: 3
     },
@@ -161,7 +158,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'secondary',
       description: '甄士隱之女，三歲時被拐走',
       category: '世俗人物',
-      radius: 15,
+      radius: 24,
       color: '#EC4899', // Pink for female character
       group: 3
     },
@@ -172,7 +169,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'secondary',
       description: '甄士隱的妻子，性情賢淑',
       category: '世俗人物',
-      radius: 12,
+      radius: 20,
       color: '#EC4899',
       group: 3
     },
@@ -185,7 +182,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '大荒山無稽崖下的山峰，頑石棄置之地',
       category: '神話地點',
-      radius: 16,
+      radius: 26,
       color: '#8B5CF6', // Purple for mystical places
       group: 4
     },
@@ -196,7 +193,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'secondary',
       description: '甄士隱居住的城市',
       category: '世俗地點',
-      radius: 14,
+      radius: 22,
       color: '#F59E0B', // Amber for earthly places
       group: 4
     },
@@ -207,7 +204,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'secondary',
       description: '賈雨村寄居的廟宇',
       category: '世俗地點',
-      radius: 12,
+      radius: 20,
       color: '#F59E0B',
       group: 4
     },
@@ -220,7 +217,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '女媧氏煉石補天的神話事件',
       category: '神話事件',
-      radius: 14,
+      radius: 24,
       color: '#DC2626',
       group: 5
     },
@@ -231,7 +228,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'secondary',
       description: '跛足道人所唱，點化世人的歌謠',
       category: '哲學思想',
-      radius: 12,
+      radius: 20,
       color: '#0891B2', // Cyan for philosophical concepts
       group: 5
     },
@@ -242,7 +239,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'secondary',
       description: '僧道所說的花柳繁華地',
       category: '文學概念',
-      radius: 12,
+      radius: 20,
       color: '#0891B2',
       group: 5
     },
@@ -253,7 +250,7 @@ const chapter1GraphData: KnowledgeGraphData = {
       importance: 'primary',
       description: '石頭記述的故事，即紅樓夢本身',
       category: '文學作品',
-      radius: 16,
+      radius: 26,
       color: '#EAB308',
       group: 1
     }
@@ -296,6 +293,7 @@ interface KnowledgeGraphViewerProps {
   onNodeClick?: (node: KnowledgeGraphNode) => void;
   data?: KnowledgeGraphData;
   fullscreen?: boolean; // New prop for fullscreen mode
+  chapterNumber?: number; // Chapter number for dynamic data loading
 }
 
 export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
@@ -303,9 +301,42 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
   width = 800,
   height = 600,
   onNodeClick,
-  data = chapter1GraphData,
-  fullscreen = false
+  data,
+  fullscreen = false,
+  chapterNumber = 1
 }) => {
+  // Data loading and state management
+  const [graphData, setGraphData] = useState<KnowledgeGraphData | null>(data || null);
+  const [isLoading, setIsLoading] = useState(!data);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load data if not provided via props
+  useEffect(() => {
+    if (data) {
+      setGraphData(data);
+      setIsLoading(false);
+      return;
+    }
+
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const loadedData = await loadChapterGraphData(chapterNumber);
+        setGraphData(loadedData);
+      } catch (err) {
+        console.error('Failed to load chapter graph data:', err);
+        setError(`加載第${chapterNumber}回知識圖譜失敗`);
+        // Fallback to empty data
+        setGraphData({ nodes: [], links: [] });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [data, chapterNumber]);
+
   // Handle dynamic resize for fullscreen mode
   const [dimensions, setDimensions] = useState({ width, height });
   
@@ -329,6 +360,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       return () => window.removeEventListener('resize', handleResize);
     }
   }, []);
+  
   // Refs for D3.js integration
   const svgRef = useRef<SVGSVGElement>(null);
   const simulationRef = useRef<d3.Simulation<KnowledgeGraphNode, KnowledgeGraphLink> | null>(null);
@@ -345,7 +377,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
 
   // Initialize D3.js visualization
   useEffect(() => {
-    if (!svgRef.current || !data) return;
+    if (!svgRef.current || !graphData) return;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous content
@@ -370,8 +402,8 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       .attr("stop-opacity", 0.3);
 
     // Create force simulation
-    const simulation = d3.forceSimulation<KnowledgeGraphNode>(data.nodes)
-      .force("link", d3.forceLink<KnowledgeGraphNode, KnowledgeGraphLink>(data.links)
+    const simulation = d3.forceSimulation<KnowledgeGraphNode>(graphData.nodes)
+      .force("link", d3.forceLink<KnowledgeGraphNode, KnowledgeGraphLink>(graphData.links)
         .id(d => d.id)
         .distance(d => d.distance)
         .strength(d => d.strength * 0.3))
@@ -380,7 +412,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
         .distanceMax(400))
       .force("center", d3.forceCenter(dimensions.width / 2, dimensions.height / 2))
       .force("collision", d3.forceCollide()
-        .radius(d => (d as KnowledgeGraphNode).radius + 5)
+        .radius(d => (d as KnowledgeGraphNode).radius + 8)
         .strength(0.7));
 
     simulationRef.current = simulation;
@@ -389,7 +421,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
     const link = g.append("g")
       .attr("class", "links")
       .selectAll("line")
-      .data(data.links)
+      .data(graphData.links)
       .enter().append("line")
       .attr("stroke", "url(#link-gradient)")
       .attr("stroke-width", d => Math.sqrt(d.strength) * 3)
@@ -400,7 +432,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
     const node = g.append("g")
       .attr("class", "nodes")
       .selectAll("g")
-      .data(data.nodes)
+      .data(graphData.nodes)
       .enter().append("g")
       .attr("class", "node")
       .style("cursor", "pointer")
@@ -442,7 +474,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       .attr("text-anchor", "middle")
       .attr("dy", ".35em")
       .style("font-family", "'Noto Serif SC', serif")
-      .style("font-size", d => `${Math.max(8, d.radius / 2)}px`)
+      .style("font-size", d => `${Math.max(12, d.radius / 2.2)}px`)
       .style("font-weight", "600")
       .style("fill", "#ffffff")
       .style("text-shadow", "1px 1px 2px rgba(0,0,0,0.7)")
@@ -466,7 +498,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
         node.select("circle")
           .style("opacity", n => {
             if (n.id === d.id) return 1;
-            return data.links.some(l => 
+            return graphData.links.some(l => 
               ((l.source as KnowledgeGraphNode).id === d.id && (l.target as KnowledgeGraphNode).id === n.id) ||
               ((l.target as KnowledgeGraphNode).id === d.id && (l.source as KnowledgeGraphNode).id === n.id)
             ) ? 0.8 : 0.3;
@@ -505,7 +537,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [data, dimensions.width, dimensions.height, onNodeClick]);
+  }, [graphData, dimensions.width, dimensions.height, onNodeClick]);
 
   // Search functionality
   useEffect(() => {
@@ -568,6 +600,19 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       .duration(300)
       .call(zoomBehavior.current.scaleBy, 1 / 1.5);
   }, []);
+
+  // Handle loading, error, and empty states
+  if (isLoading) {
+    return renderLoadingState();
+  }
+
+  if (error) {
+    return renderErrorState(error);
+  }
+
+  if (!graphData || (graphData.nodes.length === 0 && graphData.links.length === 0)) {
+    return renderEmptyState();
+  }
 
   // Fullscreen mode - minimal UI
   if (fullscreen) {
@@ -645,7 +690,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
         {hoveredNode && (
           <div className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-white max-w-xs">
             {(() => {
-              const node = data.nodes.find(n => n.id === hoveredNode);
+              const node = graphData?.nodes.find(n => n.id === hoveredNode);
               return node ? (
                 <div>
                   <h4 className="font-bold mb-1">{node.name}</h4>
@@ -660,9 +705,9 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
         {/* Floating statistics for fullscreen */}
         <div className="absolute bottom-6 center-6 left-1/2 transform -translate-x-1/2 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white text-xs">
           <div className="flex items-center space-x-4">
-            <span>節點: {data.nodes.length}</span>
+            <span>節點: {graphData?.nodes.length || 0}</span>
             <div className="w-px h-3 bg-white/30"></div>
-            <span>關係: {data.links.length}</span>
+            <span>關係: {graphData?.links.length || 0}</span>
             <div className="w-px h-3 bg-white/30"></div>
             <span className="flex items-center space-x-1">
               <Info className="h-3 w-3" />
@@ -754,7 +799,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
         {hoveredNode && (
           <div className="absolute bottom-4 left-4 bg-white/95 rounded-lg p-4 shadow-lg border max-w-xs">
             {(() => {
-              const node = data.nodes.find(n => n.id === hoveredNode);
+              const node = graphData?.nodes.find(n => n.id === hoveredNode);
               return node ? (
                 <div>
                   <h4 className="font-bold text-gray-800 mb-1">{node.name}</h4>
@@ -770,7 +815,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       {/* Footer with statistics */}
       <div className="px-4 py-2 bg-gray-50 border-t text-xs text-gray-600 rounded-b-lg">
         <div className="flex justify-between items-center">
-          <span>節點: {data.nodes.length} | 關係: {data.links.length}</span>
+          <span>節點: {graphData?.nodes.length || 0} | 關係: {graphData?.links.length || 0}</span>
           <span className="flex items-center space-x-1">
             <Info className="h-3 w-3" />
             <span>拖拽節點以移動，滾輪縮放，點擊選擇</span>
