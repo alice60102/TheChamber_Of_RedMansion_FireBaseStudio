@@ -77,6 +77,7 @@ import ReactMarkdown from 'react-markdown'; // For rendering AI response markdow
 // Custom components and utilities
 import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
+import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer';
 
 // AI integration for text analysis
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -864,9 +865,28 @@ export default function ReadBookPage() {
               {t('readBook.knowledgeGraphSheetDesc')}
             </SheetDescription>
           </SheetHeader>
-          <ScrollArea className="flex-grow p-4">
-            <SimulatedKnowledgeGraph className="w-full min-h-[300px]" />
-          </ScrollArea>
+          <div className="flex-grow p-4 overflow-hidden">
+            {currentChapter.id === 1 ? (
+              <KnowledgeGraphViewer 
+                className="w-full h-full"
+                width={800}
+                height={500}
+                onNodeClick={(node) => {
+                  console.log('Node clicked:', node);
+                  // Could add future functionality like showing node details
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 via-amber-50 to-yellow-50 rounded-lg border">
+                <div className="text-center p-8">
+                  <div className="text-6xl mb-4 text-red-600">🏮</div>
+                  <h3 className="text-xl font-bold text-red-800 mb-2">知識圖譜建構中</h3>
+                  <p className="text-gray-600">第{currentChapter.id}回的知識圖譜正在專家審核中</p>
+                  <p className="text-sm text-gray-500 mt-2">目前僅提供第一回的完整知識圖譜</p>
+                </div>
+              </div>
+            )}
+          </div>
           <SheetFooter className="p-4 border-t border-border">
             <SheetClose asChild>
               <Button variant="outline" onClick={() => handleInteraction()}>{t('buttons.close')}</Button>
