@@ -295,6 +295,7 @@ interface KnowledgeGraphViewerProps {
   height?: number;
   onNodeClick?: (node: KnowledgeGraphNode) => void;
   data?: KnowledgeGraphData;
+  fullscreen?: boolean; // New prop for fullscreen mode
 }
 
 export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
@@ -302,8 +303,32 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
   width = 800,
   height = 600,
   onNodeClick,
-  data = chapter1GraphData
+  data = chapter1GraphData,
+  fullscreen = false
 }) => {
+  // Handle dynamic resize for fullscreen mode
+  const [dimensions, setDimensions] = useState({ width, height });
+  
+  useEffect(() => {
+    setDimensions({ width, height });
+  }, [width, height]);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        setDimensions({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+      }
+    };
+    
+    // Add resize listener for fullscreen mode
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
   // Refs for D3.js integration
   const svgRef = useRef<SVGSVGElement>(null);
   const simulationRef = useRef<d3.Simulation<KnowledgeGraphNode, KnowledgeGraphLink> | null>(null);
@@ -353,7 +378,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       .force("charge", d3.forceManyBody()
         .strength(-800)
         .distanceMax(400))
-      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("center", d3.forceCenter(dimensions.width / 2, dimensions.height / 2))
       .force("collision", d3.forceCollide()
         .radius(d => (d as KnowledgeGraphNode).radius + 5)
         .strength(0.7));
@@ -480,7 +505,7 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
     return () => {
       simulation.stop();
     };
-  }, [data, width, height, onNodeClick]);
+  }, [data, dimensions.width, dimensions.height, onNodeClick]);
 
   // Search functionality
   useEffect(() => {
@@ -544,6 +569,112 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       .call(zoomBehavior.current.scaleBy, 1 / 1.5);
   }, []);
 
+  // Fullscreen mode - minimal UI
+  if (fullscreen) {
+    return (
+      <div className={cn("relative w-full h-full", className)}>
+        {/* Fullscreen graph container */}
+        <svg
+          ref={svgRef}
+          width={dimensions.width}
+          height={dimensions.height}
+          className="w-full h-full bg-gradient-to-br from-black via-gray-900 to-black"
+        />
+        
+        {/* Floating controls for fullscreen */}
+        <div className="absolute top-6 left-6 flex items-center space-x-3 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2">
+          <div className="text-white text-sm font-medium">
+            縮放: {zoomLevel.toFixed(1)}x
+          </div>
+          <div className="w-px h-4 bg-white/30"></div>
+          <Button variant="ghost" size="sm" onClick={toggleSimulation} className="text-white hover:bg-white/20 h-8 w-8 p-0">
+            {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={zoomOut} className="text-white hover:bg-white/20 h-8 w-8 p-0">
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={zoomIn} className="text-white hover:bg-white/20 h-8 w-8 p-0">
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={resetView} className="text-white hover:bg-white/20 h-8 w-8 p-0">
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Floating search for fullscreen */}
+        <div className="absolute top-6 right-6 bg-black/70 backdrop-blur-sm rounded-lg p-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="搜尋節點..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-48 bg-black/60 border-white/20 text-white placeholder-gray-400"
+            />
+          </div>
+        </div>
+
+        {/* Floating legend for fullscreen */}
+        <div className="absolute bottom-6 right-6 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-white">
+          <h4 className="font-semibold text-sm mb-3">圖例</h4>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <span>神話人物</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <span>世俗人物</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+              <span>神仙</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <span>神器/文學</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+              <span>地點</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating node info for fullscreen */}
+        {hoveredNode && (
+          <div className="absolute bottom-6 left-6 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-white max-w-xs">
+            {(() => {
+              const node = data.nodes.find(n => n.id === hoveredNode);
+              return node ? (
+                <div>
+                  <h4 className="font-bold mb-1">{node.name}</h4>
+                  <p className="text-sm text-gray-300 mb-1">類型: {node.type}</p>
+                  <p className="text-xs text-gray-400">{node.description}</p>
+                </div>
+              ) : null;
+            })()}
+          </div>
+        )}
+
+        {/* Floating statistics for fullscreen */}
+        <div className="absolute bottom-6 center-6 left-1/2 transform -translate-x-1/2 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white text-xs">
+          <div className="flex items-center space-x-4">
+            <span>節點: {data.nodes.length}</span>
+            <div className="w-px h-3 bg-white/30"></div>
+            <span>關係: {data.links.length}</span>
+            <div className="w-px h-3 bg-white/30"></div>
+            <span className="flex items-center space-x-1">
+              <Info className="h-3 w-3" />
+              <span>拖拽節點以移動，滾輪縮放，點擊選擇</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular mode with traditional UI
   return (
     <div className={cn("flex flex-col bg-gradient-to-br from-red-50 via-amber-50 to-yellow-50 rounded-lg border shadow-lg", className)}>
       {/* Header with controls */}
@@ -587,8 +718,8 @@ export const KnowledgeGraphViewer: React.FC<KnowledgeGraphViewerProps> = ({
       <div className="relative flex-1 overflow-hidden">
         <svg
           ref={svgRef}
-          width={width}
-          height={height}
+          width={dimensions.width}
+          height={dimensions.height}
           className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100"
         />
         

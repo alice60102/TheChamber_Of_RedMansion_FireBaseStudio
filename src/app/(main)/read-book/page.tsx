@@ -853,45 +853,55 @@ export default function ReadBookPage() {
       <Sheet open={isKnowledgeGraphSheetOpen} onOpenChange={(open) => {setIsKnowledgeGraphSheetOpen(open); if (!open) handleInteraction();}}>
         <SheetContent
             side="bottom"
-            className="h-[80vh] bg-card text-card-foreground p-0 flex flex-col"
+            className="h-screen w-screen bg-black text-white p-0 flex flex-col fixed inset-0 z-50"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
             onCloseAutoFocus={(e) => e.preventDefault()} 
             onInteractOutside={(e) => e.preventDefault()} 
         >
-          <SheetHeader className="p-4 border-b border-border">
-            <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.knowledgeGraphSheetTitle')}: {getChapterTitle(currentChapter.titleKey)}</SheetTitle>
-            <SheetDescription>
-              {t('readBook.knowledgeGraphSheetDesc')}
-            </SheetDescription>
+          {/* Hidden title for accessibility */}
+          <SheetHeader className="sr-only">
+            <SheetTitle>知識圖譜全屏檢視</SheetTitle>
+            <SheetDescription>第{currentChapter.id}回知識圖譜的全屏互動檢視</SheetDescription>
           </SheetHeader>
-          <div className="flex-grow p-4 overflow-hidden">
+          
+          {/* Fullscreen Knowledge Graph Container */}
+          <div className="flex-grow overflow-hidden relative">
             {currentChapter.id === 1 ? (
               <KnowledgeGraphViewer 
                 className="w-full h-full"
-                width={800}
-                height={500}
+                width={typeof window !== 'undefined' ? window.innerWidth : 1920}
+                height={typeof window !== 'undefined' ? window.innerHeight : 1080}
+                fullscreen={true}
                 onNodeClick={(node) => {
                   console.log('Node clicked:', node);
                   // Could add future functionality like showing node details
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 via-amber-50 to-yellow-50 rounded-lg border">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-900/20 via-amber-900/20 to-yellow-900/20">
                 <div className="text-center p-8">
-                  <div className="text-6xl mb-4 text-red-600">🏮</div>
-                  <h3 className="text-xl font-bold text-red-800 mb-2">知識圖譜建構中</h3>
-                  <p className="text-gray-600">第{currentChapter.id}回的知識圖譜正在專家審核中</p>
-                  <p className="text-sm text-gray-500 mt-2">目前僅提供第一回的完整知識圖譜</p>
+                  <div className="text-6xl mb-4 text-red-400">🏮</div>
+                  <h3 className="text-xl font-bold text-red-300 mb-2">知識圖譜建構中</h3>
+                  <p className="text-gray-300">第{currentChapter.id}回的知識圖譜正在專家審核中</p>
+                  <p className="text-sm text-gray-400 mt-2">目前僅提供第一回的完整知識圖譜</p>
                 </div>
               </div>
             )}
           </div>
-          <SheetFooter className="p-4 border-t border-border">
-            <SheetClose asChild>
-              <Button variant="outline" onClick={() => handleInteraction()}>{t('buttons.close')}</Button>
-            </SheetClose>
-          </SheetFooter>
+          
+          {/* Close Button - Fixed Position */}
+          <SheetClose asChild>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="absolute top-4 right-4 bg-black/70 border-white/20 text-white hover:bg-white/10 z-60"
+              onClick={() => handleInteraction()}
+            >
+              <X className="h-4 w-4 mr-2" />
+              {t('buttons.close')}
+            </Button>
+          </SheetClose>
         </SheetContent>
       </Sheet>
 
