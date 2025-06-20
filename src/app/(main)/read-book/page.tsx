@@ -1,4 +1,3 @@
-
 /**
  * @fileOverview Interactive Book Reading Interface for Dream of the Red Chamber
  * 
@@ -63,7 +62,7 @@ import {
   Plus,                         // Increase font size
   Check,                        // Confirm/accept actions
   Minimize,                     // Exit fullscreen
-  Trash2 as ClearSearchIcon,    // Clear search
+  Trash2 as Trash2,            // Clear search
   Baseline,                     // Typography settings
   Volume2,                      // Text-to-speech
   Copy,                         // Copy selected text
@@ -89,6 +88,8 @@ import { useLanguage } from '@/hooks/useLanguage';
 
 // Utility for text transformation based on language
 import { transformTextForLang } from '@/lib/translations';
+import { saveNote, getNotesByUserAndChapter, Note, deleteNoteById } from '@/lib/notes-service';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Annotation {
   text: string;
@@ -322,40 +323,41 @@ export default function ReadBookPage() {
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
 
-    if (targetElement?.closest('[data-radix-dialog-content]') ||
-        targetElement?.closest('[data-radix-popover-content]') ||
-        targetElement?.closest('[data-selection-action-toolbar="true"]')) { 
+    // 如果點擊的是工具列、彈窗、或 data-no-selection 的元素，不要清空選取內容
+    if (
+      targetElement?.closest('[data-radix-dialog-content]') ||
+      targetElement?.closest('[data-radix-popover-content]') ||
+      targetElement?.closest('[data-selection-action-toolbar="true"]') ||
+      targetElement?.closest('[data-no-selection="true"]')
+    ) {
       setTimeout(() => handleInteraction(), 0);
       return;
     }
 
-    if (targetElement?.closest('[data-no-selection="true"]')) {
-      setSelectedTextInfo(null);
-      setTimeout(() => handleInteraction(), 0);
-      return;
-    }
-
+    // 只在點擊章節內容區域時，才根據選取狀態決定是否清空
     const selection = window.getSelection();
     const text = selection?.toString().trim() || '';
 
-    if (text.length > 0 && chapterContentRef.current && selection && selection.rangeCount > 0) {
+    if (
+      text.length > 0 &&
+      chapterContentRef.current &&
+      selection &&
+      selection.rangeCount > 0 &&
+      chapterContentRef.current.contains(selection.getRangeAt(0).commonAncestorContainer)
+    ) {
+      // 有選取內容，設置 selectedTextInfo
       const range = selection.getRangeAt(0);
-      if (chapterContentRef.current.contains(range.commonAncestorContainer)) {
-        const rect = range.getBoundingClientRect();
-        const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
-        const scrollTop = scrollAreaElement?.scrollTop || 0;
-        const scrollLeft = scrollAreaElement?.scrollLeft || 0;
-
-        const top = rect.top + scrollTop; 
-        const left = rect.left + scrollLeft + (rect.width / 2); 
-
-        setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
-        setIsNoteSheetOpen(false); 
-        setIsAiSheetOpen(false); 
-      } else {
-        setSelectedTextInfo(null);
-      }
-    } else {
+      const rect = range.getBoundingClientRect();
+      const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
+      const scrollTop = scrollAreaElement?.scrollTop || 0;
+      const scrollLeft = scrollAreaElement?.scrollLeft || 0;
+      const top = rect.top + scrollTop;
+      const left = rect.left + scrollLeft + (rect.width / 2);
+      setSelectedTextInfo({ text, position: { top, left }, range: range.cloneRange() });
+      setIsNoteSheetOpen(false);
+      setIsAiSheetOpen(false);
+    } else if (chapterContentRef.current?.contains(targetElement)) {
+      // 只有在點擊章節內容區域時才清空
       setSelectedTextInfo(null);
     }
     setTimeout(() => handleInteraction(), 0);
@@ -508,6 +510,81 @@ export default function ReadBookPage() {
   const currentChapterTitle = getChapterTitle(currentChapter.titleKey);
   const currentChapterSubtitle = currentChapter.subtitleKey ? getChapterTitle(currentChapter.subtitleKey) : undefined;
 
+  const { user } = useAuth();
+  const [userNotes, setUserNotes] = useState<Note[]>([]);
+
+  useEffect(() => {
+    if (user?.uid) {
+      getNotesByUserAndChapter(user.uid, currentChapter.id).then(setUserNotes);
+    } else {
+      setUserNotes([]);
+    }
+  }, [user?.uid, currentChapter.id]);
+
+  const handleSaveNote = async () => {
+    if (!user?.uid || !selectedTextInfo?.text || !currentNote.trim()) {
+      toast({ title: t('readBook.noteSheetTitle'), description: t('readBook.noContentSelected'), variant: 'destructive' });
+      return;
+    }
+    await saveNote({
+      userId: user.uid,
+      chapterId: currentChapter.id,
+      selectedText: selectedTextInfo.text,
+      note: currentNote,
+    });
+    setIsNoteSheetOpen(false);
+    setSelectedTextInfo(null);
+    setCurrentNote('');
+    toast({ title: t('筆記儲存'), description: t('buttons.noteSaved') });
+    getNotesByUserAndChapter(user.uid, currentChapter.id).then(setUserNotes);
+  };
+
+  const handleDeleteNote = async () => {
+    if (!user?.uid || !currentNoteObj?.id) return;
+    // 假設 notes-service.ts 有 deleteNoteById
+    await deleteNoteById(currentNoteObj.id);
+    setIsNoteSheetOpen(false);
+    setSelectedTextInfo(null);
+    setCurrentNote('');
+    toast({ title: t('筆記刪除'), description: t('buttons.noteDeleted') });
+    getNotesByUserAndChapter(user.uid, currentChapter.id).then(setUserNotes);
+  };
+
+  const underlineText = (text: string): React.ReactNode[] => {
+    if (!userNotes.length) return [text];
+    let result: React.ReactNode[] = [];
+    let workingText = text;
+    userNotes.forEach((note, idx) => {
+      const search = note.selectedText.trim();
+      if (!search) return;
+      const index = workingText.indexOf(search);
+      if (index !== -1) {
+        if (index > 0) {
+          result.push(workingText.substring(0, index));
+        }
+        result.push(
+          <Popover key={`underline-note-${idx}-${index}`}>
+            <PopoverTrigger asChild>
+              <u className="underline underline-offset-2 border-b-4 border-yellow-500 font-bold decoration-yellow-500 cursor-pointer">
+                {search}
+              </u>
+            </PopoverTrigger>
+            <PopoverContent className="max-w-xs p-3 text-sm">
+              <div>
+                <div className="font-bold mb-1">筆記內容：</div>
+                <div>{note.note}</div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        );
+        workingText = workingText.substring(index + search.length);
+      }
+    });
+    if (workingText) result.push(workingText);
+    return result.length > 0 ? result : [text];
+  };
+
+  const currentNoteObj = userNotes.find(n => n.selectedText === selectedTextInfo?.text);
 
   return (
     <div className="h-full flex flex-col">
@@ -679,7 +756,7 @@ export default function ReadBookPage() {
                     className="h-9 text-sm bg-background/80 focus:ring-primary"
                   />
                   <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-destructive" onClick={() => setCurrentSearchTerm("")} title={t('buttons.clearSearch')}>
-                    <ClearSearchIcon className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
                  <PopoverClose className="absolute top-1 right-1 rounded-full p-1 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-1 focus:ring-ring">
@@ -722,13 +799,13 @@ export default function ReadBookPage() {
                   const key = `para-${paraIndex}-item-${itemIndex}`;
                   if (typeof item === 'string') {
                     const transformedOriginal = transformTextForLang(item, language, 'original');
-                    return <React.Fragment key={key}>{highlightText(transformedOriginal, currentSearchTerm)}</React.Fragment>;
+                    return <React.Fragment key={key}>{underlineText(transformedOriginal)}</React.Fragment>;
                   } else {
                     const transformedAnnotationText = transformTextForLang(item.text, language, 'original');
                     const transformedAnnotationNote = transformTextForLang(item.note, language, 'annotation');
                     return (
                       <React.Fragment key={item.id || key}>
-                        {highlightText(transformedAnnotationText, currentSearchTerm)}
+                        {underlineText(transformedAnnotationText)}
                         <Popover>
                           <PopoverTrigger asChild>
                             <button
@@ -768,15 +845,26 @@ export default function ReadBookPage() {
                     selectedTheme.key === 'night' ? "text-neutral-400 opacity-80" : "text-muted-foreground opacity-90" // More specific muted for vernacular
                   )}
                  >
-                  {highlightText(
-                     transformTextForLang(para.vernacular.replace(/^（白話文）\s*/, t('readBook.vernacularPrefix') + " "), language, 'vernacular'),
-                    currentSearchTerm
+                  {underlineText(
+                     transformTextForLang(para.vernacular.replace(/^（白話文）\s*/, t('readBook.vernacularPrefix') + " "), language, 'vernacular')
                   )}
                 </p>
               )}
             </div>
           ))}
         </div>
+        {/* 顯示用戶筆記區塊 */}
+        {userNotes.length > 0 && (
+          <div className="my-4 p-3 bg-muted rounded">
+            <h3 className="font-bold mb-2">{t('readBook.yourNotes')}</h3>
+            {userNotes.map(note => (
+              <div key={note.id} className="mb-2">
+                <blockquote className="border-l-4 border-primary pl-2 text-sm">{note.selectedText}</blockquote>
+                <div className="text-xs text-muted-foreground mt-1">{note.note}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </ScrollArea>
 
       {selectedTextInfo?.text && selectedTextInfo.position && (
@@ -801,12 +889,12 @@ export default function ReadBookPage() {
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
-            onClick={() => handlePlaceholderAction('buttons.highlight')}
+            onClick={handleDeleteNote}
             data-selection-action-toolbar="true"
-            title={t('buttons.highlight')}
+            title={t('buttons.deleteNote')}
           >
-            <Baseline className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">{t('buttons.highlight')}</span>
+            <Trash2 className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">刪除筆記</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
@@ -946,7 +1034,7 @@ export default function ReadBookPage() {
             <div>
               <Label className="text-sm text-muted-foreground">{t('labels.selectedContent')}</Label>
               <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
-                {selectedTextInfo?.text || "No content selected."}
+                {selectedTextInfo?.text || t('readBook.noContentSelected')}
               </blockquote>
             </div>
             <div>
@@ -965,17 +1053,21 @@ export default function ReadBookPage() {
             <SheetClose asChild>
               <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null); handleInteraction();}}>{t('buttons.cancel')}</Button>
             </SheetClose>
-            <Button
-              onClick={() => {
-                setIsNoteSheetOpen(false);
-                setSelectedTextInfo(null);
-                toast({ title: t('buttons.saveNote'), description: t('buttons.noteSaved') });
-                handleInteraction();
-              }}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {t('buttons.saveNote')}
-            </Button>
+            {currentNoteObj ? (
+              <Button
+                onClick={handleDeleteNote}
+                className="bg-destructive hover:bg-destructive/90 text-white"
+              >
+                {t('buttons.deleteNote')}
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSaveNote}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {t('buttons.saveNote')}
+              </Button>
+            )}
           </SheetFooter>
         </SheetContent>
       </Sheet>
