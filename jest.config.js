@@ -86,7 +86,7 @@ const config = {
   
   // Transform ignore patterns
   transformIgnorePatterns: [
-    'node_modules/(?!(@testing-library/.*|@babel/.*)/)',
+    'node_modules/(?!(@testing-library/.*)/)',
   ],
   
   // Verbose output for detailed test results

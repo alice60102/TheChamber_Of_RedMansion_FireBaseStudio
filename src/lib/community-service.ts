@@ -48,6 +48,7 @@ import {
   DocumentData
 } from 'firebase/firestore';
 import { db } from './firebase';
+import { contentFilterService, ModerationAction } from './content-filter-service';
 
 // Type definitions for community data structures
 export interface CommunityPost {
@@ -71,6 +72,12 @@ export interface CommunityPost {
    * Used for user-specific post collections (favorites/bookmarks).
    */
   bookmarkedBy: string[];
+  /**
+   * Content moderation fields for tracking filtering and review status
+   */
+  moderationAction?: ModerationAction;
+  originalContent?: string; // Store original content before filtering
+  moderationWarning?: string; // Warning message if content was filtered
 }
 
 export interface PostComment {
@@ -86,6 +93,12 @@ export interface PostComment {
   updatedAt: Timestamp;
   isEdited: boolean;
   status: 'active' | 'hidden' | 'deleted';
+  /**
+   * Content moderation fields for comments
+   */
+  moderationAction?: ModerationAction;
+  originalContent?: string;
+  moderationWarning?: string;
 }
 
 export interface CreatePostData {
@@ -117,14 +130,43 @@ export class CommunityService {
   private postsCollection = collection(db, 'posts');
   
   /**
-   * Create a new forum post
+   * Create a new forum post with automated content filtering
    * @param postData - Data for the new post
    * @returns Promise with the created post ID
    */
   async createPost(postData: CreatePostData): Promise<string> {
     try {
+      // Apply content filtering to the post content
+      const contentToFilter = `${postData.title || ''} ${postData.content}`.trim();
+      const filterResult = await contentFilterService.processContent(
+        contentToFilter,
+        'temp-post-id', // Temporary ID, will be replaced with actual ID
+        'post',
+        postData.authorId
+      );
+
+      // Check if content should be blocked
+      if (filterResult.shouldBlock) {
+        console.log(`Post creation blocked due to content violation: ${filterResult.action}`);
+        throw new Error(filterResult.warningMessage || 'Your post contains inappropriate content and cannot be published.');
+      }
+
+      // Create the post with filtered content if necessary
+      const filteredPostData = { ...postData };
+      if (filterResult.processedContent !== contentToFilter) {
+        // Content was filtered, store both original and filtered versions
+        const titleLength = postData.title?.length || 0;
+        if (titleLength > 0 && filterResult.processedContent.length > titleLength) {
+          // Split filtered content back into title and content
+          filteredPostData.title = filterResult.processedContent.substring(0, titleLength);
+          filteredPostData.content = filterResult.processedContent.substring(titleLength).trim();
+        } else {
+          filteredPostData.content = filterResult.processedContent;
+        }
+      }
+
       const newPost = {
-        ...postData,
+        ...filteredPostData,
         likes: 0,
         likedBy: [],
         commentCount: 0,
@@ -137,14 +179,37 @@ export class CommunityService {
          * Initialize bookmarkedBy as an empty array for new posts.
          * This allows users to bookmark posts later.
          */
-        bookmarkedBy: []
+        bookmarkedBy: [],
+        /**
+         * Add content moderation fields
+         */
+        moderationAction: filterResult.action,
+        originalContent: filterResult.processedContent !== contentToFilter ? contentToFilter : '',
+        moderationWarning: filterResult.warningMessage || ''
       };
 
       const docRef = await addDoc(this.postsCollection, newPost);
+      
+      // Update the moderation log with the actual post ID
+      if (filterResult.action !== 'allow') {
+        console.log(`Post created with moderation action: ${filterResult.action}, ID: ${docRef.id}`);
+        // Re-process to update the log with correct post ID
+        await contentFilterService.processContent(
+          contentToFilter,
+          docRef.id,
+          'post',
+          postData.authorId
+        );
+      }
+
       console.log('Post created successfully with ID:', docRef.id);
       return docRef.id;
     } catch (error) {
       console.error('Error creating post:', error);
+      // If error message is already user-friendly (from content filter), use it directly
+      if (error instanceof Error && error.message.includes('inappropriate content')) {
+        throw error;
+      }
       throw new Error('Failed to create post. Please try again.');
     }
   }
@@ -292,25 +357,63 @@ export class CommunityService {
   }
 
   /**
-   * Add a comment to a post
+   * Add a comment to a post with automated content filtering
    * @param commentData - Data for the new comment
    * @returns Promise with the created comment ID
    */
   async addComment(commentData: CreateCommentData): Promise<string> {
     try {
+      // Apply content filtering to the comment content
+      const filterResult = await contentFilterService.processContent(
+        commentData.content,
+        'temp-comment-id', // Temporary ID, will be replaced with actual ID
+        'comment',
+        commentData.authorId
+      );
+
+      // Check if content should be blocked
+      if (filterResult.shouldBlock) {
+        console.log(`Comment creation blocked due to content violation: ${filterResult.action}`);
+        throw new Error(filterResult.warningMessage || 'Your comment contains inappropriate content and cannot be published.');
+      }
+
       const commentsCollection = collection(db, 'posts', commentData.postId, 'comments');
       
+      // Create comment with filtered content if necessary
+      const filteredCommentData = { ...commentData };
+      if (filterResult.processedContent !== commentData.content) {
+        filteredCommentData.content = filterResult.processedContent;
+      }
+      
       const newComment = {
-        ...commentData,
+        ...filteredCommentData,
         likes: 0,
         likedBy: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         isEdited: false,
-        status: 'active' as const
+        status: 'active' as const,
+        /**
+         * Add content moderation fields
+         */
+        moderationAction: filterResult.action,
+        originalContent: filterResult.processedContent !== commentData.content ? commentData.content : '',
+        moderationWarning: filterResult.warningMessage || ''
       };
 
       const docRef = await addDoc(commentsCollection, newComment);
+      
+      // Update the moderation log with the actual comment ID
+      if (filterResult.action !== 'allow') {
+        console.log(`Comment created with moderation action: ${filterResult.action}, ID: ${docRef.id}`);
+        // Re-process to update the log with correct comment ID
+        await contentFilterService.processContent(
+          commentData.content,
+          docRef.id,
+          'comment',
+          commentData.authorId
+        );
+      }
 
       // Update comment count on the parent post
       const postRef = doc(this.postsCollection, commentData.postId);
@@ -323,6 +426,10 @@ export class CommunityService {
       return docRef.id;
     } catch (error) {
       console.error('Error adding comment:', error);
+      // If error message is already user-friendly (from content filter), use it directly
+      if (error instanceof Error && error.message.includes('inappropriate content')) {
+        throw error;
+      }
       throw new Error('Failed to add comment. Please try again.');
     }
   }

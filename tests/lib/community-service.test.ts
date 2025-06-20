@@ -40,6 +40,8 @@ import {
   arrayRemove,
   serverTimestamp,
   Timestamp,
+  doc,
+  collection,
 } from 'firebase/firestore';
 
 describe('CommunityService', () => {
@@ -58,6 +60,11 @@ describe('CommunityService', () => {
 
     // Reset all mocks before each test
     jest.clearAllMocks();
+    
+    // Setup essential Firebase mocks
+    (doc as jest.Mock).mockReturnValue({ id: 'mocked-doc-ref', path: 'mocked/path' });
+    (collection as jest.Mock).mockReturnValue({ id: 'mocked-collection-ref' });
+    (serverTimestamp as jest.Mock).mockReturnValue({ seconds: Date.now() / 1000 });
   });
 
   afterEach(() => {
@@ -113,8 +120,11 @@ describe('CommunityService', () => {
 
       // Assert: Verify expected behavior
       expect(result).toBe('post_123456');
-      expect(addDoc).toHaveBeenCalledWith(
-        expect.anything(), // collection reference
+      // Check that addDoc was called twice: once for moderation log, once for post creation
+      expect(addDoc).toHaveBeenCalledTimes(2);
+      // Check the second call (post creation) - this is the actual post
+      expect(addDoc).toHaveBeenNthCalledWith(2,
+        undefined, // collection reference (mocked)
         expect.objectContaining({
           ...mockPostData,
           likes: 0,
@@ -124,6 +134,10 @@ describe('CommunityService', () => {
           isEdited: false,
           status: 'active',
           bookmarkedBy: [],
+          // Content filtering fields added by the new system
+          moderationAction: 'allow',  // Clean content should be allowed
+          moderationWarning: '', // No warnings for clean content
+          originalContent: '', // No filtering needed for clean content
           createdAt: expect.anything(),
           updatedAt: expect.anything(),
         })
@@ -159,11 +173,16 @@ describe('CommunityService', () => {
 
       // Assert: Verify defaults are applied
       expect(result).toBe('minimal_post');
-      expect(addDoc).toHaveBeenCalledWith(
-        expect.anything(),
+      // Check that addDoc was called twice: once for moderation log, once for post creation
+      expect(addDoc).toHaveBeenCalledTimes(2);
+      // Check the second call (post creation)
+      expect(addDoc).toHaveBeenNthCalledWith(2,
+        { id: 'mocked-collection-ref' }, // collection reference (mocked)
         expect.objectContaining({
+          authorId: 'user999',
+          authorName: '無名氏',
+          content: '簡短測試內容',
           tags: [],
-          category: undefined,
           likes: 0,
           likedBy: [],
           commentCount: 0,
@@ -171,6 +190,10 @@ describe('CommunityService', () => {
           isEdited: false,
           status: 'active',
           bookmarkedBy: [],
+          // Content filtering fields added by the new system
+          moderationAction: 'allow',  // Clean content should be allowed
+          moderationWarning: '', // No warnings for clean content
+          originalContent: '', // No filtering needed for clean content
           createdAt: expect.anything(),
           updatedAt: expect.anything(),
         })
@@ -285,7 +308,10 @@ describe('CommunityService', () => {
 
       // Assert
       expect(result).toBe('comment_001');
-      expect(addDoc).toHaveBeenCalledWith(
+      // Check that addDoc was called twice: once for moderation log, once for comment creation
+      expect(addDoc).toHaveBeenCalledTimes(2);
+      // Check the second call (comment creation)
+      expect(addDoc).toHaveBeenNthCalledWith(2,
         expect.anything(),
         expect.objectContaining({
           ...mockCommentData,
@@ -293,6 +319,10 @@ describe('CommunityService', () => {
           likedBy: [],
           isEdited: false,
           status: 'active',
+          // Content filtering fields added by the new system
+          moderationAction: 'allow',  // Clean content should be allowed
+          moderationWarning: '', // No warnings for clean content
+          originalContent: '', // No filtering needed for clean content
           createdAt: expect.anything(),
           updatedAt: expect.anything(),
         })
@@ -395,7 +425,8 @@ describe('CommunityService', () => {
         expect.anything(),
         {
           likes: increment(1),
-          likedBy: arrayUnion(userId)
+          likedBy: arrayUnion(userId),
+          updatedAt: expect.anything()
         }
       );
 
@@ -425,7 +456,8 @@ describe('CommunityService', () => {
         expect.anything(),
         {
           likes: increment(-1),
-          likedBy: arrayRemove(userId)
+          likedBy: arrayRemove(userId),
+          updatedAt: expect.anything()
         }
       );
 
@@ -448,7 +480,7 @@ describe('CommunityService', () => {
         testUtils.createMockDoc('post1', {
           authorId: 'user1',
           authorName: '林黛玉',
-          content: '花謝花飛花滿天，紅消香斷有誰憐？',
+          content: '花謝花飛花滿天，紅消香斷有誰憐？這是關於紅樓夢的詩詞',
           tags: ['詩詞', '紅樓夢'],
           likes: 15,
           commentCount: 3,
@@ -575,7 +607,8 @@ describe('CommunityService', () => {
         expect.anything(),
         {
           likes: increment(1),
-          likedBy: arrayUnion(userId)
+          likedBy: arrayUnion(userId),
+          updatedAt: expect.anything()
         }
       );
 
@@ -585,7 +618,8 @@ describe('CommunityService', () => {
         expect.anything(),
         {
           likes: increment(-1),
-          likedBy: arrayRemove(userId)
+          likedBy: arrayRemove(userId),
+          updatedAt: expect.anything()
         }
       );
 
@@ -598,8 +632,8 @@ describe('CommunityService', () => {
     it('should handle posts with very long content', async () => {
       testLogger.log('Testing long content handling');
 
-      // Arrange: Create post with very long content
-      const longContent = '長'.repeat(5000); // 5000 characters
+      // Arrange: Create post with very long content (non-repetitive to avoid spam detection)
+      const longContent = '這是一篇關於紅樓夢的長文章。'.repeat(200) + '今日讀紅樓夢感悟良多。'; // Long but varied content
       const longPostData: CreatePostData = {
         authorId: 'long_user',
         authorName: 'Long Content User',
@@ -615,7 +649,10 @@ describe('CommunityService', () => {
 
       // Assert
       expect(result).toBe('long_post');
-      expect(addDoc).toHaveBeenCalledWith(
+      // Check that addDoc was called twice: once for moderation log, once for post creation
+      expect(addDoc).toHaveBeenCalledTimes(2);
+      // Check the second call (post creation)
+      expect(addDoc).toHaveBeenNthCalledWith(2,
         expect.anything(),
         expect.objectContaining({
           content: longContent,
