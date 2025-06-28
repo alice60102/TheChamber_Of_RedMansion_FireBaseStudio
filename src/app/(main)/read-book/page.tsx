@@ -256,6 +256,7 @@ export default function ReadBookPage() {
   const [currentSearchTerm, setCurrentSearchTerm] = useState("");
 
   const [isFullscreenActive, setIsFullscreenActive] = useState(false);
+  const [highlights, setHighlights] = useState<string[]>([]);
 
   const selectedTheme = themes[activeThemeKey];
   const selectedFontFamily = fontFamilies[activeFontFamilyKey];
@@ -550,6 +551,14 @@ export default function ReadBookPage() {
     getNotesByUserAndChapter(user.uid, currentChapter.id).then(setUserNotes);
   };
 
+  const handleHighlight = () => {
+    if (selectedTextInfo?.text) {
+      setHighlights(prev => [...new Set([...prev, selectedTextInfo.text])]);
+      setSelectedTextInfo(null);
+      toast({ title: "畫線", description: "文字已畫線" });
+    }
+  };
+
   const underlineText = (text: string): React.ReactNode[] => {
     if (!userNotes.length) return [text];
     let result: React.ReactNode[] = [];
@@ -582,6 +591,36 @@ export default function ReadBookPage() {
     });
     if (workingText) result.push(workingText);
     return result.length > 0 ? result : [text];
+  };
+
+  const applyHighlights = (nodes: React.ReactNode[]): React.ReactNode[] => {
+    if (!highlights.length) return nodes;
+
+    let currentNodes = nodes;
+
+    highlights.forEach(highlight => {
+      const newNodes: React.ReactNode[] = [];
+      currentNodes.forEach(node => {
+        if (typeof node === 'string') {
+          if (!node.includes(highlight)) {
+            newNodes.push(node);
+            return;
+          }
+          const parts = node.split(highlight);
+          parts.forEach((part, index) => {
+            if (part) newNodes.push(part);
+            if (index < parts.length - 1) {
+              newNodes.push(<mark key={`${highlight}-${index}`} className="bg-yellow-300/70 text-black px-0.5 rounded-sm">{highlight}</mark>);
+            }
+          });
+        } else {
+          newNodes.push(node);
+        }
+      });
+      currentNodes = newNodes;
+    });
+
+    return currentNodes;
   };
 
   const currentNoteObj = userNotes.find(n => n.selectedText === selectedTextInfo?.text);
@@ -799,13 +838,13 @@ export default function ReadBookPage() {
                   const key = `para-${paraIndex}-item-${itemIndex}`;
                   if (typeof item === 'string') {
                     const transformedOriginal = transformTextForLang(item, language, 'original');
-                    return <React.Fragment key={key}>{underlineText(transformedOriginal)}</React.Fragment>;
+                    return <React.Fragment key={key}>{applyHighlights(underlineText(transformedOriginal))}</React.Fragment>;
                   } else {
                     const transformedAnnotationText = transformTextForLang(item.text, language, 'original');
                     const transformedAnnotationNote = transformTextForLang(item.note, language, 'annotation');
                     return (
                       <React.Fragment key={item.id || key}>
-                        {underlineText(transformedAnnotationText)}
+                        {applyHighlights(underlineText(transformedAnnotationText))}
                         <Popover>
                           <PopoverTrigger asChild>
                             <button
@@ -845,9 +884,9 @@ export default function ReadBookPage() {
                     selectedTheme.key === 'night' ? "text-neutral-400 opacity-80" : "text-muted-foreground opacity-90" // More specific muted for vernacular
                   )}
                  >
-                  {underlineText(
+                  {applyHighlights(underlineText(
                      transformTextForLang(para.vernacular.replace(/^（白話文）\s*/, t('readBook.vernacularPrefix') + " "), language, 'vernacular')
-                  )}
+                  ))}
                 </p>
               )}
             </div>
@@ -889,12 +928,12 @@ export default function ReadBookPage() {
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
-            onClick={handleDeleteNote}
+            onClick={handleHighlight}
             data-selection-action-toolbar="true"
-            title={t('buttons.deleteNote')}
+            title="畫線"
           >
-            <Trash2 className="h-5 w-5 mb-0.5" />
-            <span className="text-[10px] leading-none">刪除筆記</span>
+            <Baseline className="h-5 w-5 mb-0.5" />
+            <span className="text-[10px] leading-none">畫線</span>
           </button>
           <button
             className="flex flex-col items-center justify-center p-1.5 rounded-md hover:bg-neutral-700 w-[60px]"
