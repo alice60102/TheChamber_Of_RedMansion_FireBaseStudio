@@ -6,7 +6,7 @@
  */
 
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, where, Timestamp, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 // Type definition for a user note
 export interface Note {
@@ -30,6 +30,18 @@ export async function saveNote(note: Omit<Note, 'id' | 'createdAt'>) {
     createdAt: Timestamp.now(),
   });
   return docRef.id;
+}
+
+/**
+ * Update an existing note in Firestore.
+ * @param id - The Firestore document ID of the note to update
+ * @param content - The new content of the note
+ */
+export async function updateNote(id: string, content: string) {
+  const noteRef = doc(db, 'notes', id);
+  await updateDoc(noteRef, {
+    note: content,
+  });
 }
 
 /**
