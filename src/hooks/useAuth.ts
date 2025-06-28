@@ -30,6 +30,7 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   updateProfile,
+  signInAnonymously,
   type User as FirebaseUser 
 } from 'firebase/auth';
 // Import the AuthContext to access authentication state
@@ -51,6 +52,7 @@ import { useLanguage } from '@/hooks/useLanguage';
  *   - signInWithGoogle: Function to authenticate with Google OAuth
  *   - signInWithEmail: Function to authenticate with email/password
  *   - signUpWithEmail: Function to create new account with email/password
+ *   - signInAsGuest: Function for guest login
  *   - logout: Function to sign out current user
  *   - getUserDisplayInfo: Function to get formatted user information
  * 
@@ -105,6 +107,26 @@ export function useAuth() {
       
       console.error("Google sign-in error:", error);
       throw new Error(errorMessage);
+    }
+  };
+
+  /**
+   * Anonymous Sign-In (Guest Login)
+   * 
+   * Provides a way for users to access the application without creating an account.
+   * Uses Firebase's anonymous authentication.
+   * 
+   * @returns {Promise<FirebaseUser>} Authenticated anonymous user object
+   * @throws {Error} Authentication errors with localized messages
+   */
+  const signInAsGuest = async (): Promise<FirebaseUser> => {
+    try {
+      const result = await signInAnonymously(auth);
+      return result.user;
+    } catch (error: any) {
+      console.error("Anonymous sign-in error:", error);
+      // Provide a generic error message for guest login failure
+      throw new Error(t('login.errorGuest'));
     }
   };
 
@@ -219,7 +241,21 @@ export function useAuth() {
         photoURL: '',
         initials: 'G',
         isDemo: false,
-        provider: 'none'
+        provider: 'none',
+        uid: ''
+      };
+    }
+
+    // Handle anonymous users specifically for better display logic
+    if (currentUser.isAnonymous) {
+      return {
+        displayName: t('user.redMansionGuest'),
+        email: '',
+        photoURL: '',
+        initials: '客',
+        isDemo: false,
+        provider: 'anonymous',
+        uid: currentUser.uid
       };
     }
 
@@ -250,15 +286,14 @@ export function useAuth() {
     };
   };
 
-  // Return the complete authentication interface
-  return {
-    // Original context values
-    ...context,
-    
-    // Enhanced authentication methods
+  // Return all authentication methods and state
+  return { 
+    user: context.user, 
+    isLoading: context.isLoading,
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
+    signInAsGuest,
     logout,
     getUserDisplayInfo
   };

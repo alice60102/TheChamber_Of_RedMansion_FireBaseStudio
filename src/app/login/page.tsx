@@ -43,7 +43,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Icon imports for visual elements
-import { ScrollText, AlertTriangle, Chrome } from 'lucide-react';
+import { ScrollText, AlertTriangle, Chrome, PersonStanding } from 'lucide-react';
 
 // Firebase authentication imports
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -79,10 +79,11 @@ const getLoginSchema = (t: (key: string) => string) => z.object({
 export default function LoginPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, signInAsGuest } = useAuth();
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
 
   type LoginFormValues = z.infer<ReturnType<typeof getLoginSchema>>;
 
@@ -120,6 +121,21 @@ export default function LoginPage() {
       console.error("Google sign-in error:", error);
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  // Handle Guest Sign-In
+  const handleGuestSignIn = async () => {
+    setIsGuestLoading(true);
+    setFirebaseError(null);
+    try {
+      await signInAsGuest();
+      router.push('/dashboard');
+    } catch (error: any) {
+      setFirebaseError(error.message || t('login.errorGuest'));
+      console.error("Guest sign-in error:", error);
+    } finally {
+      setIsGuestLoading(false);
     }
   };
 
@@ -167,7 +183,7 @@ export default function LoginPage() {
               {isLoading ? t('login.loggingIn') : t('buttons.login')}
             </Button>
             
-            {/* Google Login Option */}
+            {/* Login Options */}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
@@ -179,20 +195,36 @@ export default function LoginPage() {
               </div>
             </div>
             
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading || isLoading}
-              className="w-full"
-            >
-              {isGoogleLoading ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <Chrome className="h-4 w-4" />
-              )}
-              <span className="ml-2">Google {t('buttons.login')}</span>
-            </Button>
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGoogleSignIn}
+                disabled={isGoogleLoading || isLoading || isGuestLoading}
+                className="w-full"
+              >
+                {isGoogleLoading ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <Chrome className="h-4 w-4" />
+                )}
+                <span className="ml-2">Google</span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGuestSignIn}
+                disabled={isGuestLoading || isLoading || isGoogleLoading}
+                className="w-full"
+              >
+                {isGuestLoading ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                ) : (
+                  <PersonStanding className="h-4 w-4" />
+                )}
+                <span className="ml-2">{t('login.guestLogin')}</span>
+              </Button>
+            </div>
           </CardContent>
         </form>
         <CardFooter className="text-center text-sm">

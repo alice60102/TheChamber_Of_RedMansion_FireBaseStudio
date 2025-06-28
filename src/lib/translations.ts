@@ -1,4 +1,3 @@
-
 export type Language = 'zh-TW' | 'zh-CN' | 'en-US';
 
 export const LANGUAGES: { code: Language; name: string }[] = [
@@ -219,7 +218,7 @@ export const translations: Record<Language, Translations> = {
       theme: '主題',
       text: '文字',
       currentFontSize: '當前字號',
-      fontHint: '支援快速鍵 Ctrl + Alt + “+” 放大字號, Ctrl + Alt + “-” 縮小字號',
+      fontHint: '支援快速鍵 Ctrl + Alt + "+" 放大字號, Ctrl + Alt + "+" 縮小字號',
       selectedContent: '選取內容:',
       yourNote: '您的筆記:',
       yourQuestion: '您的問題：',
@@ -293,6 +292,7 @@ export const translations: Record<Language, Translations> = {
       errorCancelled: '登入已取消',
       errorNetwork: '網絡連接錯誤，請檢查網絡',
       errorTooManyRequests: '登入嘗試次數過多，請稍後再試',
+      guestLogin: '訪客登入',
     },
     register: {
       joinApp: '加入紅樓慧讀',
@@ -410,6 +410,9 @@ export const translations: Record<Language, Translations> = {
       userId: '用戶ID',
       guest: '訪客',
       anonymous: '匿名用戶',
+      redMansionGuest: '紅樓訪客',
+      profile: '個人資料',
+      settings: '設定',
     },
     auth: {
       providerGoogle: '谷歌登入',
@@ -601,7 +604,7 @@ export const translations: Record<Language, Translations> = {
       theme: '主题',
       text: '文字',
       currentFontSize: '当前字号',
-      fontHint: '支援快捷键 Ctrl + Alt + “+” 放大字号, Ctrl + Alt + “-” 缩小字号',
+      fontHint: '支援快捷键 Ctrl + Alt + "+" 放大字号, Ctrl + Alt + "-" 缩小字号',
       selectedContent: '选取内容:',
       yourNote: '您的笔记:',
       yourQuestion: '您的问题：',
@@ -668,6 +671,8 @@ export const translations: Record<Language, Translations> = {
       noAccount: '还没有账户?',
       registerNow: '立即注册',
       loggingIn: '登录中...',
+      orContinueWith: '或使用以下方式登录',
+      guestLogin: '访客登录',
     },
     register: {
       joinApp: '加入红楼慧读',
@@ -785,6 +790,9 @@ export const translations: Record<Language, Translations> = {
       userId: '用户ID',
       guest: '访客',
       anonymous: '匿名用户',
+      redMansionGuest: '红楼访客',
+      profile: '个人资料',
+      settings: '设置',
     },
     auth: {
       providerGoogle: '谷歌登录',
@@ -802,9 +810,9 @@ export const translations: Record<Language, Translations> = {
       commentLabel: '发表评论',
       anonymousUser: '匿名用户',
       placeholderInitialCommentAuthor1: "林黛玉",
-      placeholderInitialCommentText1: "宝玉哥哥此番见解深刻，晴雯判词确令人心伤。一句“霁月难逢，彩云易散”，道尽了她的不幸与凄凉。",
+      placeholderInitialCommentText1: "宝玉哥哥此番见解深刻，晴雯判词确令人心伤。一句\"霁月难逢，彩云易散\"，道尽了她的不幸与凄凉。",
       placeholderInitialCommentAuthor2: "薛宝钗",
-      placeholderInitialCommentText2: "袭人判词中“枉自温柔和顺，空云似桂如兰”，也颇耐人寻味。书中人物命运多舛，实是红楼一梦，令人不胜唏嘘。",
+      placeholderInitialCommentText2: "袭人判词中\"枉自温柔和顺，空云似桂如兰\"，也颇耐人寻味。书中人物命运多舛，实是红楼一梦，令人不胜唏嘘。",
       placeholderInitialCommentAuthor3: "王熙凤",
       placeholderInitialCommentText3: "雨村先生所言甚是。若论及排场与吃穿用度，我们贾府的确是冠绝一时。便是寻常一道茶点，也有无数讲究呢。",
       postTagNew: '新帖',
@@ -855,7 +863,7 @@ export const translations: Record<Language, Translations> = {
       hlmmenggao: {
         title: '红楼梦 (梦稿本整理版)',
         author: '[清] 曹雪芹',
-        description: '根据“梦稿本”整理排印，保留早期稿本特色。',
+        description: '根据"梦稿本"整理排印，保留早期稿本特色。',
       },
       hlmanniversary: {
         title: '红楼梦 (百年纪念版)',
@@ -897,7 +905,7 @@ export const translations: Record<Language, Translations> = {
       ch1: {
         title: '第一回 甄士隐梦幻识通灵 贾雨村风尘怀闺秀',
         subtitle: '红楼梦:第三版(中国古典文学读本丛书)',
-        summary: '本回主要讲述了甄士隐梦遇一僧一道谈论石头下凡历劫，以及贾雨村的落魄与发迹。甄士隐因女儿英莲被拐、家遭火灾而看破红尘，随跛足道人出家，点出了小说“真事隐去，假语存焉”的创作主旨和“梦幻”的基调。',
+        summary: '本回主要讲述了甄士隐梦遇一僧一道谈论石头下凡历劫，以及贾雨村的落魄与发迹。甄士隐因女儿英莲被拐、家遭火灾而看破红尘，随跛足道人出家，点出了小说"真事隐去，假语存焉"的创作主旨和"梦幻"的基调。',
       },
       ch_generic: {
         title: '第 {chapterNum} 回 示例标题 {chapterNum}',
@@ -972,7 +980,7 @@ export const translations: Record<Language, Translations> = {
       theme: 'Theme',
       text: 'Text',
       currentFontSize: 'Current Size',
-      fontHint: 'Use Ctrl+Alt+“+” to zoom in, Ctrl+Alt+“-” to zoom out.',
+      fontHint: 'Use Ctrl+Alt+"+" to zoom in, Ctrl+Alt+"-" to zoom out.',
       selectedContent: 'Selected Content:',
       yourNote: 'Your Note:',
       yourQuestion: 'Your Question:',
@@ -1030,7 +1038,7 @@ export const translations: Record<Language, Translations> = {
     },
     login: {
       welcomeBack: 'Welcome Back',
-      pageDescription: 'Login to continue your IntelliRedChamber journey',
+      pageDescription: 'Log in to continue your IntelliRedChamber journey',
       emailLabel: 'Email',
       passwordLabel: 'Password',
       errorTitle: 'Login Error',
@@ -1039,6 +1047,8 @@ export const translations: Record<Language, Translations> = {
       noAccount: "Don't have an account?",
       registerNow: 'Register Now',
       loggingIn: 'Logging in...',
+      orContinueWith: 'Or continue with',
+      guestLogin: 'Guest Login',
     },
     register: {
       joinApp: 'Join IntelliRedChamber',
@@ -1156,6 +1166,9 @@ export const translations: Record<Language, Translations> = {
       userId: 'User ID',
       guest: 'Guest',
       anonymous: 'Anonymous User',
+      redMansionGuest: 'Red Mansion Guest',
+      profile: 'Profile',
+      settings: 'Settings',
     },
     auth: {
       providerGoogle: 'Google Login',
