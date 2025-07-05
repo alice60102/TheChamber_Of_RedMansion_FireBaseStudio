@@ -21,9 +21,9 @@ jest.mock('../../src/lib/firebase', () => ({
 jest.mock('firebase/firestore', () => ({
   collection: jest.fn(),
   addDoc: jest.fn().mockResolvedValue({ id: 'mock-log-id' }),
-  serverTimestamp: jest.fn(() => new Date('2025-01-27T10:00:00Z')),
+  serverTimestamp: jest.fn(() => new Date('2025-07-05T10:00:00Z')),
   Timestamp: {
-    now: jest.fn(() => new Date('2025-01-27T10:00:00Z'))
+    now: jest.fn(() => new Date('2025-07-05T10:00:00Z'))
   }
 }));
 

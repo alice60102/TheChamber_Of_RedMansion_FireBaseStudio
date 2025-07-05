@@ -3,7 +3,7 @@
 # Fullscreen Knowledge Graph Tests Execution Script
 # Description: Automated testing script for fullscreen functionality of KnowledgeGraphViewer component
 # Author: AI Assistant
-# Date: 2025-01-27
+# Date: 2025-07-05
 
 set -e # Exit on any error
 
