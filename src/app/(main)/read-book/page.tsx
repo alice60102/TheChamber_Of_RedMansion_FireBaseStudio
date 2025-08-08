@@ -235,11 +235,14 @@ export default function ReadBookPage() {
   const [currentNote, setCurrentNote] = useState("");
   const [currentNoteObj, setCurrentNoteObj] = useState<Note | null>(null);
 
+  // AI Interface States
   const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
+  const [aiMode, setAiMode] = useState<'new-conversation' | 'book-sources' | 'ai-analysis'>('new-conversation');
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
   const [textExplanation, setTextExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
   const [aiInteractionState, setAiInteractionState] = useState<AIInteractionState>('asking');
+  const [aiAnalysisContent, setAiAnalysisContent] = useState<string | null>(null);
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
   const [activeHighlightInfo, setActiveHighlightInfo] = useState<{ text: string; position: { top: number; left: number; } } | null>(null);
@@ -437,12 +440,127 @@ export default function ReadBookPage() {
     setActiveHighlightInfo(null);
   };
 
+  // Suggestion questions for the AI interface
+  const suggestionQuestions = [
+    "書中如何解釋「保齡判斷」與「完全開放」的矛盾？",
+    "父親對「保齡判斷」的現混啞示何神為通智慧？",
+    "為何作者認為「道德統一」是必要的？"
+  ];
+
+  // Handle clicking on suggestion questions
+  const handleSuggestionClick = (question: string) => {
+    setUserQuestionInput(question);
+  };
+
+  // Handle switching to book sources mode
+  const handleBookSourcesMode = () => {
+    setAiMode('book-sources');
+  };
+
+  // Handle AI action buttons
+  const handleBookHighlights = async () => {
+    setAiMode('ai-analysis');
+    setIsLoadingExplanation(true);
+    setTextExplanation(null);
+    setAiAnalysisContent(null);
+    try {
+      const analysisPrompt = `請分析《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」的主要亮點和重要內容，包括：
+1. 文學價值的體現
+2. 人物刻畫的精彩之處  
+3. 情節發展的關鍵轉折
+4. 文化內涵與藝術手法
+5. 敘事與象徵的藝術亮點`;
+      
+      const input: ExplainTextSelectionInput = {
+        selectedText: "",
+        userQuestion: analysisPrompt,
+        chapterContext: getChapterTitle(currentChapter.titleKey),
+      };
+      const result = await explainTextSelection(input);
+      setAiAnalysisContent(result.explanation);
+    } catch (error) {
+      console.error("Error generating book highlights:", error);
+      toast({
+        title: t('common.error'),
+        description: "生成書籍亮點時發生錯誤",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingExplanation(false);
+    }
+  };
+
+  const handleBackgroundReading = async () => {
+    setAiMode('ai-analysis');
+    setIsLoadingExplanation(true);
+    setTextExplanation(null);
+    setAiAnalysisContent(null);
+    try {
+      const analysisPrompt = `請提供《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」的背景解讀，包括：
+1. 歷史背景與時代意義
+2. 文學史地位
+3. 作者創作意圖  
+4. 文化內涵與社會反映
+5. 與其他章回的關聯性`;
+      
+      const input: ExplainTextSelectionInput = {
+        selectedText: "",
+        userQuestion: analysisPrompt,
+        chapterContext: getChapterTitle(currentChapter.titleKey),
+      };
+      const result = await explainTextSelection(input);
+      setAiAnalysisContent(result.explanation);
+    } catch (error) {
+      console.error("Error generating background reading:", error);
+      toast({
+        title: t('common.error'),
+        description: "生成背景解讀時發生錯誤",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingExplanation(false);
+    }
+  };
+
+  const handleKeyConcepts = async () => {
+    setAiMode('ai-analysis');
+    setIsLoadingExplanation(true);
+    setTextExplanation(null);
+    setAiAnalysisContent(null);
+    try {
+      const analysisPrompt = `請分析《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」中的關鍵概念和重要主題，包括：
+1. 核心主題思想
+2. 重要文學概念
+3. 人物性格特點
+4. 情感與心理描寫
+5. 象徵意義與隱喻`;
+      
+      const input: ExplainTextSelectionInput = {
+        selectedText: "",
+        userQuestion: analysisPrompt,
+        chapterContext: getChapterTitle(currentChapter.titleKey),
+      };
+      const result = await explainTextSelection(input);
+      setAiAnalysisContent(result.explanation);
+    } catch (error) {
+      console.error("Error generating key concepts:", error);
+      toast({
+        title: t('common.error'),
+        description: "生成關鍵概念時發生錯誤",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingExplanation(false);
+    }
+  };
+
   const handleUserSubmitQuestion = async () => { 
     if (!userQuestionInput.trim() || !currentChapter) return;
 
+    setAiMode('ai-analysis');
     setIsLoadingExplanation(true);
-    setAiInteractionState('answering');
     setTextExplanation(null);
+    setAiAnalysisContent(null);
 
     try {
       const chapterContextSnippet = currentChapter.paragraphs
@@ -452,16 +570,16 @@ export default function ReadBookPage() {
         .substring(0, 1000); 
 
       const input: ExplainTextSelectionInput = {
-        selectedText: selectedTextInfo?.text || "當前章節內容",
+        selectedText: selectedTextInfo?.text || "",
         userQuestion: userQuestionInput, 
         chapterContext: chapterContextSnippet,
       };
       const result = await explainTextSelection(input);
-      setTextExplanation(result.explanation);
+      setAiAnalysisContent(result.explanation);
       setAiInteractionState('answered');
     } catch (error) {
       console.error("Error explaining text selection:", error);
-      setTextExplanation(error instanceof Error ? error.message : t('readBook.errorAIExplain'));
+      setAiAnalysisContent(error instanceof Error ? error.message : t('readBook.errorAIExplain'));
       setAiInteractionState('error');
     }
     setIsLoadingExplanation(false);
@@ -893,7 +1011,7 @@ export default function ReadBookPage() {
               <List className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>{t('buttons.toc')}</span>
             </Button>
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsAiSheetOpen(true); handleInteraction(); }} title={t('buttons.ai')}>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setAiMode('new-conversation'); setIsAiSheetOpen(true); handleInteraction(); }} title={t('buttons.ai')}>
               <Lightbulb className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>{t('buttons.ai')}</span>
             </Button>
@@ -1196,79 +1314,170 @@ export default function ReadBookPage() {
       </Sheet>
 
       
-      <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) setSelectedTextInfo(null); handleInteraction(); }}>
+      <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) {setSelectedTextInfo(null); setAiMode('new-conversation'); setTextExplanation(null); setAiAnalysisContent(null);} handleInteraction(); }}>
         <SheetContent
             side="right"
-            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col"
+            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col h-full"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
-            <SheetHeader className="p-4 border-b border-border">
-                <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.aiSheetTitle')}</SheetTitle>
+            {/* Header */}
+            <SheetHeader className="p-4 border-b border-border shrink-0">
+                <SheetTitle className="text-primary text-xl font-artistic">
+                  {aiMode === 'new-conversation' && '開啟新對話'}
+                  {aiMode === 'book-sources' && '書籍引源 · 11'}
+                  {aiMode === 'ai-analysis' && `AI 問書 《紅樓夢》`}
+                </SheetTitle>
                 <SheetDescription>
-                  {selectedTextInfo?.text 
-                    ? t('readBook.aiSheetDesc')
-                    : "針對本章節內容或《紅樓夢》相關問題提出您的疑問。"}
+                  {aiMode === 'new-conversation' && '請選擇您想了解的內容或直接提問'}
+                  {aiMode === 'book-sources' && '相關書籍文獻資料與背景資訊'}
+                  {aiMode === 'ai-analysis' && `第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」`}
                 </SheetDescription>
             </SheetHeader>
-            <ScrollArea className="flex-grow p-4 space-y-3">
-                {selectedTextInfo?.text && (
-                    <div>
-                        <Label className="text-sm text-muted-foreground">{t('labels.selectedContent')}</Label>
-                        <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
-                            {selectedTextInfo.text.length > 150 ? selectedTextInfo.text.substring(0, 150) + '...' : selectedTextInfo.text}
-                        </blockquote>
-                    </div>
-                )}
 
+            {/* Content Area */}
+            <ScrollArea className="flex-grow p-4">
+              {/* New Conversation Mode */}
+              {aiMode === 'new-conversation' && (
                 <div className="space-y-4">
-                    <div>
-                        <Label htmlFor="userQuestionAiSheet" className="text-sm text-muted-foreground">{t('labels.yourQuestion')}</Label>
-                        <Textarea
-                            id="userQuestionAiSheet"
-                            value={userQuestionInput}
-                            onChange={(e) => setUserQuestionInput(e.target.value)}
-                            placeholder={selectedTextInfo?.text 
-                              ? t('placeholders.yourQuestion')
-                              : "請輸入您想問關於這章節或《紅樓夢》的問題..."}
-                            className="min-h-[100px] text-sm bg-background/70 mt-1"
-                            rows={4}
-                            disabled={aiInteractionState === 'answering' || aiInteractionState === 'answered'}
-                        />
+                  {/* Suggestion Questions */}
+                  <div className="space-y-3">
+                    {suggestionQuestions.map((question, index) => (
+                      <Button
+                        key={index}
+                        variant="outline"
+                        className="w-full h-auto p-4 text-left whitespace-normal justify-start text-sm bg-background/50 hover:bg-primary/10 border-primary/20"
+                        onClick={() => handleSuggestionClick(question)}
+                      >
+                        {question}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Book Sources Mode */}
+              {aiMode === 'book-sources' && (
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <Button variant="ghost" className="w-full p-4 text-left justify-between">
+                        <span>① 賈寶玉《紅樓夢》走進名著</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                      <div className="px-4 pb-4 text-sm text-muted-foreground">
+                        <p>三、內容解析 《了不起的蓋茨比》生動地展現了「一戰」結束（1918年）到經濟大蕭條（1929年）這一時期美國年輕人對幸福感謎的精神狀況，隨著戰爭平息，和平...</p>
+                      </div>
                     </div>
                     
-                    {(aiInteractionState === 'asking' || aiInteractionState === 'error') && (
-                        <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full mt-4">
-                            {isLoadingExplanation ? t('buttons.submit') + "..." : t('buttons.submit')}
-                        </Button>
-                    )}
-                </div>
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <Button variant="ghost" className="w-full p-4 text-left justify-between">
+                        <span>② 白又彰《貞節知識萬花筒》</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
 
-                {(aiInteractionState === 'answering') && (
-                     <div className="p-4 flex flex-col items-center justify-center text-muted-foreground">
-                        <Lightbulb className="h-8 w-8 mb-2 animate-pulse text-primary" />
-                        {t('buttons.aiThinking')}
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <Button variant="ghost" className="w-full p-4 text-left justify-between">
+                        <span>③ 柳筠九等《世界名著大師課合集》</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
                     </div>
-                )}
-                {(aiInteractionState === 'answered' || aiInteractionState === 'error') && textExplanation && (
-                    <div>
-                        <h4 className="font-semibold mb-2 text-primary">{t('buttons.aiReply')}</h4>
-                        <ScrollArea className="h-60 p-1 border rounded-md bg-muted/10">
-                           <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-line p-2 text-white">
-                            {textExplanation}
-                          </ReactMarkdown>
-                        </ScrollArea>
-                        <Button variant="link" onClick={() => {setAiInteractionState('asking'); setUserQuestionInput(''); setTextExplanation(null);}} className="mt-2 text-sm text-primary hover:text-primary/80 px-0">
-                          {t('buttons.askAnotherQuestion')}
-                        </Button>
+
+                    <div className="border border-border rounded-lg overflow-hidden">
+                      <Button variant="ghost" className="w-full p-4 text-left justify-between">
+                        <span>④ 貳周月刊《股市亮席若欲州 香港風月刊2025年第9期》</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
                     </div>
-                )}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Analysis Mode */}
+              {aiMode === 'ai-analysis' && (
+                <div className="space-y-4">
+                  {isLoadingExplanation && (
+                    <div className="p-8 flex flex-col items-center justify-center text-muted-foreground">
+                      <Lightbulb className="h-8 w-8 mb-2 animate-pulse text-primary" />
+                      <p>AI 正在分析中...</p>
+                    </div>
+                  )}
+                  
+                  {aiAnalysisContent && (
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown className="whitespace-pre-line text-white">
+                        {aiAnalysisContent}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+
+                  {textExplanation && (
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown className="whitespace-pre-line text-white">
+                        {textExplanation}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              )}
             </ScrollArea>
-            <SheetFooter className="p-4 border-t border-border">
-                 <SheetClose asChild>
-                    <Button variant="outline" onClick={() => {setIsAiSheetOpen(false); setSelectedTextInfo(null); handleInteraction();}}>{t('buttons.close')}</Button>
-                 </SheetClose>
-            </SheetFooter>
+
+            {/* Bottom Section with Action Buttons and Input */}
+            <div className="shrink-0 p-4 border-t border-border bg-background/50">
+              {/* Action Buttons */}
+              <div className="flex gap-2 mb-4">
+                <Button 
+                  variant="outline" 
+                  className="flex-1 text-sm bg-background/70 hover:bg-primary/10" 
+                  onClick={handleBookHighlights}
+                  disabled={isLoadingExplanation}
+                >
+                  該章回亮點
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1 text-sm bg-background/70 hover:bg-primary/10" 
+                  onClick={handleBackgroundReading}
+                  disabled={isLoadingExplanation}
+                >
+                  背景解讀
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="flex-1 text-sm bg-background/70 hover:bg-primary/10" 
+                  onClick={handleKeyConcepts}
+                  disabled={isLoadingExplanation}
+                >
+                  關鍵概念
+                </Button>
+              </div>
+
+              {/* Input Section */}
+              <div className="flex gap-2">
+                <Input
+                  value={userQuestionInput}
+                  onChange={(e) => setUserQuestionInput(e.target.value)}
+                  placeholder="提出問題，獲得來自書籍的解答..."
+                  className="flex-1 bg-background/70"
+                  disabled={isLoadingExplanation}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleUserSubmitQuestion();
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={handleUserSubmitQuestion} 
+                  disabled={isLoadingExplanation || !userQuestionInput.trim()}
+                  size="icon"
+                  className="shrink-0"
+                >
+                  ↑
+                </Button>
+              </div>
+            </div>
         </SheetContent>
       </Sheet>
 
