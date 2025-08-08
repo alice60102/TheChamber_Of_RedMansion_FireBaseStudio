@@ -3,6 +3,7 @@
 # ─── 環境變數檔案 ───
 .env
 .env.local
+.env.local
 
 # dependencies
 /node_modules
@@ -48,3 +49,4 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
