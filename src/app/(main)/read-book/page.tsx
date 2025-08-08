@@ -42,7 +42,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent } from "@/components/ui/select";
 
 // Icon imports for reading interface controls
 import {
@@ -78,7 +77,6 @@ import ReactMarkdown from 'react-markdown'; // For rendering AI response markdow
 import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
 import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer';
-import AIReadingPanel from '@/components/AIReadingPanel';
 
 // AI integration for text analysis
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -92,7 +90,6 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { transformTextForLang } from '@/lib/translations';
 import { saveNote, getNotesByUserAndChapter, Note, deleteNoteById, updateNote } from '@/lib/notes-service';
 import { useAuth } from '@/hooks/useAuth';
-import { useLanguage as useLanguageContext } from '@/context/LanguageContext';
 
 interface Annotation {
   text: string;
@@ -236,6 +233,7 @@ export default function ReadBookPage() {
 
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
+  const [currentNoteObj, setCurrentNoteObj] = useState<Note | null>(null);
 
   const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
@@ -409,13 +407,13 @@ export default function ReadBookPage() {
   };
 
   const handleOpenAiSheet = () => {
-    // Allow opening AI panel even when no text is selected.
-    // Reason: Top toolbar needs a global "AI" entry point per product spec.
-    setAiInteractionState('asking');
-    setUserQuestionInput('');
-    setTextExplanation(null);
-    setIsAiSheetOpen(true);
-    handleInteraction();
+    if (toolbarInfo?.text) {
+      setAiInteractionState('asking');
+      setUserQuestionInput(''); 
+      setTextExplanation(null);
+      setIsAiSheetOpen(true);
+      handleInteraction();
+    }
   };
 
   const handleCopySelectedText = () => {
@@ -440,7 +438,7 @@ export default function ReadBookPage() {
   };
 
   const handleUserSubmitQuestion = async () => { 
-    if (!toolbarInfo?.text || !userQuestionInput.trim() || !currentChapter) return;
+    if (!userQuestionInput.trim() || !currentChapter) return;
 
     setIsLoadingExplanation(true);
     setAiInteractionState('answering');
@@ -454,7 +452,7 @@ export default function ReadBookPage() {
         .substring(0, 1000); 
 
       const input: ExplainTextSelectionInput = {
-        selectedText: toolbarInfo.text,
+        selectedText: selectedTextInfo?.text || "當前章節內容",
         userQuestion: userQuestionInput, 
         chapterContext: chapterContextSnippet,
       };
@@ -702,7 +700,7 @@ export default function ReadBookPage() {
     return currentNodes;
   };
 
-  const currentNoteObj = userNotes.find(n => n.selectedText === toolbarInfo?.text);
+  // Use state-managed currentNoteObj set when opening the note sheet
   const isTextSelected = !!selectedTextInfo?.text && !!selectedTextInfo.position;
   const isHighlightClicked = !!activeHighlightInfo?.text && !!activeHighlightInfo.position;
   
@@ -895,15 +893,9 @@ export default function ReadBookPage() {
               <List className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>{t('buttons.toc')}</span>
             </Button>
-            {/* AI button placed beside TOC per UI requirement. Clicking opens the right-side AI interaction sheet. */}
-            <Button 
-              variant="ghost" 
-              className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} 
-              onClick={handleOpenAiSheet}
-              title={t('buttons.askAI')}
-            >
-              <Lightbulb className={toolbarIconClass} />
-              <span className={toolbarLabelClass}>{t('buttons.askAI')}</span>
+            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsAiSheetOpen(true); handleInteraction(); }} title={t('buttons.ai')}>
+              <Lightbulb className={toolbarIconClass}/>
+              <span className={toolbarLabelClass}>{t('buttons.ai')}</span>
             </Button>
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
             
@@ -1213,7 +1205,11 @@ export default function ReadBookPage() {
         >
             <SheetHeader className="p-4 border-b border-border">
                 <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.aiSheetTitle')}</SheetTitle>
-                <SheetDescription>{t('readBook.aiSheetDesc')}</SheetDescription>
+                <SheetDescription>
+                  {selectedTextInfo?.text 
+                    ? t('readBook.aiSheetDesc')
+                    : "針對本章節內容或《紅樓夢》相關問題提出您的疑問。"}
+                </SheetDescription>
             </SheetHeader>
             <ScrollArea className="flex-grow p-4 space-y-3">
                 {selectedTextInfo?.text && (
@@ -1232,7 +1228,9 @@ export default function ReadBookPage() {
                             id="userQuestionAiSheet"
                             value={userQuestionInput}
                             onChange={(e) => setUserQuestionInput(e.target.value)}
-                            placeholder={t('placeholders.yourQuestion')}
+                            placeholder={selectedTextInfo?.text 
+                              ? t('placeholders.yourQuestion')
+                              : "請輸入您想問關於這章節或《紅樓夢》的問題..."}
                             className="min-h-[100px] text-sm bg-background/70 mt-1"
                             rows={4}
                             disabled={aiInteractionState === 'answering' || aiInteractionState === 'answered'}
@@ -1240,7 +1238,7 @@ export default function ReadBookPage() {
                     </div>
                     
                     {(aiInteractionState === 'asking' || aiInteractionState === 'error') && (
-                        <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim() || !selectedTextInfo?.text} className="w-full mt-4">
+                        <Button onClick={handleUserSubmitQuestion} disabled={isLoadingExplanation || !userQuestionInput.trim()} className="w-full mt-4">
                             {isLoadingExplanation ? t('buttons.submit') + "..." : t('buttons.submit')}
                         </Button>
                     )}
@@ -1265,12 +1263,6 @@ export default function ReadBookPage() {
                         </Button>
                     </div>
                 )}
-
-                {/* Read-only UI helper panel per design mock. */}
-                <AIReadingPanel
-                  selectedText={selectedTextInfo?.text || null}
-                  onPickSuggestion={(q) => setUserQuestionInput(q)}
-                />
             </ScrollArea>
             <SheetFooter className="p-4 border-t border-border">
                  <SheetClose asChild>

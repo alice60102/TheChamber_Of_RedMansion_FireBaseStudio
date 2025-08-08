@@ -97,10 +97,13 @@ const config = {
     '<rootDir>/dist/',
   ],
   
-  // Transform ignore patterns
+  // Transform ignore patterns  
   transformIgnorePatterns: [
-    // Allow @testing-library packages to be transformed, ignore others
-    'node_modules/(?!(@testing-library/.*)/)'
+<<<<<<< HEAD
+    'node_modules/(?!(@testing-library))',
+=======
+    'node_modules/(?!(@testing-library/.*)/)',
+>>>>>>> stonetext
   ],
   
   // Verbose output for detailed test results
