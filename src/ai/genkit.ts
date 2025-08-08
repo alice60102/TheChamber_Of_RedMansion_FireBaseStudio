@@ -11,21 +11,24 @@
  */
 
 // Import the core GenKit framework for AI functionality
-import {genkit} from 'genkit';
+import { genkit } from 'genkit';
 // Import Google AI plugin to access Gemini models
-import {googleAI} from '@genkit-ai/googleai';
+import { googleAI } from '@genkit-ai/googleai';
 
-/**
- * Main AI instance configuration
- * 
- * Creates a GenKit instance configured with:
- * - Google AI plugin for accessing Gemini models
- * - Gemini 2.0 Flash model specifically chosen for its excellent Chinese language
- *   understanding and reasoning capabilities needed for classical literature analysis
- * 
- * This instance is exported and used across all AI flows in the application
- */
+// NOTE: keep API keys and credentials in server-side environment variables
+// This file is intended to be executed server-side only. Do NOT import this
+// module into client-side code to avoid leaking credentials.
+
+// Build plugin options from environment variables. The plugin may accept
+// different credential shapes; here we set `apiKey` if present. If you prefer
+// to use a service account JSON file, set GOOGLE_APPLICATION_CREDENTIALS
+// accordingly and adapt the plugin options per @genkit-ai/googleai docs.
+const googlePluginOptions: Record<string, any> = {};
+if (process.env.GEMINI_API_KEY) {
+  googlePluginOptions.apiKey = process.env.GEMINI_API_KEY;
+}
+
 export const ai = genkit({
-  plugins: [googleAI()], // Enable Google AI services integration
-  model: 'googleai/gemini-2.0-flash', // Use Gemini 2.0 Flash for optimal Chinese literature processing
+  plugins: [googleAI(googlePluginOptions)], // Enable Google AI services integration
+  model: 'googleai/gemini-2.0-flash', // Use Gemini 2.0 Flash for Chinese literature processing
 });

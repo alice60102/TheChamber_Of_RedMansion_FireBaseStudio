@@ -38,6 +38,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+// Progress bar removed per new design for double-column pagination controls
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
@@ -170,7 +171,7 @@ const chapters: Chapter[] = chapters_base_data.map(ch_base => {
 
 
 type AIInteractionState = 'asking' | 'answering' | 'answered' | 'error';
-type ColumnLayout = 'single' | 'double' | 'triple';
+type ColumnLayout = 'single' | 'double';
 
 const themes = {
   white: { key: 'white', nameKey: 'labels.themes.white', readingBgClass: 'bg-white', readingTextClass: 'text-neutral-800', swatchClass: 'bg-white border-neutral-300', toolbarBgClass: 'bg-neutral-100/90', toolbarTextClass: 'text-neutral-700', toolbarAccentTextClass: 'text-[hsl(45_70%_50%)]', toolbarBorderClass: 'border-neutral-300/50' },
@@ -179,11 +180,33 @@ const themes = {
   night: { key: 'night', nameKey: 'labels.themes.night', readingBgClass: 'bg-neutral-800', readingTextClass: 'text-neutral-200', swatchClass: 'bg-black border-neutral-500', toolbarBgClass: 'bg-neutral-900/90', toolbarTextClass: 'text-neutral-300', toolbarAccentTextClass: 'text-primary', toolbarBorderClass: 'border-neutral-700/50' },
 };
 
+// Font family options. We apply the `family` via inline style to ensure
+// the font takes effect even if Tailwind doesn't ship a utility for it.
 const fontFamilies = {
-  notoSerifSC: { key: 'notoSerifSC', class: "font-['Noto_Serif_SC',_serif]", nameKey: 'labels.fonts.notoSerifSC' },
-  system: { key: 'system', class: 'font-sans', nameKey: 'labels.fonts.system' },
-  kai: { key: 'kai', class: "font-['Kaiti_SC',_'KaiTi',_'楷体',_serif]", nameKey: 'labels.fonts.kai' },
-  hei: { key: 'hei', class: "font-['PingFang_SC',_'Helvetica_Neue',_Helvetica,_Arial,_sans-serif]", nameKey: 'labels.fonts.hei' },
+  notoSerifSC: {
+    key: 'notoSerifSC',
+    class: '',
+    family: "'Noto Serif SC', 'NotoSerifSC', 'Source Han Serif SC', serif",
+    nameKey: 'labels.fonts.notoSerifSC'
+  },
+  system: {
+    key: 'system',
+    class: 'font-sans',
+    family: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif",
+    nameKey: 'labels.fonts.system'
+  },
+  kai: {
+    key: 'kai',
+    class: '',
+    family: "'Kaiti SC', 'KaiTi', 'STKaiti', '楷体', serif",
+    nameKey: 'labels.fonts.kai'
+  },
+  hei: {
+    key: 'hei',
+    class: '',
+    family: "'PingFang SC', 'Heiti SC', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+    nameKey: 'labels.fonts.hei'
+  },
 };
 
 const FONT_SIZE_MIN = 12;
@@ -263,6 +286,12 @@ export default function ReadBookPage() {
   const [isFullscreenActive, setIsFullscreenActive] = useState(false);
   const [highlights, setHighlights] = useState<string[]>([]);
 
+  // Pagination state (enabled for double-column layout)
+  const [isPaginationMode, setIsPaginationMode] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+
   const selectedTheme = themes[activeThemeKey];
   const selectedFontFamily = fontFamilies[activeFontFamilyKey];
 
@@ -325,6 +354,16 @@ export default function ReadBookPage() {
       }
     }
   }, [currentChapterIndex]);
+
+  // Enable pagination automatically for double-column layout
+  useEffect(() => {
+    const enable = columnLayout === 'double';
+    setIsPaginationMode(enable);
+    // Reset to first page when toggling mode
+    setCurrentPage(1);
+    // Recompute pages after next paint
+    setTimeout(() => computePagination(), 0);
+  }, [columnLayout, currentChapterIndex, currentNumericFontSize, activeFontFamilyKey, activeThemeKey, showVernacular]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
@@ -394,6 +433,47 @@ export default function ReadBookPage() {
       if (toolbarTimeoutRef.current) clearTimeout(toolbarTimeoutRef.current);
     };
   }, [handleInteraction, handleMouseUp, handleScroll]);
+
+  // Recompute pagination on resize
+  useEffect(() => {
+    const onResize = () => computePagination();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const computePagination = useCallback(() => {
+    if (!isPaginationMode) return;
+    const viewportEl = document.getElementById('chapter-content-scroll-area');
+    if (!viewportEl) return;
+    const viewport = viewportEl.clientHeight || 1;
+    const contentEl = chapterContentRef.current as HTMLElement | null;
+    const total = (contentEl?.scrollHeight || contentEl?.offsetHeight || viewportEl.scrollHeight || viewport);
+    const pages = Math.max(1, Math.ceil(total / Math.max(1, viewport)));
+    setTotalPages(pages);
+    const clamped = Math.min(pages, Math.max(1, currentPage));
+    setCurrentPage(clamped);
+  }, [isPaginationMode, currentPage]);
+
+  const goToPage = useCallback((page: number) => {
+    const el = document.getElementById('chapter-content-scroll-area');
+    if (!el) return;
+    const viewport = el.clientHeight;
+    const target = Math.max(0, (page - 1) * viewport);
+    el.scrollTo({ top: target, behavior: 'smooth' });
+    setCurrentPage(page);
+  }, []);
+
+  const goNextPage = useCallback(() => {
+    if (!isPaginationMode) return;
+    const next = Math.min(totalPages, currentPage + 1);
+    if (next !== currentPage) goToPage(next);
+  }, [currentPage, totalPages, isPaginationMode, goToPage]);
+
+  const goPrevPage = useCallback(() => {
+    if (!isPaginationMode) return;
+    const prev = Math.max(1, currentPage - 1);
+    if (prev !== currentPage) goToPage(prev);
+  }, [currentPage, isPaginationMode, goToPage]);
 
 
   const handleOpenNoteSheet = () => {
@@ -589,7 +669,6 @@ export default function ReadBookPage() {
     switch (columnLayout) {
       case 'single': return 'columns-1';
       case 'double': return 'md:columns-2';
-      case 'triple': return 'md:columns-3';
       default: return 'columns-1';
     }
   };
@@ -982,15 +1061,6 @@ export default function ReadBookPage() {
               <AlignCenter className={cn(toolbarIconClass, columnLayout === 'double' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
               <span className={cn(toolbarLabelClass, columnLayout === 'double' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>{t('buttons.doubleColumn')}</span>
             </Button>
-            <Button
-              variant={columnLayout === 'triple' ? 'secondary' : 'ghost'}
-              className={cn(toolbarButtonBaseClass, columnLayout === 'triple' ? '' : selectedTheme.toolbarTextClass )}
-              onClick={() => setColumnLayout('triple')}
-              title={t('buttons.tripleColumn')}
-            >
-              <AlignJustify className={cn(toolbarIconClass, columnLayout === 'triple' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}/>
-              <span className={cn(toolbarLabelClass, columnLayout === 'triple' ? 'text-secondary-foreground' : selectedTheme.toolbarTextClass)}>{t('buttons.tripleColumn')}</span>
-            </Button>
           </div>
 
           <div className="text-center overflow-hidden flex-grow px-2 mx-2 md:mx-4">
@@ -1061,20 +1131,34 @@ export default function ReadBookPage() {
       <ScrollArea
         className={cn(
           "flex-grow pt-24 pb-10 px-4 md:px-8", // pt-24 to account for toolbar height
-          selectedTheme.readingBgClass 
+          selectedTheme.readingBgClass,
+          isPaginationMode ? 'overflow-hidden' : ''
         )}
         id="chapter-content-scroll-area"
+        ref={scrollAreaRef as any}
+        onWheel={(e) => {
+          if (isPaginationMode) {
+            e.preventDefault();
+            if (e.deltaY > 0) {
+              goNextPage();
+            } else if (e.deltaY < 0) {
+              goPrevPage();
+            }
+          }
+        }}
       >
         <div
           ref={chapterContentRef}
           className={cn(
-            "prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert max-w-none mx-auto select-text",
+            "prose prose-sm sm:prose-base lg:prose-lg max-w-none mx-auto select-text",
             getColumnClass(),
-            selectedFontFamily.class.startsWith('font-') ? selectedFontFamily.class : '', // Apply Tailwind font class if it's one of them
+            selectedFontFamily.class || '',
+            selectedTheme.readingTextClass,
+            activeThemeKey === 'night' ? 'prose-invert' : ''
           )}
           style={{
             fontSize: `${currentNumericFontSize}px`,
-            fontFamily: selectedFontFamily.class.startsWith('font-') ? undefined : selectedFontFamily.class // Apply direct font family if not a Tailwind class
+            fontFamily: (selectedFontFamily as any).family || undefined
           }}
         >
           {processContent(currentChapter)}
@@ -1092,6 +1176,30 @@ export default function ReadBookPage() {
           </div>
         )}
       </ScrollArea>
+
+      {/* Pagination controls: left and right edge buttons only (no bottom bar) */}
+      {isPaginationMode && (
+        <>
+          <Button
+            variant="ghost"
+            className="fixed left-4 bottom-6 h-10 px-4 z-40"
+            onClick={goPrevPage}
+            disabled={currentPage <= 1}
+            data-no-selection="true"
+          >
+            ‹ 上一頁
+          </Button>
+          <Button
+            variant="ghost"
+            className="fixed right-4 bottom-6 h-10 px-4 z-40"
+            onClick={goNextPage}
+            disabled={currentPage >= totalPages}
+            data-no-selection="true"
+          >
+            下一頁 ›
+          </Button>
+        </>
+      )}
 
       {toolbarInfo && (
         <div
@@ -1404,18 +1512,24 @@ export default function ReadBookPage() {
                     </div>
                   )}
                   
-                  {aiAnalysisContent && (
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown className="whitespace-pre-line text-white">
-                        {aiAnalysisContent}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-
-                  {textExplanation && (
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
-                      <ReactMarkdown className="whitespace-pre-line text-white">
-                        {textExplanation}
+                  {/* Display AI content - prioritize aiAnalysisContent over textExplanation to avoid duplication */}
+                  {(aiAnalysisContent || textExplanation) && (
+                    <div className="prose prose-sm dark:prose-invert max-w-none bg-background/20 rounded-lg p-4 border border-border/50">
+                      <ReactMarkdown 
+                        className="text-foreground leading-relaxed"
+                        components={{
+                          h1: ({node, ...props}) => <h1 className="text-xl font-bold text-primary mb-4" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-primary mb-3" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-base font-medium text-primary mb-2" {...props} />,
+                          p: ({node, ...props}) => <p className="text-foreground mb-3 leading-relaxed" {...props} />,
+                          ul: ({node, ...props}) => <ul className="text-foreground mb-3 pl-6 space-y-1" {...props} />,
+                          ol: ({node, ...props}) => <ol className="text-foreground mb-3 pl-6 space-y-1" {...props} />,
+                          li: ({node, ...props}) => <li className="text-foreground" {...props} />,
+                          strong: ({node, ...props}) => <strong className="font-semibold text-primary" {...props} />,
+                          em: ({node, ...props}) => <em className="italic text-muted-foreground" {...props} />,
+                        }}
+                      >
+                        {aiAnalysisContent || textExplanation}
                       </ReactMarkdown>
                     </div>
                   )}
