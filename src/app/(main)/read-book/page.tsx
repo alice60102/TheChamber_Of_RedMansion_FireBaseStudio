@@ -78,6 +78,7 @@ import ReactMarkdown from 'react-markdown'; // For rendering AI response markdow
 import { cn } from "@/lib/utils";
 import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
 import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer';
+import AIReadingPanel from '@/components/AIReadingPanel';
 
 // AI integration for text analysis
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
@@ -408,13 +409,13 @@ export default function ReadBookPage() {
   };
 
   const handleOpenAiSheet = () => {
-    if (toolbarInfo?.text) {
-      setAiInteractionState('asking');
-      setUserQuestionInput(''); 
-      setTextExplanation(null);
-      setIsAiSheetOpen(true);
-      handleInteraction();
-    }
+    // Allow opening AI panel even when no text is selected.
+    // Reason: Top toolbar needs a global "AI" entry point per product spec.
+    setAiInteractionState('asking');
+    setUserQuestionInput('');
+    setTextExplanation(null);
+    setIsAiSheetOpen(true);
+    handleInteraction();
   };
 
   const handleCopySelectedText = () => {
@@ -894,6 +895,16 @@ export default function ReadBookPage() {
               <List className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>{t('buttons.toc')}</span>
             </Button>
+            {/* AI button placed beside TOC per UI requirement. Clicking opens the right-side AI interaction sheet. */}
+            <Button 
+              variant="ghost" 
+              className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} 
+              onClick={handleOpenAiSheet}
+              title={t('buttons.askAI')}
+            >
+              <Lightbulb className={toolbarIconClass} />
+              <span className={toolbarLabelClass}>{t('buttons.askAI')}</span>
+            </Button>
             <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
             
             <Popover open={isSearchPopoverOpen} onOpenChange={(isOpen) => { setIsSearchPopoverOpen(isOpen); handleInteraction(); if (!isOpen) setCurrentSearchTerm(""); }}>
@@ -1254,6 +1265,12 @@ export default function ReadBookPage() {
                         </Button>
                     </div>
                 )}
+
+                {/* Read-only UI helper panel per design mock. */}
+                <AIReadingPanel
+                  selectedText={selectedTextInfo?.text || null}
+                  onPickSuggestion={(q) => setUserQuestionInput(q)}
+                />
             </ScrollArea>
             <SheetFooter className="p-4 border-t border-border">
                  <SheetClose asChild>
