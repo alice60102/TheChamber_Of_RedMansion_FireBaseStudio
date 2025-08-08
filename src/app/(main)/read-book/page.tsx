@@ -522,9 +522,9 @@ export default function ReadBookPage() {
 
   // Suggestion questions for the AI interface
   const suggestionQuestions = [
-    "書中如何解釋「保齡判斷」與「完全開放」的矛盾？",
-    "父親對「保齡判斷」的現混啞示何神為通智慧？",
-    "為何作者認為「道德統一」是必要的？"
+    "第一回的主要宗旨所在？",
+    "賈寶玉的玉有甚麼意涵？",
+    "林黛玉為何是絳珠仙草？"
   ];
 
   // Handle clicking on suggestion questions
