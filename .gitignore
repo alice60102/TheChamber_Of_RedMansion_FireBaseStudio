@@ -3,9 +3,8 @@
 # ─── 環境變數檔案 ───
 .env
 .env.local
-.env.local
 
-# dependencies
+# dependencies`
 /node_modules
 /.pnp
 .pnp.*
@@ -44,7 +43,6 @@ yarn-error.log*
 next-env.d.ts
 
 .genkit/*
-.env
 
 # firebase
 firebase-debug.log
