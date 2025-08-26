@@ -21,9 +21,23 @@ import {
 // Mock the AI flow to avoid actual API calls
 jest.mock('@/ai/genkit', () => ({
   ai: {
-    defineFlow: jest.fn(() => jest.fn()),
+    defineFlow: jest.fn((config, handler) => handler),
+    definePrompt: jest.fn(() => jest.fn(() => ({ 
+      output: {
+        answer: 'Mock AI response',
+        answerWithCitations: 'Mock AI response with citations',
+        citations: [],
+        searchQueries: ['mock query'],
+        responseTime: 1.5,
+        groundingMetadata: {
+          totalSearchResults: 0,
+          citationCount: 0,
+          groundingSuccess: false,
+        }
+      }
+    }))),
     generate: jest.fn(),
-    generateContentStream: jest.fn(),
+    generateStream: jest.fn(),
   },
   createGroundedGenerationConfig: jest.fn(() => ({})),
   GROUNDING_CONFIG: {

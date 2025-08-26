@@ -266,7 +266,7 @@ export const isCitationInfo = (obj: any): obj is CitationInfo => {
  * 默認配置值
  */
 export const DEFAULT_GROUNDED_QA_CONFIG: GroundedQAConfig = {
-  model: 'googleai/gemini-2.0-flash',
+  model: 'googleai/gemini-2.5-pro',
   temperature: 0.7,
   maxOutputTokens: 2048,
   enableGrounding: true,

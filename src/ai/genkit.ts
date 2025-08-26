@@ -33,13 +33,13 @@ if (process.env.GEMINI_API_KEY) {
  * Enhanced GenKit configuration with Google AI support
  * 
  * This configuration enables:
- * - Gemini 2.0 Flash model for Chinese literature processing
+ * - Gemini 2.5 Pro model for enhanced Chinese literature processing
  * - Google AI integration for accurate responses
  * - Support for grounding capabilities through model features
  */
 export const ai = genkit({
   plugins: [googleAI(googlePluginOptions)], // Enable Google AI services integration
-  model: 'googleai/gemini-2.0-flash', // Use Gemini 2.0 Flash for Chinese literature processing
+  model: 'googleai/gemini-2.5-pro', // Use Gemini 2.5 Pro for enhanced Chinese literature processing
 });
 
 /**
