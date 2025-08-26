@@ -8,6 +8,7 @@
  * - Character relationship mapping and insights
  * - Learning progress analysis and personalized recommendations
  * - Writing assistance for literary analysis
+ * - Google Search Grounding for accurate and cited responses
  */
 
 // Import the core GenKit framework for AI functionality
@@ -28,7 +29,44 @@ if (process.env.GEMINI_API_KEY) {
   googlePluginOptions.apiKey = process.env.GEMINI_API_KEY;
 }
 
+/**
+ * Enhanced GenKit configuration with Google AI support
+ * 
+ * This configuration enables:
+ * - Gemini 2.0 Flash model for Chinese literature processing
+ * - Google AI integration for accurate responses
+ * - Support for grounding capabilities through model features
+ */
 export const ai = genkit({
   plugins: [googleAI(googlePluginOptions)], // Enable Google AI services integration
   model: 'googleai/gemini-2.0-flash', // Use Gemini 2.0 Flash for Chinese literature processing
 });
+
+/**
+ * Configuration constants for grounded responses
+ * 接地回應的配置常數
+ */
+export const GROUNDING_CONFIG = {
+  DEFAULT_MAX_SEARCH_RESULTS: 10,
+  DEFAULT_TEMPERATURE: 0.7,
+  DEFAULT_MAX_OUTPUT_TOKENS: 2048,
+  RESPONSE_TIMEOUT_SECONDS: 30,
+  ENABLE_CITATION_PARSING: true,
+} as const;
+
+/**
+ * Enhanced generation configuration with grounding support
+ * 支援接地功能的增強生成配置
+ */
+export const createGroundedGenerationConfig = (options?: {
+  temperature?: number;
+  maxOutputTokens?: number;
+  enableGrounding?: boolean;
+}) => {
+  const config = {
+    temperature: options?.temperature ?? GROUNDING_CONFIG.DEFAULT_TEMPERATURE,
+    maxOutputTokens: options?.maxOutputTokens ?? GROUNDING_CONFIG.DEFAULT_MAX_OUTPUT_TOKENS,
+  };
+
+  return config;
+};

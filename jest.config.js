@@ -47,6 +47,9 @@ const config = {
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/context/(.*)$': '<rootDir>/src/context/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    // Mock genkit to avoid ES module issues
+    '^genkit$': '<rootDir>/tests/mocks/genkit.js',
+    '^@genkit-ai/(.*)$': '<rootDir>/tests/mocks/genkit.js',
     // Mock lucide-react icons to avoid ES module issues
     'lucide-react': '<rootDir>/tests/mocks/lucide-react.js',
   },
@@ -99,11 +102,7 @@ const config = {
   
   // Transform ignore patterns  
   transformIgnorePatterns: [
-<<<<<<< HEAD
-    'node_modules/(?!(@testing-library))',
-=======
-    'node_modules/(?!(@testing-library/.*)/)',
->>>>>>> stonetext
+    'node_modules/(?!(@testing-library|genkit|@genkit-ai|yaml|dotprompt)/)',
   ],
   
   // Verbose output for detailed test results
