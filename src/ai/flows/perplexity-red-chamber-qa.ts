@@ -258,7 +258,19 @@ export async function* perplexityRedChamberQAStreaming(
     });
     
     console.log('Stream generator type:', typeof streamGenerator);
-    console.log('Stream generator Symbol.asyncIterator:', typeof streamGenerator[Symbol.asyncIterator]);
+    console.log('Stream generator Symbol.asyncIterator:', typeof streamGenerator?.[Symbol.asyncIterator]);
+    
+    // Validate that the returned value is async iterable
+    if (!streamGenerator || typeof (streamGenerator as any)[Symbol.asyncIterator] !== 'function') {
+      await errorLog('PERPLEXITY_STREAMING', 'Client returned non-async-iterable value', {
+        returnedType: typeof streamGenerator,
+        hasAsyncIterator: streamGenerator && typeof (streamGenerator as any)[Symbol.asyncIterator] === 'function',
+        hasIterator: streamGenerator && typeof (streamGenerator as any)[Symbol.iterator] === 'function',
+        constructorName: streamGenerator?.constructor?.name,
+      });
+      
+      throw new TypeError(`client.streamingCompletionRequest(...) is not a function or its return value is not async iterable. Expected AsyncGenerator, got ${typeof streamGenerator} (${streamGenerator?.constructor?.name || 'unknown'})`);
+    }
     
     await terminalLogger.logForAwaitStart('PERPLEXITY_STREAMING', 'client.streamingCompletionRequest', streamGenerator);
     

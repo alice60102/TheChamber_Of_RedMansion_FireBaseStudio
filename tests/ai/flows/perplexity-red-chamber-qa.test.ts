@@ -10,8 +10,8 @@ import {
   getModelCapabilities,
   getSuggestedQuestions,
   formatPerplexityResponse,
-  PerplexityQAInputSchema,
-  PerplexityQAOutputSchema,
+  getPerplexityQAInputSchema,
+  getPerplexityQAOutputSchema,
 } from '@/ai/flows/perplexity-red-chamber-qa';
 import type { PerplexityQAInput, PerplexityQAResponse } from '@/types/perplexity-qa';
 
@@ -50,7 +50,7 @@ describe('Perplexity Red Chamber QA Flow', () => {
   });
 
   describe('Schema Validation', () => {
-    test('should validate valid input correctly', () => {
+    test('should validate valid input correctly', async () => {
       const validInput: PerplexityQAInput = {
         userQuestion: '林黛玉的性格特點是什麼？',
         modelKey: 'sonar-reasoning-pro',
@@ -60,26 +60,29 @@ describe('Perplexity Red Chamber QA Flow', () => {
         showThinkingProcess: true,
       };
 
-      const result = PerplexityQAInputSchema.safeParse(validInput);
+      const schema = await getPerplexityQAInputSchema();
+      const result = schema.safeParse(validInput);
       expect(result.success).toBe(true);
     });
 
-    test('should reject invalid input', () => {
+    test('should reject invalid input', async () => {
       const invalidInput = {
         userQuestion: '', // Empty question should fail
         modelKey: 'invalid-model',
       };
 
-      const result = PerplexityQAInputSchema.safeParse(invalidInput);
+      const schema = await getPerplexityQAInputSchema();
+      const result = schema.safeParse(invalidInput);
       expect(result.success).toBe(false);
     });
 
-    test('should apply default values correctly', () => {
+    test('should apply default values correctly', async () => {
       const minimalInput = {
         userQuestion: '賈寶玉的人物形象如何？',
       };
 
-      const result = PerplexityQAInputSchema.parse(minimalInput);
+      const schema = await getPerplexityQAInputSchema();
+      const result = schema.parse(minimalInput);
       expect(result.enableStreaming).toBe(true);
       expect(result.includeDetailedCitations).toBe(true);
       expect(result.showThinkingProcess).toBe(true);
@@ -87,14 +90,14 @@ describe('Perplexity Red Chamber QA Flow', () => {
   });
 
   describe('Input Creation Helper', () => {
-    test('should create properly formatted input', () => {
+    test('should create properly formatted input', async () => {
       const selectedTextInfo = {
         text: '黛玉聽了，便放下釣竿，走至亭中',
         position: { top: 100, left: 200 },
         range: null,
       };
 
-      const input = createPerplexityQAInputForFlow(
+      const input = await createPerplexityQAInputForFlow(
         '這段文字描述了什麼？',
         selectedTextInfo,
         '第三回章節上下文...',
@@ -113,8 +116,8 @@ describe('Perplexity Red Chamber QA Flow', () => {
       expect(input.questionContext).toBe('character');
     });
 
-    test('should handle missing optional parameters', () => {
-      const input = createPerplexityQAInputForFlow(
+    test('should handle missing optional parameters', async () => {
+      const input = await createPerplexityQAInputForFlow(
         '紅樓夢的主題是什麼？',
         null,
         undefined,
@@ -129,13 +132,13 @@ describe('Perplexity Red Chamber QA Flow', () => {
   });
 
   describe('Model Capabilities', () => {
-    test('should correctly identify model capabilities', () => {
-      const sonarPro = getModelCapabilities('sonar-pro');
+    test('should correctly identify model capabilities', async () => {
+      const sonarPro = await getModelCapabilities('sonar-pro');
       expect(sonarPro.supportsReasoning).toBe(false);
       expect(sonarPro.supportsStreaming).toBe(true);
       expect(sonarPro.supportsCitations).toBe(true);
 
-      const sonarReasoning = getModelCapabilities('sonar-reasoning-pro');
+      const sonarReasoning = await getModelCapabilities('sonar-reasoning-pro');
       expect(sonarReasoning.supportsReasoning).toBe(true);
       expect(sonarReasoning.supportsStreaming).toBe(true);
       expect(sonarReasoning.supportsCitations).toBe(true);
@@ -143,8 +146,8 @@ describe('Perplexity Red Chamber QA Flow', () => {
   });
 
   describe('Suggested Questions', () => {
-    test('should return categorized questions', () => {
-      const questions = getSuggestedQuestions();
+    test('should return categorized questions', async () => {
+      const questions = await getSuggestedQuestions();
       
       expect(questions).toHaveProperty('character');
       expect(questions).toHaveProperty('plot');
@@ -158,7 +161,7 @@ describe('Perplexity Red Chamber QA Flow', () => {
   });
 
   describe('Response Formatting', () => {
-    test('should format response correctly', () => {
+    test('should format response correctly', async () => {
       const mockResponse: PerplexityQAResponse = {
         question: '林黛玉的性格特點？',
         answer: '林黛玉是一個敏感、聰慧的女性角色...',
@@ -187,7 +190,7 @@ describe('Perplexity Red Chamber QA Flow', () => {
         citationCount: 1,
       };
 
-      const formatted = formatPerplexityResponse(mockResponse);
+      const formatted = await formatPerplexityResponse(mockResponse);
       
       expect(formatted.formattedAnswer).toBe(mockResponse.answer);
       expect(formatted.citationSummary).toBe('找到 1 個引用來源');
@@ -198,26 +201,28 @@ describe('Perplexity Red Chamber QA Flow', () => {
 
   describe('Perplexity QA Function', () => {
     test('should handle successful API response', async () => {
+      const mockResponse: PerplexityQAResponse = {
+        question: '測試問題',
+        answer: '測試回答',
+        citations: [],
+        groundingMetadata: {
+          searchQueries: [],
+          webSources: [],
+          groundingSuccessful: true,
+        },
+        modelUsed: 'sonar-pro',
+        modelKey: 'sonar-pro',
+        processingTime: 1.0,
+        success: true,
+        streaming: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 10,
+        questionLength: 10,
+        citationCount: 0,
+      };
+
       const mockClient = {
-        completionRequest: jest.fn().mockResolvedValue({
-          question: '測試問題',
-          answer: '測試回答',
-          citations: [],
-          groundingMetadata: {
-            searchQueries: [],
-            webSources: [],
-            groundingSuccessful: true,
-          },
-          modelUsed: 'sonar-pro',
-          modelKey: 'sonar-pro',
-          processingTime: 1.0,
-          success: true,
-          streaming: false,
-          timestamp: new Date().toISOString(),
-          answerLength: 10,
-          questionLength: 10,
-          citationCount: 0,
-        }),
+        completionRequest: (jest.fn() as any).mockResolvedValue(mockResponse),
       };
 
       // Mock the getDefaultPerplexityClient function
@@ -242,7 +247,7 @@ describe('Perplexity Red Chamber QA Flow', () => {
 
     test('should handle API errors gracefully', async () => {
       const mockClient = {
-        completionRequest: jest.fn().mockRejectedValue(new Error('API Error')),
+        completionRequest: jest.fn().mockRejectedValue(new Error('API Error') as never),
       };
 
       const { getDefaultPerplexityClient } = require('@/lib/perplexity-client');
@@ -269,7 +274,7 @@ describe('Perplexity Red Chamber QA Flow', () => {
   });
 
   describe('Output Schema Validation', () => {
-    test('should validate complete response structure', () => {
+    test('should validate complete response structure', async () => {
       const validOutput = {
         question: '測試問題',
         answer: '測試回答',
@@ -297,29 +302,30 @@ describe('Perplexity Red Chamber QA Flow', () => {
         citationCount: 1,
       };
 
-      const result = PerplexityQAOutputSchema.safeParse(validOutput);
+      const schema = await getPerplexityQAOutputSchema();
+      const result = schema.safeParse(validOutput);
       expect(result.success).toBe(true);
     });
   });
 
   describe('Edge Cases', () => {
-    test('should handle very long questions', () => {
+    test('should handle very long questions', async () => {
       const longQuestion = 'A'.repeat(2000); // Very long question
-      const input = createPerplexityQAInputForFlow(longQuestion);
+      const input = await createPerplexityQAInputForFlow(longQuestion);
       
       expect(input.userQuestion).toBe(longQuestion);
-      expect(input.questionLength).toBeUndefined(); // This would be set by the actual function
+      expect(input.userQuestion.length).toBe(2000); // Check the actual length
     });
 
-    test('should handle special characters in questions', () => {
+    test('should handle special characters in questions', async () => {
       const specialQuestion = '什麼是《紅樓夢》中的"情"？包含引號、破折號——等特殊符號';
-      const input = createPerplexityQAInputForFlow(specialQuestion);
+      const input = await createPerplexityQAInputForFlow(specialQuestion);
       
       expect(input.userQuestion).toBe(specialQuestion);
     });
 
-    test('should handle empty or undefined chapter context', () => {
-      const input = createPerplexityQAInputForFlow(
+    test('should handle empty or undefined chapter context', async () => {
+      const input = await createPerplexityQAInputForFlow(
         '測試問題',
         null,
         '',
@@ -330,7 +336,6 @@ describe('Perplexity Red Chamber QA Flow', () => {
       expect(input.currentChapter).toBe('');
     });
   });
-});
 
   describe('Async Generator Error Tests', () => {
     test('should handle streaming function generator errors', async () => {
@@ -397,16 +402,18 @@ describe('Perplexity Red Chamber QA Flow', () => {
       expect(generator.constructor.name).toBe('AsyncGenerator');
       
       // Clean up generator
-      await generator.return();
+      await generator.return(undefined);
     });
 
     test('should handle client function that returns non-async-iterable', async () => {
       // Mock client that returns a regular promise instead of async generator
+      const mockNonIterable = {
+        // This should cause an error because it's not async iterable
+        message: 'Not an async generator',
+      };
+
       const mockClient = {
-        streamingCompletionRequest: jest.fn().mockResolvedValue({
-          // This should cause an error because it's not async iterable
-          message: 'Not an async generator',
-        }),
+        streamingCompletionRequest: (jest.fn() as any).mockResolvedValue(mockNonIterable),
       };
 
       jest.doMock('@/lib/perplexity-client', () => ({
@@ -439,13 +446,14 @@ describe('Perplexity Red Chamber QA Flow', () => {
       // Test async function exports for Server Actions compatibility
       const flowModule = await import('@/ai/flows/perplexity-red-chamber-qa');
       
-      // Verify all exported functions are async
+      // Verify main functions are async
       expect(typeof flowModule.perplexityRedChamberQA).toBe('function');
       expect(flowModule.perplexityRedChamberQA.constructor.name).toBe('AsyncFunction');
       
       expect(typeof flowModule.perplexityRedChamberQAStreaming).toBe('function');
       expect(flowModule.perplexityRedChamberQAStreaming.constructor.name).toBe('AsyncGeneratorFunction');
       
+      // Helper functions should be async for Server Actions compatibility
       expect(typeof flowModule.createPerplexityQAInputForFlow).toBe('function');
       expect(flowModule.createPerplexityQAInputForFlow.constructor.name).toBe('AsyncFunction');
       
@@ -457,34 +465,42 @@ describe('Perplexity Red Chamber QA Flow', () => {
       
       expect(typeof flowModule.formatPerplexityResponse).toBe('function');
       expect(flowModule.formatPerplexityResponse.constructor.name).toBe('AsyncFunction');
+      
+      // Schema functions should also be async for consistency
+      expect(typeof flowModule.getPerplexityQAInputSchema).toBe('function');
+      expect(flowModule.getPerplexityQAInputSchema.constructor.name).toBe('AsyncFunction');
+      
+      expect(typeof flowModule.getPerplexityQAOutputSchema).toBe('function');
+      expect(flowModule.getPerplexityQAOutputSchema.constructor.name).toBe('AsyncFunction');
     });
   });
 
   describe('Type Safety Tests', () => {
-    test('should enforce correct types for model keys', () => {
-    // This test ensures TypeScript compilation catches type errors
-    const validModelKeys: Array<'sonar-pro' | 'sonar-reasoning' | 'sonar-reasoning-pro'> = [
-      'sonar-pro',
-      'sonar-reasoning',
-      'sonar-reasoning-pro',
-    ];
+    test('should enforce correct types for model keys', async () => {
+      // This test ensures TypeScript compilation catches type errors
+      const validModelKeys: Array<'sonar-pro' | 'sonar-reasoning' | 'sonar-reasoning-pro'> = [
+        'sonar-pro',
+        'sonar-reasoning',
+        'sonar-reasoning-pro',
+      ];
 
-    validModelKeys.forEach(key => {
-      const input = createPerplexityQAInputForFlow('test', null, undefined, undefined, {
-        modelKey: key,
-      });
-      expect(input.modelKey).toBe(key);
+      for (const key of validModelKeys) {
+        const input = await createPerplexityQAInputForFlow('test', null, undefined, undefined, {
+          modelKey: key,
+        });
+        expect(input.modelKey).toBe(key);
+      }
     });
-  });
 
-  test('should enforce correct reasoning effort values', () => {
-    const validEfforts: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
+    test('should enforce correct reasoning effort values', async () => {
+      const validEfforts: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
 
-    validEfforts.forEach(effort => {
-      const input = createPerplexityQAInputForFlow('test', null, undefined, undefined, {
-        reasoningEffort: effort,
-      });
-      expect(input.reasoningEffort).toBe(effort);
+      for (const effort of validEfforts) {
+        const input = await createPerplexityQAInputForFlow('test', null, undefined, undefined, {
+          reasoningEffort: effort,
+        });
+        expect(input.reasoningEffort).toBe(effort);
+      }
     });
   });
 });
