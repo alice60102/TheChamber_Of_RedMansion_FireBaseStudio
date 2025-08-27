@@ -669,5 +669,77 @@ describe('Perplexity QA Integration Tests', () => {
       expect(typeof result.processingTime).toBe('number');
       expect(typeof result.success).toBe('boolean');
     });
+
+    test('should handle explainTextSelection integration with Perplexity', async () => {
+      // Test the updated explainTextSelection function that now uses Perplexity
+      const { explainTextSelection } = await import('@/ai/flows/explain-text-selection');
+      
+      const mockResponse: PerplexityQAResponse = {
+        question: '測試文本解釋問題',
+        answer: '## 文本解釋\n\n這是對選取文本的詳細解釋，包含：\n\n- **重要概念**：關鍵詞彙的含義\n- **文學手法**：作者使用的寫作技巧\n- **文化背景**：相關的歷史文化背景',
+        citations: [],
+        groundingMetadata: {
+          searchQueries: ['紅樓夢 文本分析'],
+          webSources: [],
+          groundingSuccessful: true,
+        },
+        modelUsed: 'sonar-reasoning-pro',
+        modelKey: 'sonar-reasoning-pro',
+        reasoningEffort: 'medium',
+        questionContext: 'general',
+        processingTime: 2.5,
+        success: true,
+        streaming: false,
+        stoppedByUser: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 150,
+        questionLength: 8,
+        citationCount: 0,
+      };
+
+      mockClient.completionRequest.mockResolvedValue(mockResponse);
+
+      const result = await explainTextSelection({
+        selectedText: '黛玉聽了，便放下釣竿，走至亭中',
+        chapterContext: '第三回 賈雨村夤緣復舊職 林黛玉拋父進京都',
+        userQuestion: '這段文字有什麼文學意義？'
+      });
+
+      expect(result.explanation).toContain('## 文本解釋');
+      expect(result.explanation).toContain('**重要概念**');
+      expect(result.explanation).toContain('**文學手法**');
+      expect(result.explanation).toContain('**文化背景**');
+
+      // Verify that the Perplexity client was called with correct parameters
+      expect(mockClient.completionRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userQuestion: '這段文字有什麼文學意義？',
+          selectedText: '黛玉聽了，便放下釣竿，走至亭中',
+          chapterContext: '第三回 賈雨村夤緣復舊職 林黛玉拋父進京都',
+          modelKey: 'sonar-reasoning-pro',
+          reasoningEffort: 'medium',
+          enableStreaming: false,
+        })
+      );
+    });
+
+    test('should handle explainTextSelection error fallback', async () => {
+      // Test error handling in explainTextSelection
+      const { explainTextSelection } = await import('@/ai/flows/explain-text-selection');
+      
+      mockClient.completionRequest.mockRejectedValue(new Error('API Error'));
+
+      const result = await explainTextSelection({
+        selectedText: '測試文本',
+        chapterContext: '測試章節',
+        userQuestion: '測試問題'
+      });
+
+      expect(result.explanation).toContain('## 解釋說明');
+      expect(result.explanation).toContain('很抱歉，目前AI服務暫時無法提供詳細解釋');
+      expect(result.explanation).toContain('錯誤詳情：API Error');
+      expect(result.explanation).toContain('測試文本');
+      expect(result.explanation).toContain('測試問題');
+    });
   });
 });

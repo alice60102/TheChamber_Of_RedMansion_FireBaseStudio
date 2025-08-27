@@ -277,12 +277,12 @@ export default function ReadBookPage() {
   const [aiInteractionState, setAiInteractionState] = useState<AIInteractionState>('asking');
   const [aiAnalysisContent, setAiAnalysisContent] = useState<string | null>(null);
 
-  // Perplexity AI States
+  // Perplexity AI States - Default to Perplexity since Gemini is disabled
   const [usePerplexityAI, setUsePerplexityAI] = useState(true);
   const [perplexityResponse, setPerplexityResponse] = useState<PerplexityQAResponse | null>(null);
   const [perplexityStreamingChunks, setPerplexityStreamingChunks] = useState<PerplexityStreamingChunk[]>([]);
-  const [perplexityModel, setPerplexityModel] = useState<'sonar-pro' | 'sonar-reasoning' | 'sonar-reasoning-pro'>('sonar-reasoning-pro');
-  const [reasoningEffort, setReasoningEffort] = useState<'low' | 'medium' | 'high'>('high');
+  const [perplexityModel, setPerplexityModel] = useState<'sonar-pro' | 'sonar-reasoning' | 'sonar-reasoning-pro'>('sonar-reasoning');
+  const [reasoningEffort, setReasoningEffort] = useState<'low' | 'medium' | 'high'>('medium');
   const [enableStreaming, setEnableStreaming] = useState(true);
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
@@ -756,14 +756,27 @@ export default function ReadBookPage() {
           setAiInteractionState('answered');
         }
       } else {
-        // Use original Gemini approach
-        const input: ExplainTextSelectionInput = {
-          selectedText: selectedTextInfo?.text || "",
-          userQuestion: userQuestionInput, 
-          chapterContext: chapterContextSnippet,
-        };
-        const result = await explainTextSelection(input);
-        setAiAnalysisContent(result.explanation);
+        // Use Perplexity approach for all AI analysis
+        const perplexityInput = await createPerplexityQAInputForFlow(
+          userQuestionInput,
+          selectedTextInfo,
+          chapterContextSnippet,
+          currentChapter.titleKey,
+          {
+            modelKey: perplexityModel,
+            reasoningEffort: reasoningEffort,
+            enableStreaming: false, // Non-streaming for fallback mode
+            showThinkingProcess: false,
+            questionContext: 'general',
+          }
+        );
+
+        const result = await perplexityRedChamberQA(perplexityInput);
+        if (result.success) {
+          setAiAnalysisContent(result.answer);
+        } else {
+          setAiAnalysisContent(`處理問題時發生錯誤：${result.error}`);
+        }
         setAiInteractionState('answered');
       }
     } catch (error) {
@@ -1701,63 +1714,71 @@ export default function ReadBookPage() {
 
             {/* Bottom Section with Action Buttons and Input */}
             <div className="shrink-0 p-4 border-t border-border bg-background/50">
-              {/* AI Provider Selection */}
+              {/* AI 統一設定面板 - 固定顯示 Perplexity 設定 */}
               <div className="mb-4 p-3 bg-background/30 rounded-lg border border-border/50">
-                <div className="flex items-center justify-between mb-2">
-                  <Label className="text-sm font-medium">AI 提供商</Label>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-xs text-muted-foreground">Gemini</Label>
-                    <input
-                      type="checkbox"
-                      checked={usePerplexityAI}
-                      onChange={(e) => setUsePerplexityAI(e.target.checked)}
-                      className="w-4 h-4 rounded border border-gray-300 bg-white checked:bg-purple-600 checked:border-purple-600 focus:ring-2 focus:ring-purple-500"
-                    />
-                    <Label className="text-xs text-muted-foreground">Perplexity</Label>
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="text-sm font-medium">AI 統一設定</Label>
+                  <div className="text-xs text-primary font-medium">Perplexity 已啟用</div>
                 </div>
                 
-                {usePerplexityAI && (
-                  <div className="space-y-2">
+                {/* 模型選擇 */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-foreground min-w-[60px]">模型：</Label>
+                    <select
+                      value={perplexityModel}
+                      onChange={(e) => setPerplexityModel(e.target.value as any)}
+                      className="text-sm bg-background border border-border rounded px-3 py-2 flex-1 focus:ring-2 focus:ring-primary focus:border-primary"
+                    >
+                      <option value="sonar-pro">Sonar Pro (快速)</option>
+                      <option value="sonar-reasoning">Sonar Reasoning (推理)</option>
+                      <option value="sonar-reasoning-pro">Sonar Reasoning Pro (推薦)</option>
+                    </select>
+                  </div>
+                  
+                  {/* 推理強度設定 - 只在 reasoning 模型時顯示 */}
+                  {perplexityModel.includes('reasoning') && (
                     <div className="flex items-center gap-2">
-                      <Label className="text-xs">模型：</Label>
+                      <Label className="text-sm text-foreground min-w-[60px]">推理強度：</Label>
                       <select
-                        value={perplexityModel}
-                        onChange={(e) => setPerplexityModel(e.target.value as any)}
-                        className="text-xs bg-background border border-border rounded px-2 py-1 flex-1"
+                        value={reasoningEffort}
+                        onChange={(e) => setReasoningEffort(e.target.value as any)}
+                        className="text-sm bg-background border border-border rounded px-3 py-2 flex-1 focus:ring-2 focus:ring-primary focus:border-primary"
                       >
-                        <option value="sonar-pro">Sonar Pro (快速)</option>
-                        <option value="sonar-reasoning">Sonar Reasoning (推理)</option>
-                        <option value="sonar-reasoning-pro">Sonar Reasoning Pro (推薦)</option>
+                        <option value="low">低強度 (快速)</option>
+                        <option value="medium">中強度 (平衡)</option>
+                        <option value="high">高強度 (深度)</option>
                       </select>
                     </div>
-                    
-                    {perplexityModel.includes('reasoning') && (
-                      <div className="flex items-center gap-2">
-                        <Label className="text-xs">推理強度：</Label>
-                        <select
-                          value={reasoningEffort}
-                          onChange={(e) => setReasoningEffort(e.target.value as any)}
-                          className="text-xs bg-background border border-border rounded px-2 py-1 flex-1"
-                        >
-                          <option value="low">低強度 (快速)</option>
-                          <option value="medium">中強度 (平衡)</option>
-                          <option value="high">高強度 (深度)</option>
-                        </select>
-                      </div>
-                    )}
-                    
+                  )}
+                  
+                  {/* 流式回答開關 */}
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-foreground min-w-[60px]">流式回答：</Label>
                     <div className="flex items-center gap-2">
-                      <Label className="text-xs">流式回答：</Label>
                       <input
                         type="checkbox"
                         checked={enableStreaming}
                         onChange={(e) => setEnableStreaming(e.target.checked)}
-                        className="w-3 h-3 rounded border border-gray-300"
+                        className="w-4 h-4 rounded border border-border bg-background checked:bg-primary checked:border-primary focus:ring-2 focus:ring-primary"
+                        id="streaming-toggle"
                       />
+                      <Label htmlFor="streaming-toggle" className="text-sm text-muted-foreground">
+                        {enableStreaming ? '已啟用' : '已停用'}
+                      </Label>
                     </div>
                   </div>
-                )}
+                  
+                  {/* 當前設定摘要 */}
+                  <div className="mt-2 p-2 bg-primary/10 rounded text-xs text-foreground">
+                    <div className="font-medium mb-1">當前設定：</div>
+                    <div>模型: {perplexityModel === 'sonar-reasoning' ? 'Sonar Reasoning (推理)' : perplexityModel === 'sonar-reasoning-pro' ? 'Sonar Reasoning Pro (推薦)' : 'Sonar Pro (快速)'}</div>
+                    {perplexityModel.includes('reasoning') && (
+                      <div>推理強度: {reasoningEffort === 'medium' ? '中強度 (平衡)' : reasoningEffort === 'high' ? '高強度 (深度)' : '低強度 (快速)'}</div>
+                    )}
+                    <div>流式回答: {enableStreaming ? '啟用' : '停用'}</div>
+                  </div>
+                </div>
               </div>
 
               {/* Action Buttons */}
