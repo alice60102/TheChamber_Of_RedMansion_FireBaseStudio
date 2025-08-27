@@ -147,7 +147,10 @@ export async function perplexityRedChamberQA(input: PerplexityQAInput): Promise<
     return response;
 
   } catch (error) {
-    console.error('Perplexity QA error:', error);
+    // Only log errors in non-test environments
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Perplexity QA error:', error);
+    }
     
     // Return error response in expected format
     const errorMessage = error instanceof Error ? error.message : '未知錯誤';

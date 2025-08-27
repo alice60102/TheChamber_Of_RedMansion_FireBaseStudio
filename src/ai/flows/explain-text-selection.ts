@@ -54,7 +54,7 @@ export async function explainTextSelection(
       input.chapterContext,
       'current-chapter', // Generic chapter title key
       {
-        modelKey: 'sonar-reasoning-pro', // Use best available model for explanations
+        modelKey: 'sonar-reasoning', // Use sonar-reasoning model for explanations
         reasoningEffort: 'medium', // Balanced reasoning for text explanations
         enableStreaming: false, // Non-streaming for this API
         showThinkingProcess: false, // Clean output for explanations
@@ -66,7 +66,10 @@ export async function explainTextSelection(
     const perplexityResponse = await perplexityRedChamberQA(perplexityInput);
 
     if (!perplexityResponse.success || !perplexityResponse.answer) {
-      errorLog('Perplexity QA failed:', perplexityResponse.error);
+      // Only log errors in non-test environments
+      if (process.env.NODE_ENV !== 'test') {
+        errorLog('Perplexity QA failed:', perplexityResponse.error);
+      }
       throw new Error(perplexityResponse.error || 'AI模型未能生成有效的文本解釋。');
     }
 
@@ -77,7 +80,10 @@ export async function explainTextSelection(
     };
 
   } catch (error) {
-    errorLog('Error in explainTextSelection:', error);
+    // Only log errors in non-test environments
+    if (process.env.NODE_ENV !== 'test') {
+      errorLog('Error in explainTextSelection:', error);
+    }
     
     // Provide a fallback explanation
     const fallbackExplanation = `## 解釋說明

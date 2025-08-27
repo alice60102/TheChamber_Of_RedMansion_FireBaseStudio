@@ -93,28 +93,28 @@ describe('Perplexity QA Integration Tests', () => {
           groundingSuccessful: true,
           confidenceScore: 0.9,
         },
-        modelUsed: 'sonar-reasoning-pro',
-        modelKey: 'sonar-reasoning-pro',
-        reasoningEffort: 'high',
-        questionContext: 'character',
-        processingTime: 3.2,
-        success: true,
-        streaming: false,
-        stoppedByUser: false,
-        timestamp: new Date().toISOString(),
-        answerLength: 250,
-        questionLength: 12,
-        citationCount: 2,
-      };
+                 modelUsed: 'sonar-reasoning',
+         modelKey: 'sonar-reasoning',
+         reasoningEffort: 'high',
+         questionContext: 'character',
+         processingTime: 3.2,
+         success: true,
+         streaming: false,
+         stoppedByUser: false,
+         timestamp: new Date().toISOString(),
+         answerLength: 250,
+         questionLength: 12,
+         citationCount: 2,
+       };
 
-      mockClient.completionRequest.mockResolvedValue(mockResponse);
+       mockClient.completionRequest.mockResolvedValue(mockResponse);
 
-      const input: PerplexityQAInput = {
-        userQuestion: '林黛玉的性格特點是什麼？',
-        selectedText: '黛玉聽了，便放下釣竿，走至亭中',
-        chapterContext: '第三回 賈雨村夤緣復舊職 林黛玉拋父進京都',
-        currentChapter: '第三回',
-        modelKey: 'sonar-reasoning-pro',
+       const input: PerplexityQAInput = {
+         userQuestion: '林黛玉的性格特點是什麼？',
+         selectedText: '黛玉聽了，便放下釣竿，走至亭中',
+         chapterContext: '第三回 賈雨村夤緣復舊職 林黛玉拋父進京都',
+         currentChapter: '第三回',
+         modelKey: 'sonar-reasoning',
         reasoningEffort: 'high',
         questionContext: 'character',
         enableStreaming: false,
@@ -130,19 +130,19 @@ describe('Perplexity QA Integration Tests', () => {
       expect(result.answer).toContain('敏感細膩');
       expect(result.citations).toHaveLength(2);
       expect(result.groundingMetadata.searchQueries).toContain('林黛玉 性格特點');
-      expect(result.modelKey).toBe('sonar-reasoning-pro');
+             expect(result.modelKey).toBe('sonar-reasoning');
       expect(result.reasoningEffort).toBe('high');
       expect(result.processingTime).toBeGreaterThan(0);
 
-      // Verify that the client was called with the correct input
-      expect(mockClient.completionRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userQuestion: '林黛玉的性格特點是什麼？',
-          modelKey: 'sonar-reasoning-pro',
-          reasoningEffort: 'high',
-          questionContext: 'character',
-        })
-      );
+             // Verify that the client was called with the correct input
+       expect(mockClient.completionRequest).toHaveBeenCalledWith(
+         expect.objectContaining({
+           userQuestion: '林黛玉的性格特點是什麼？',
+           modelKey: 'sonar-reasoning',
+           reasoningEffort: 'high',
+           questionContext: 'character',
+         })
+       );
     });
 
     test('should handle plot analysis questions', async () => {
@@ -164,31 +164,31 @@ describe('Perplexity QA Integration Tests', () => {
           groundingSuccessful: true,
           confidenceScore: 0.85,
         },
-        modelUsed: 'sonar-reasoning-pro',
-        modelKey: 'sonar-reasoning-pro',
-        questionContext: 'plot',
-        processingTime: 2.8,
-        success: true,
-        streaming: false,
-        stoppedByUser: false,
-        timestamp: new Date().toISOString(),
-        answerLength: 180,
-        questionLength: 15,
-        citationCount: 1,
-      };
+                 modelUsed: 'sonar-reasoning',
+         modelKey: 'sonar-reasoning',
+         questionContext: 'plot',
+         processingTime: 2.8,
+         success: true,
+         streaming: false,
+         stoppedByUser: false,
+         timestamp: new Date().toISOString(),
+         answerLength: 180,
+         questionLength: 15,
+         citationCount: 1,
+       };
 
-      mockClient.completionRequest.mockResolvedValue(mockResponse);
+       mockClient.completionRequest.mockResolvedValue(mockResponse);
 
-      const input = await createPerplexityQAInputForFlow(
-        '劉姥姥進大觀園的情節意義是什麼？',
-        null,
-        '第六回 賈寶玉初試雲雨情 劉姥姥一進榮國府',
-        '第六回',
-        {
-          questionContext: 'plot',
-          modelKey: 'sonar-reasoning-pro',
-        }
-      );
+       const input = await createPerplexityQAInputForFlow(
+         '劉姥姥進大觀園的情節意義是什麼？',
+         null,
+         '第六回 賈寶玉初試雲雨情 劉姥姥一進榮國府',
+         '第六回',
+         {
+           questionContext: 'plot',
+           modelKey: 'sonar-reasoning',
+         }
+       );
 
       const result = await perplexityRedChamberQA(input);
 
@@ -207,27 +207,27 @@ describe('Perplexity QA Integration Tests', () => {
         selectedText: '滿紙荒唐言，一把辛酸淚',
         chapterContext: '第一回 甄士隱夢幻識通靈 賈雨村風塵懷閨秀',
         currentChapter: '第一回',
-        modelKey: 'sonar-reasoning-pro',
-        reasoningEffort: 'high',
-        questionContext: 'theme',
-        enableStreaming: false,
-        includeDetailedCitations: true,
-        showThinkingProcess: true,
-        temperature: 0.3,
-        maxTokens: 2500,
-      };
+                 modelKey: 'sonar-reasoning',
+         reasoningEffort: 'high',
+         questionContext: 'theme',
+         enableStreaming: false,
+         includeDetailedCitations: true,
+         showThinkingProcess: true,
+         temperature: 0.3,
+         maxTokens: 2500,
+       };
 
-      const mockResponse: PerplexityQAResponse = {
-        question: originalInput.userQuestion,
-        answer: '《紅樓夢》的主題思想深邃複雜...',
-        citations: [],
-        groundingMetadata: {
-          searchQueries: ['紅樓夢主題思想'],
-          webSources: [],
-          groundingSuccessful: true,
-        },
-        modelUsed: 'sonar-reasoning-pro',
-        modelKey: 'sonar-reasoning-pro',
+       const mockResponse: PerplexityQAResponse = {
+         question: originalInput.userQuestion,
+         answer: '《紅樓夢》的主題思想深邃複雜...',
+         citations: [],
+         groundingMetadata: {
+           searchQueries: ['紅樓夢主題思想'],
+           webSources: [],
+           groundingSuccessful: true,
+         },
+         modelUsed: 'sonar-reasoning',
+         modelKey: 'sonar-reasoning',
         reasoningEffort: 'high',
         questionContext: 'theme',
         processingTime: 4.1,
@@ -428,12 +428,12 @@ describe('Perplexity QA Integration Tests', () => {
     });
 
     test('should validate and accept valid inputs', () => {
-      const validInput: PerplexityQAInput = {
-        userQuestion: '這是一個有效的問題',
-        temperature: 0.5,
-        maxTokens: 1000,
-        modelKey: 'sonar-reasoning-pro',
-      };
+             const validInput: PerplexityQAInput = {
+         userQuestion: '這是一個有效的問題',
+         temperature: 0.5,
+         maxTokens: 1000,
+         modelKey: 'sonar-reasoning',
+       };
 
       const validation = validatePerplexityQAInput(validInput);
       expect(validation.valid).toBe(true);
@@ -541,7 +541,7 @@ describe('Perplexity QA Integration Tests', () => {
       expect(helperInput.userQuestion).toBe('測試輔助函數');
       expect(helperInput.chapterContext).toBe('章回上下文');
 
-      const capabilities = await getModelCapabilities('sonar-reasoning-pro');
+             const capabilities = await getModelCapabilities('sonar-reasoning');
       expect(capabilities.supportsReasoning).toBe(true);
 
       const questions = await getSuggestedQuestions();
@@ -553,19 +553,19 @@ describe('Perplexity QA Integration Tests', () => {
         rawAnswer: '原始回答',
         citations: [],
         groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: false },
-        modelUsed: 'sonar-reasoning-pro',
-        modelKey: 'sonar-reasoning-pro',
-        reasoningEffort: 'high',
-        questionContext: 'general',
-        processingTime: 1.0,
-        success: true,
-        streaming: false,
-        stoppedByUser: false,
-        timestamp: new Date().toISOString(),
-        answerLength: 4,
-        questionLength: 2,
-        citationCount: 0,
-      };
+                 modelUsed: 'sonar-reasoning',
+         modelKey: 'sonar-reasoning',
+         reasoningEffort: 'high',
+         questionContext: 'general',
+         processingTime: 1.0,
+         success: true,
+         streaming: false,
+         stoppedByUser: false,
+         timestamp: new Date().toISOString(),
+         answerLength: 4,
+         questionLength: 2,
+         citationCount: 0,
+       };
 
       const formatted = await formatPerplexityResponse(mockResponse);
       expect(formatted.citationSummary).toBe('找到 0 個引用來源');
@@ -594,19 +594,19 @@ describe('Perplexity QA Integration Tests', () => {
           rawAnswer: '',
           citations: [],
           groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: false },
-          modelUsed: 'sonar-reasoning-pro',
-          modelKey: 'sonar-reasoning-pro',
-          reasoningEffort: 'high',
-          questionContext: 'general',
-          processingTime: 0.5,
-          success: true,
-          streaming: false,
-          stoppedByUser: false,
-          timestamp: new Date().toISOString(),
-          answerLength: 6,
-          questionLength: 6,
-          citationCount: 0,
-        });
+                   modelUsed: 'sonar-reasoning',
+         modelKey: 'sonar-reasoning',
+         reasoningEffort: 'high',
+         questionContext: 'general',
+         processingTime: 0.5,
+         success: true,
+         streaming: false,
+         stoppedByUser: false,
+         timestamp: new Date().toISOString(),
+         answerLength: 6,
+         questionLength: 6,
+         citationCount: 0,
+       });
 
         const result = await perplexityRedChamberQA(input);
         expect(result.success).toBe(true);
@@ -646,17 +646,17 @@ describe('Perplexity QA Integration Tests', () => {
           webSources: [],
           groundingSuccessful: true,
         },
-        modelUsed: 'sonar-reasoning-pro',
-        modelKey: 'sonar-reasoning-pro',
-        processingTime: 1.0,
-        success: true,
-        streaming: false,
-        stoppedByUser: false,
-        timestamp: new Date().toISOString(),
-        answerLength: 20,
-        questionLength: input.userQuestion.length,
-        citationCount: 0,
-      };
+                 modelUsed: 'sonar-reasoning',
+         modelKey: 'sonar-reasoning',
+         processingTime: 1.0,
+         success: true,
+         streaming: false,
+         stoppedByUser: false,
+         timestamp: new Date().toISOString(),
+         answerLength: 20,
+         questionLength: input.userQuestion.length,
+         citationCount: 0,
+       };
 
       mockClient.completionRequest.mockResolvedValue(mockResponse);
 
@@ -683,19 +683,19 @@ describe('Perplexity QA Integration Tests', () => {
           webSources: [],
           groundingSuccessful: true,
         },
-        modelUsed: 'sonar-reasoning-pro',
-        modelKey: 'sonar-reasoning-pro',
-        reasoningEffort: 'medium',
-        questionContext: 'general',
-        processingTime: 2.5,
-        success: true,
-        streaming: false,
-        stoppedByUser: false,
-        timestamp: new Date().toISOString(),
-        answerLength: 150,
-        questionLength: 8,
-        citationCount: 0,
-      };
+                 modelUsed: 'sonar-reasoning',
+         modelKey: 'sonar-reasoning',
+         reasoningEffort: 'medium',
+         questionContext: 'general',
+         processingTime: 2.5,
+         success: true,
+         streaming: false,
+         stoppedByUser: false,
+         timestamp: new Date().toISOString(),
+         answerLength: 150,
+         questionLength: 8,
+         citationCount: 0,
+       };
 
       mockClient.completionRequest.mockResolvedValue(mockResponse);
 
@@ -716,9 +716,9 @@ describe('Perplexity QA Integration Tests', () => {
           userQuestion: '這段文字有什麼文學意義？',
           selectedText: '黛玉聽了，便放下釣竿，走至亭中',
           chapterContext: '第三回 賈雨村夤緣復舊職 林黛玉拋父進京都',
-          modelKey: 'sonar-reasoning-pro',
-          reasoningEffort: 'medium',
-          enableStreaming: false,
+                     modelKey: 'sonar-reasoning',
+           reasoningEffort: 'medium',
+           enableStreaming: false,
         })
       );
     });
