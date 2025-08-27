@@ -6,8 +6,12 @@
 import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 import {
   perplexityRedChamberQA,
+  perplexityRedChamberQAStreaming,
   perplexityRedChamberQABatch,
   createPerplexityQAInputForFlow,
+  getModelCapabilities,
+  getSuggestedQuestions,
+  formatPerplexityResponse,
 } from '@/ai/flows/perplexity-red-chamber-qa';
 import type { 
   PerplexityQAInput, 
@@ -434,6 +438,179 @@ describe('Perplexity QA Integration Tests', () => {
       const validation = validatePerplexityQAInput(validInput);
       expect(validation.valid).toBe(true);
       expect(validation.errors).toHaveLength(0);
+    });
+  });
+
+  describe('Async Generator Integration Tests', () => {
+    test('should handle streaming integration errors gracefully', async () => {
+      // Mock client to simulate async generator errors
+      mockClient.streamingCompletionRequest.mockImplementation(async function* () {
+        yield {
+          content: 'partial content',
+          fullContent: 'partial content',
+          timestamp: new Date().toISOString(),
+          citations: [],
+          searchQueries: [],
+          metadata: { searchQueries: [], webSources: [], groundingSuccessful: false },
+          responseTime: 0.1,
+          isComplete: false,
+          chunkIndex: 1,
+        };
+        throw new Error('Integration streaming error');
+      });
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試集成流式錯誤',
+        enableStreaming: true,
+      };
+
+      const chunks: any[] = [];
+      let errorOccurred = false;
+
+      try {
+        for await (const chunk of perplexityRedChamberQAStreaming(input)) {
+          chunks.push(chunk);
+        }
+      } catch (error) {
+        errorOccurred = true;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain('Integration streaming error');
+      }
+
+      expect(errorOccurred).toBe(true);
+      expect(chunks.length).toBeGreaterThan(0);
+    });
+
+    test('should validate end-to-end async generator flow', async () => {
+      // Setup normal streaming mock
+      mockClient.streamingCompletionRequest.mockImplementation(async function* () {
+        yield {
+          content: '測試',
+          fullContent: '測試內容',
+          timestamp: new Date().toISOString(),
+          citations: [],
+          searchQueries: ['紅樓夢'],
+          metadata: { searchQueries: ['紅樓夢'], webSources: [], groundingSuccessful: true },
+          responseTime: 0.2,
+          isComplete: false,
+          chunkIndex: 1,
+        };
+        yield {
+          content: '完成',
+          fullContent: '測試內容完成',
+          timestamp: new Date().toISOString(),
+          citations: [],
+          searchQueries: ['紅樓夢'],
+          metadata: { searchQueries: ['紅樓夢'], webSources: [], groundingSuccessful: true },
+          responseTime: 0.4,
+          isComplete: true,
+          chunkIndex: 2,
+        };
+      });
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試完整流程',
+        enableStreaming: true,
+      };
+
+      const chunks: any[] = [];
+      const generator = perplexityRedChamberQAStreaming(input);
+
+      // Verify generator type
+      expect(typeof generator).toBe('object');
+      expect(typeof generator[Symbol.asyncIterator]).toBe('function');
+
+      for await (const chunk of generator) {
+        chunks.push(chunk);
+        if (chunk.isComplete) break;
+      }
+
+      expect(chunks.length).toBe(2);
+      expect(chunks[0].content).toBe('測試');
+      expect(chunks[1].isComplete).toBe(true);
+    });
+
+    test('should handle async function validation in integration context', async () => {
+      // Test that all async functions work correctly in integration
+      const helperInput = await createPerplexityQAInputForFlow(
+        '測試輔助函數',
+        null,
+        '章回上下文',
+        '第一回'
+      );
+
+      expect(helperInput.userQuestion).toBe('測試輔助函數');
+      expect(helperInput.chapterContext).toBe('章回上下文');
+
+      const capabilities = await getModelCapabilities('sonar-reasoning-pro');
+      expect(capabilities.supportsReasoning).toBe(true);
+
+      const questions = await getSuggestedQuestions();
+      expect(questions.character).toHaveLength(4);
+
+      const mockResponse: PerplexityQAResponse = {
+        question: '測試',
+        answer: '測試回答',
+        rawAnswer: '原始回答',
+        citations: [],
+        groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: false },
+        modelUsed: 'sonar-reasoning-pro',
+        modelKey: 'sonar-reasoning-pro',
+        reasoningEffort: 'high',
+        questionContext: 'general',
+        processingTime: 1.0,
+        success: true,
+        streaming: false,
+        stoppedByUser: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 4,
+        questionLength: 2,
+        citationCount: 0,
+      };
+
+      const formatted = await formatPerplexityResponse(mockResponse);
+      expect(formatted.citationSummary).toBe('找到 0 個引用來源');
+      expect(formatted.processingInfo).toContain('處理時間: 1.00秒');
+    });
+
+    test('should handle Server Actions compatibility in production build', async () => {
+      // Simulate production environment constraints
+      const originalNodeEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+
+      try {
+        // All functions should still work in production
+        const input: PerplexityQAInput = {
+          userQuestion: '生產環境測試',
+          enableStreaming: false,
+        };
+
+        mockClient.completionRequest.mockResolvedValue({
+          question: '生產環境測試',
+          answer: '生產環境回答',
+          rawAnswer: '',
+          citations: [],
+          groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: false },
+          modelUsed: 'sonar-reasoning-pro',
+          modelKey: 'sonar-reasoning-pro',
+          reasoningEffort: 'high',
+          questionContext: 'general',
+          processingTime: 0.5,
+          success: true,
+          streaming: false,
+          stoppedByUser: false,
+          timestamp: new Date().toISOString(),
+          answerLength: 6,
+          questionLength: 6,
+          citationCount: 0,
+        });
+
+        const result = await perplexityRedChamberQA(input);
+        expect(result.success).toBe(true);
+        expect(result.answer).toBe('生產環境回答');
+      } finally {
+        process.env.NODE_ENV = originalNodeEnv;
+      }
     });
   });
 

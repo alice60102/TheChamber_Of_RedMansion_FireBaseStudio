@@ -32,12 +32,13 @@ import {
   type ReasoningEffort,
   type QuestionContext,
 } from '@/ai/perplexity-config';
+import { terminalLogger, debugLog, errorLog, traceLog } from '@/lib/terminal-logger';
 
 /**
  * Zod schema for validating Perplexity QA input
  * 用於驗證 Perplexity QA 輸入的 Zod 結構
  */
-export const PerplexityQAInputSchema = z.object({
+const PerplexityQAInputSchemaObject = z.object({
   userQuestion: z.string().min(1).max(1000).describe('使用者關於《紅樓夢》的問題'),
   selectedText: z.string().optional().describe('使用者選取的文字片段（可選）'),
   chapterContext: z.string().optional().describe('當前章回的上下文片段'),
@@ -53,10 +54,18 @@ export const PerplexityQAInputSchema = z.object({
 });
 
 /**
+ * Export schema as async function for Server Actions compatibility
+ * 為 Server Actions 兼容性將 schema 導出為 async 函數
+ */
+export async function getPerplexityQAInputSchema() {
+  return PerplexityQAInputSchemaObject;
+}
+
+/**
  * Zod schema for Perplexity QA output
  * Perplexity QA 輸出的 Zod 結構
  */
-export const PerplexityQAOutputSchema = z.object({
+const PerplexityQAOutputSchemaObject = z.object({
   question: z.string().describe('原始使用者問題'),
   answer: z.string().describe('AI 生成的回答（已清理和格式化）'),
   rawAnswer: z.string().optional().describe('原始 API 回應（清理前）'),
@@ -92,6 +101,14 @@ export const PerplexityQAOutputSchema = z.object({
   error: z.string().optional().describe('錯誤資訊（如果請求失敗）'),
   metadata: z.record(z.any()).optional().describe('額外的回應元數據'),
 });
+
+/**
+ * Export output schema as async function for Server Actions compatibility
+ * 為 Server Actions 兼容性將輸出 schema 導出為 async 函數
+ */
+export async function getPerplexityQAOutputSchema() {
+  return PerplexityQAOutputSchemaObject;
+}
 
 /**
  * Main Perplexity QA function for Dream of the Red Chamber analysis
@@ -168,9 +185,20 @@ export async function perplexityRedChamberQA(input: PerplexityQAInput): Promise<
 export async function* perplexityRedChamberQAStreaming(
   input: PerplexityQAInput
 ): AsyncGenerator<PerplexityStreamingChunk> {
+  const functionName = 'perplexityRedChamberQAStreaming';
+  
+  await terminalLogger.logAsyncGeneratorStart('PERPLEXITY_STREAMING', functionName, input);
+  
   console.log('Starting Perplexity streaming QA:', {
     question: input.userQuestion.substring(0, 100),
     modelKey: input.modelKey,
+  });
+  
+  await debugLog('PERPLEXITY_STREAMING', 'Function entry point reached', {
+    inputType: typeof input,
+    inputKeys: Object.keys(input),
+    userQuestionLength: input.userQuestion?.length,
+    enableStreaming: input.enableStreaming,
   });
 
   // Validate input
@@ -203,10 +231,38 @@ export async function* perplexityRedChamberQAStreaming(
 
   try {
     // Get Perplexity client
+    await debugLog('PERPLEXITY_STREAMING', 'Getting Perplexity client');
     const client = getDefaultPerplexityClient();
+    
+    await debugLog('PERPLEXITY_STREAMING', 'Client obtained', {
+      clientType: typeof client,
+      clientConstructor: client?.constructor?.name,
+      hasStreamingMethod: typeof client?.streamingCompletionRequest === 'function',
+    });
 
     // Stream API response
-    for await (const chunk of client.streamingCompletionRequest(processedInput)) {
+    console.log('Client type:', typeof client);
+    console.log('Client streamingCompletionRequest type:', typeof client.streamingCompletionRequest);
+    
+    await debugLog('PERPLEXITY_STREAMING', 'Calling client.streamingCompletionRequest', {
+      processedInputType: typeof processedInput,
+      processedInputKeys: Object.keys(processedInput),
+    });
+    
+    const streamGenerator = client.streamingCompletionRequest(processedInput);
+    
+    await debugLog('PERPLEXITY_STREAMING', 'Stream generator created', {
+      generatorType: typeof streamGenerator,
+      generatorConstructor: streamGenerator?.constructor?.name,
+      hasAsyncIterator: typeof streamGenerator?.[Symbol.asyncIterator] === 'function',
+    });
+    
+    console.log('Stream generator type:', typeof streamGenerator);
+    console.log('Stream generator Symbol.asyncIterator:', typeof streamGenerator[Symbol.asyncIterator]);
+    
+    await terminalLogger.logForAwaitStart('PERPLEXITY_STREAMING', 'client.streamingCompletionRequest', streamGenerator);
+    
+    for await (const chunk of streamGenerator) {
       yield chunk;
       
       if (chunk.isComplete) {
@@ -220,8 +276,18 @@ export async function* perplexityRedChamberQAStreaming(
       }
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Perplexity streaming QA error:', error);
+    
+    await terminalLogger.logAsyncGeneratorError('PERPLEXITY_STREAMING', functionName, error);
+    
+    await errorLog('PERPLEXITY_STREAMING', 'Caught error in streaming function', {
+      errorType: error?.constructor?.name,
+      errorMessage: error?.message,
+      isTypeError: error instanceof TypeError,
+      isReferenceError: error instanceof ReferenceError,
+      stack: error?.stack,
+    });
     
     const errorMessage = error instanceof Error ? error.message : '流式處理錯誤';
     
@@ -366,13 +432,13 @@ export async function perplexityRedChamberQABatch(
  * Helper function to create Perplexity QA input with proper validation
  * 創建具有適當驗證的 Perplexity QA 輸入的輔助函數
  */
-export function createPerplexityQAInputForFlow(
+export async function createPerplexityQAInputForFlow(
   userQuestion: string,
   selectedTextInfo?: { text: string; position: any; range: any } | null,
   chapterContextSnippet?: string,
   currentChapter?: string,
   options?: Partial<PerplexityQAInput>
-): PerplexityQAInput {
+): Promise<PerplexityQAInput> {
   return createPerplexityQAInput(userQuestion, {
     selectedText: selectedTextInfo?.text,
     chapterContext: chapterContextSnippet,
@@ -385,7 +451,7 @@ export function createPerplexityQAInputForFlow(
  * Helper function to check if a model supports specific features
  * 檢查模型是否支援特定功能的輔助函數
  */
-export function getModelCapabilities(modelKey: PerplexityModelKey) {
+export async function getModelCapabilities(modelKey: PerplexityModelKey) {
   return {
     supportsReasoning: supportsReasoning(modelKey),
     supportsStreaming: true,
@@ -398,7 +464,7 @@ export function getModelCapabilities(modelKey: PerplexityModelKey) {
  * Helper function to get suggested questions for different contexts
  * 為不同情境取得建議問題的輔助函數
  */
-export function getSuggestedQuestions(): Record<QuestionContext, string[]> {
+export async function getSuggestedQuestions(): Promise<Record<QuestionContext, string[]>> {
   return {
     character: [
       '林黛玉的性格特點和悲劇命運如何體現？',
@@ -431,7 +497,7 @@ export function getSuggestedQuestions(): Record<QuestionContext, string[]> {
  * Helper function to format response for display
  * 格式化回應以供顯示的輔助函數
  */
-export function formatPerplexityResponse(response: PerplexityQAResponse) {
+export async function formatPerplexityResponse(response: PerplexityQAResponse) {
   return {
     ...response,
     formattedAnswer: response.answer,

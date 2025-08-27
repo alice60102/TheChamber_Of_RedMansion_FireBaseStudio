@@ -15,7 +15,7 @@ const mockAxiosInstance = {
     request: { use: jest.fn() },
     response: { use: jest.fn() },
   },
-} as unknown as AxiosInstance;
+} as any;
 
 jest.mock('axios', () => ({
   create: jest.fn(() => mockAxiosInstance),
@@ -109,7 +109,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const input: PerplexityQAInput = {
         userQuestion: '林黛玉的性格特點？',
@@ -150,7 +150,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const input: PerplexityQAInput = {
         userQuestion: '測試問題',
@@ -187,7 +187,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const input: PerplexityQAInput = {
         userQuestion: '測試問題',
@@ -225,7 +225,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const input: PerplexityQAInput = {
         userQuestion: '測試問題',
@@ -262,7 +262,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const input: PerplexityQAInput = {
         userQuestion: '林黛玉的性格？',
@@ -275,8 +275,8 @@ describe('PerplexityClient', () => {
 
       await client.completionRequest(input);
 
-      const callArgs = (mockAxiosInstance.post as jest.Mock).mock.calls[0];
-      const requestData = callArgs[1];
+      const callArgs = (mockAxiosInstance.post as any).mock.calls[0];
+      const requestData = callArgs[1] as any;
       const prompt = requestData.messages[0].content;
 
       expect(prompt).toContain('請特別關注人物性格分析、人物關係和角色發展');
@@ -293,7 +293,7 @@ describe('PerplexityClient', () => {
     test('should handle API errors gracefully', async () => {
       const client = new PerplexityClient('test-key');
       const error = new Error('Network error');
-      (mockAxiosInstance.post as jest.Mock).mockRejectedValue(error);
+      (mockAxiosInstance.post as any).mockRejectedValue(error);
 
       const input: PerplexityQAInput = {
         userQuestion: '測試問題',
@@ -316,7 +316,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const input: PerplexityQAInput = {
         userQuestion: '測試問題',
@@ -352,7 +352,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const result = await client.testConnection();
 
@@ -363,8 +363,8 @@ describe('PerplexityClient', () => {
     test('should handle connection test failure', async () => {
       const client = new PerplexityClient('test-key');
       const error = new Error('Connection failed');
-      (mockAxiosInstance.post as jest.Mock).mockReset();
-      (mockAxiosInstance.post as jest.Mock).mockRejectedValue(error);
+      (mockAxiosInstance.post as any).mockReset();
+      (mockAxiosInstance.post as any).mockRejectedValue(error);
 
       const result = await client.testConnection();
 
@@ -400,6 +400,90 @@ describe('PerplexityClient', () => {
     });
   });
 
+  describe('Streaming Error Handling', () => {
+    test('should handle streaming generator errors gracefully', async () => {
+      const client = new PerplexityClient('test-key');
+      
+      // Mock axios to throw error during streaming
+      (mockAxiosInstance.post as any).mockRejectedValue(new Error('Network error during streaming'));
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試流式錯誤',
+        enableStreaming: true,
+      };
+
+      const chunks: any[] = [];
+      let errorOccurred = false;
+      
+      try {
+        for await (const chunk of client.streamingCompletionRequest(input)) {
+          chunks.push(chunk);
+        }
+      } catch (error) {
+        errorOccurred = true;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain('Network error during streaming');
+      }
+
+      expect(errorOccurred).toBe(true);
+    });
+
+    test('should validate async generator return type', async () => {
+      const client = new PerplexityClient('test-key');
+      
+      const input: PerplexityQAInput = {
+        userQuestion: '測試生成器類型',
+        enableStreaming: true,
+      };
+
+      const generator = client.streamingCompletionRequest(input);
+      
+      // Check that it returns an async generator
+      expect(typeof generator).toBe('object');
+      expect(typeof generator[Symbol.asyncIterator]).toBe('function');
+      expect(generator.constructor.name).toBe('AsyncGenerator');
+    });
+
+    test('should handle malformed streaming response', async () => {
+      const client = new PerplexityClient('test-key');
+      
+      // Mock a response that returns invalid streaming data
+      const mockInvalidStream = {
+        on: jest.fn((event: string, callback: (data?: any) => void) => {
+          if (event === 'data') {
+            // Simulate malformed SSE data
+            callback('invalid data without proper format\n');
+          }
+          if (event === 'end') {
+            callback();
+          }
+        }),
+        removeAllListeners: jest.fn(),
+      };
+
+      (mockAxiosInstance.post as any).mockResolvedValue({
+        data: mockInvalidStream,
+      });
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試格式錯誤',
+        enableStreaming: true,
+      };
+
+      const chunks: any[] = [];
+      
+      for await (const chunk of client.streamingCompletionRequest(input)) {
+        chunks.push(chunk);
+        if (chunk.isComplete) break;
+      }
+
+      // Should complete with error handling
+      expect(chunks.length).toBeGreaterThan(0);
+      const lastChunk = chunks[chunks.length - 1];
+      expect(lastChunk.isComplete).toBe(true);
+    });
+  });
+
   describe('URL Processing', () => {
     test('should extract friendly titles from various domains', async () => {
       const client = new PerplexityClient('test-key');
@@ -427,7 +511,7 @@ describe('PerplexityClient', () => {
         },
       };
 
-      (mockAxiosInstance.post as jest.Mock).mockResolvedValue(mockResponse);
+      (mockAxiosInstance.post as any).mockResolvedValue(mockResponse);
 
       const input: PerplexityQAInput = {
         userQuestion: '測試問題',

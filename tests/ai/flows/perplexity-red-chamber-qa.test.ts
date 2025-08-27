@@ -332,8 +332,136 @@ describe('Perplexity Red Chamber QA Flow', () => {
   });
 });
 
-describe('Type Safety Tests', () => {
-  test('should enforce correct types for model keys', () => {
+  describe('Async Generator Error Tests', () => {
+    test('should handle streaming function generator errors', async () => {
+      // Mock client to throw error during streaming
+      const mockClient = {
+        streamingCompletionRequest: jest.fn().mockImplementation(async function* () {
+          yield {
+            content: 'test',
+            fullContent: 'test content',
+            timestamp: new Date().toISOString(),
+            citations: [],
+            searchQueries: [],
+            metadata: { searchQueries: [], webSources: [], groundingSuccessful: false },
+            responseTime: 0.1,
+            isComplete: false,
+            chunkIndex: 1,
+          };
+          throw new Error('Streaming generator error');
+        }),
+      };
+
+      jest.doMock('@/lib/perplexity-client', () => ({
+        getDefaultPerplexityClient: () => mockClient,
+      }));
+
+      // Re-import to get mocked version
+      const { perplexityRedChamberQAStreaming } = await import('@/ai/flows/perplexity-red-chamber-qa');
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試生成器錯誤',
+        enableStreaming: true,
+      };
+
+      const chunks: any[] = [];
+      let errorOccurred = false;
+
+      try {
+        for await (const chunk of perplexityRedChamberQAStreaming(input)) {
+          chunks.push(chunk);
+        }
+      } catch (error) {
+        errorOccurred = true;
+        expect(error).toBeInstanceOf(Error);
+        expect((error as Error).message).toContain('Streaming generator error');
+      }
+
+      expect(errorOccurred).toBe(true);
+      expect(chunks.length).toBeGreaterThan(0); // Should get at least one chunk before error
+    });
+
+    test('should validate async generator function signature', async () => {
+      const { perplexityRedChamberQAStreaming } = await import('@/ai/flows/perplexity-red-chamber-qa');
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試函數簽名',
+        enableStreaming: true,
+      };
+
+      const generator = perplexityRedChamberQAStreaming(input);
+      
+      // Verify it returns an async generator
+      expect(typeof generator).toBe('object');
+      expect(typeof generator[Symbol.asyncIterator]).toBe('function');
+      expect(generator.constructor.name).toBe('AsyncGenerator');
+      
+      // Clean up generator
+      await generator.return();
+    });
+
+    test('should handle client function that returns non-async-iterable', async () => {
+      // Mock client that returns a regular promise instead of async generator
+      const mockClient = {
+        streamingCompletionRequest: jest.fn().mockResolvedValue({
+          // This should cause an error because it's not async iterable
+          message: 'Not an async generator',
+        }),
+      };
+
+      jest.doMock('@/lib/perplexity-client', () => ({
+        getDefaultPerplexityClient: () => mockClient,
+      }));
+
+      const { perplexityRedChamberQAStreaming } = await import('@/ai/flows/perplexity-red-chamber-qa');
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試非生成器返回',
+        enableStreaming: true,
+      };
+
+      let errorOccurred = false;
+
+      try {
+        for await (const chunk of perplexityRedChamberQAStreaming(input)) {
+          // Should not reach here
+        }
+      } catch (error) {
+        errorOccurred = true;
+        expect(error).toBeInstanceOf(TypeError);
+        expect((error as Error).message).toMatch(/not.*async.*iterable/i);
+      }
+
+      expect(errorOccurred).toBe(true);
+    });
+
+    test('should handle Server Actions async function validation', async () => {
+      // Test async function exports for Server Actions compatibility
+      const flowModule = await import('@/ai/flows/perplexity-red-chamber-qa');
+      
+      // Verify all exported functions are async
+      expect(typeof flowModule.perplexityRedChamberQA).toBe('function');
+      expect(flowModule.perplexityRedChamberQA.constructor.name).toBe('AsyncFunction');
+      
+      expect(typeof flowModule.perplexityRedChamberQAStreaming).toBe('function');
+      expect(flowModule.perplexityRedChamberQAStreaming.constructor.name).toBe('AsyncGeneratorFunction');
+      
+      expect(typeof flowModule.createPerplexityQAInputForFlow).toBe('function');
+      expect(flowModule.createPerplexityQAInputForFlow.constructor.name).toBe('AsyncFunction');
+      
+      expect(typeof flowModule.getModelCapabilities).toBe('function');
+      expect(flowModule.getModelCapabilities.constructor.name).toBe('AsyncFunction');
+      
+      expect(typeof flowModule.getSuggestedQuestions).toBe('function');
+      expect(flowModule.getSuggestedQuestions.constructor.name).toBe('AsyncFunction');
+      
+      expect(typeof flowModule.formatPerplexityResponse).toBe('function');
+      expect(flowModule.formatPerplexityResponse.constructor.name).toBe('AsyncFunction');
+    });
+  });
+
+  describe('Type Safety Tests', () => {
+    test('should enforce correct types for model keys', () => {
     // This test ensures TypeScript compilation catches type errors
     const validModelKeys: Array<'sonar-pro' | 'sonar-reasoning' | 'sonar-reasoning-pro'> = [
       'sonar-pro',

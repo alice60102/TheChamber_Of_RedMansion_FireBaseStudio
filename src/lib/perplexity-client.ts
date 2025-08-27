@@ -25,6 +25,7 @@ import {
   supportsReasoning,
   type PerplexityModelKey,
 } from '@/ai/perplexity-config';
+import { terminalLogger, debugLog, errorLog, traceLog } from '@/lib/terminal-logger';
 
 /**
  * Raw API response from Perplexity Chat Completions
@@ -473,6 +474,14 @@ export class PerplexityClient {
    * 向 Perplexity API 發送流式請求
    */
   async* streamingCompletionRequest(input: PerplexityQAInput): AsyncGenerator<PerplexityStreamingChunk> {
+    const functionName = 'PerplexityClient.streamingCompletionRequest';
+    
+    await debugLog('PERPLEXITY_CLIENT', `${functionName} called`, {
+      inputType: typeof input,
+      userQuestionLength: input.userQuestion?.length,
+      enableStreaming: input.enableStreaming,
+    });
+    
     const startTime = Date.now();
     let chunkIndex = 0;
     let fullContent = '';
@@ -499,6 +508,13 @@ export class PerplexityClient {
         ],
       };
 
+      await debugLog('PERPLEXITY_CLIENT', 'Making HTTP request to Perplexity API', {
+        endpoint: PERPLEXITY_CONFIG.CHAT_COMPLETIONS_ENDPOINT,
+        requestDataKeys: Object.keys(requestData),
+        model: requestData.model,
+        stream: requestData.stream,
+      });
+
       const response = await this.axiosInstance.post(
         PERPLEXITY_CONFIG.CHAT_COMPLETIONS_ENDPOINT,
         requestData,
@@ -507,8 +523,17 @@ export class PerplexityClient {
         }
       );
 
+      await debugLog('PERPLEXITY_CLIENT', 'Received HTTP response', {
+        statusCode: response.status,
+        statusText: response.statusText,
+        dataType: typeof response.data,
+        dataConstructor: response.data?.constructor?.name,
+      });
+
       // Process streaming response
       const stream = response.data;
+      
+      await terminalLogger.logForAwaitStart('PERPLEXITY_CLIENT', 'this.parseStreamingResponse(stream)', this.parseStreamingResponse(stream));
       
       for await (const chunk of this.parseStreamingResponse(stream)) {
         const processingTime = (Date.now() - startTime) / 1000;
