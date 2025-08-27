@@ -15,7 +15,7 @@
  */
 export const PERPLEXITY_MODELS = {
   'sonar-pro': {
-    name: 'perplexity/sonar-pro',
+    name: 'sonar-pro',
     displayName: 'Sonar Pro',
     description: '快速回應，適合一般問答',
     features: ['web_search', 'citations'],
@@ -23,7 +23,7 @@ export const PERPLEXITY_MODELS = {
     supportsReasoning: false,
   },
   'sonar-reasoning': {
-    name: 'perplexity/sonar-reasoning', 
+    name: 'sonar-reasoning', 
     displayName: 'Sonar Reasoning',
     description: '增強推理能力，適合複雜分析',
     features: ['web_search', 'citations', 'reasoning', 'thinking_process'],
@@ -31,7 +31,7 @@ export const PERPLEXITY_MODELS = {
     supportsReasoning: true,
   },
   'sonar-reasoning-pro': {
-    name: 'perplexity/sonar-reasoning-pro',
+    name: 'sonar-reasoning-pro',
     displayName: 'Sonar Reasoning Pro',
     description: '最強推理能力，適合深度文學分析',
     features: ['web_search', 'citations', 'advanced_reasoning', 'thinking_process'],
