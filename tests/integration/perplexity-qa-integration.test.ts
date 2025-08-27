@@ -179,7 +179,7 @@ describe('Perplexity QA Integration Tests', () => {
 
       mockClient.completionRequest.mockResolvedValue(mockResponse);
 
-      const input = createPerplexityQAInputForFlow(
+      const input = await createPerplexityQAInputForFlow(
         '劉姥姥進大觀園的情節意義是什麼？',
         null,
         '第六回 賈寶玉初試雲雨情 劉姥姥一進榮國府',
@@ -465,20 +465,19 @@ describe('Perplexity QA Integration Tests', () => {
       };
 
       const chunks: any[] = [];
-      let errorOccurred = false;
-
-      try {
-        for await (const chunk of perplexityRedChamberQAStreaming(input)) {
-          chunks.push(chunk);
-        }
-      } catch (error) {
-        errorOccurred = true;
-        expect(error).toBeInstanceOf(Error);
-        expect((error as Error).message).toContain('Integration streaming error');
+      
+      // The streaming function handles errors internally and yields error chunks
+      // instead of throwing exceptions, so we should check for error chunks
+      for await (const chunk of perplexityRedChamberQAStreaming(input)) {
+        chunks.push(chunk);
+        if (chunk.isComplete) break;
       }
 
-      expect(errorOccurred).toBe(true);
+      // Should have received at least one chunk with error information
       expect(chunks.length).toBeGreaterThan(0);
+      const lastChunk = chunks[chunks.length - 1];
+      expect(lastChunk.isComplete).toBe(true);
+      expect(lastChunk.error || lastChunk.fullContent).toContain('Integration streaming error');
     });
 
     test('should validate end-to-end async generator flow', async () => {
@@ -576,7 +575,11 @@ describe('Perplexity QA Integration Tests', () => {
     test('should handle Server Actions compatibility in production build', async () => {
       // Simulate production environment constraints
       const originalNodeEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = 'production';
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: 'production',
+        writable: true,
+        configurable: true,
+      });
 
       try {
         // All functions should still work in production
@@ -609,14 +612,18 @@ describe('Perplexity QA Integration Tests', () => {
         expect(result.success).toBe(true);
         expect(result.answer).toBe('生產環境回答');
       } finally {
-        process.env.NODE_ENV = originalNodeEnv;
+        Object.defineProperty(process.env, 'NODE_ENV', {
+          value: originalNodeEnv,
+          writable: true,
+          configurable: true,
+        });
       }
     });
   });
 
   describe('Type Safety and Compatibility', () => {
     test('should maintain type safety across the integration pipeline', async () => {
-      const input = createPerplexityQAInputForFlow(
+      const input = await createPerplexityQAInputForFlow(
         '類型安全測試問題',
         { text: '選中的文字', position: null, range: null },
         '章節上下文',
