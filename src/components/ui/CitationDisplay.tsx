@@ -23,13 +23,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { CitationInfo } from '@/types/grounded-qa';
+import type { PerplexityCitation } from '@/types/perplexity-qa';
 
 /**
  * Props for the CitationDisplay component
  */
 interface CitationDisplayProps {
   /** Array of citation information to display */
-  citations: CitationInfo[];
+  citations: CitationInfo[] | PerplexityCitation[];
   
   /** Optional title for the citation section */
   title?: string;
@@ -77,6 +78,40 @@ const CitationItem: React.FC<CitationItemProps> = ({
 }) => {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  // Type guard to check if citation is PerplexityCitation
+  const isPerplexityCitation = (citation: CitationInfo | PerplexityCitation): citation is PerplexityCitation => {
+    return 'domain' in citation && 'type' in citation;
+  };
+
+  // Normalize citation data to a common format
+  const normalizeCitation = (citation: CitationInfo | PerplexityCitation) => {
+    if (isPerplexityCitation(citation)) {
+      // Perplexity format
+      return {
+        textSegment: citation.snippet || citation.title,
+        sourceUrls: [citation.url],
+        sourceTitles: [citation.title],
+        number: citation.number,
+        domain: citation.domain,
+        type: citation.type,
+        publishDate: citation.publishDate,
+      };
+    } else {
+      // Gemini format (legacy)
+      return {
+        textSegment: citation.textSegment,
+        sourceUrls: citation.sourceUrls,
+        sourceTitles: citation.sourceTitles,
+        number: citation.textSegment.slice(0, 10), // fallback
+        domain: citation.sourceUrls[0] ? new URL(citation.sourceUrls[0]).hostname.replace('www.', '') : '',
+        type: 'web_citation' as const,
+      };
+    }
+  };
+
+  // Get normalized citation data
+  const normalizedCitation = normalizeCitation(citation);
 
   /**
    * Handle copying citation text to clipboard
@@ -130,7 +165,7 @@ const CitationItem: React.FC<CitationItemProps> = ({
         )}
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap gap-1">
-            {citation.sourceUrls.map((url, urlIndex) => (
+            {normalizedCitation.sourceUrls.map((url, urlIndex) => (
               <TooltipProvider key={urlIndex}>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -140,7 +175,7 @@ const CitationItem: React.FC<CitationItemProps> = ({
                       className="h-auto p-0 text-xs text-primary hover:text-primary/80"
                       onClick={(e) => handleLinkClick(e, url)}
                     >
-                      {citation.sourceTitles[urlIndex] || formatUrl(url)}
+                      {normalizedCitation.sourceTitles[urlIndex] || formatUrl(url)}
                       <ExternalLink className="ml-1 h-3 w-3" />
                     </Button>
                   </TooltipTrigger>
@@ -170,9 +205,9 @@ const CitationItem: React.FC<CitationItemProps> = ({
               </Badge>
             )}
             <CardTitle className="text-sm font-medium">
-              {citation.textSegment.length > 60 
-                ? `${citation.textSegment.substring(0, 60)}...`
-                : citation.textSegment
+              {normalizedCitation.textSegment.length > 60 
+                ? `${normalizedCitation.textSegment.substring(0, 60)}...`
+                : normalizedCitation.textSegment
               }
             </CardTitle>
           </div>
@@ -183,7 +218,7 @@ const CitationItem: React.FC<CitationItemProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleCopy(citation.textSegment, index)}
+                    onClick={() => handleCopy(normalizedCitation.textSegment, index)}
                   >
                     {copiedIndex === index ? (
                       <Check className="h-4 w-4 text-green-600" />
@@ -198,7 +233,7 @@ const CitationItem: React.FC<CitationItemProps> = ({
               </Tooltip>
             </TooltipProvider>
             
-            {variant === 'detailed' && citation.textSegment.length > 60 && (
+            {variant === 'detailed' && normalizedCitation.textSegment.length > 60 && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -212,15 +247,15 @@ const CitationItem: React.FC<CitationItemProps> = ({
         
         {variant === 'detailed' && isExpanded && (
           <CardDescription className="mt-2 p-3 rounded-md bg-muted/30 border text-sm leading-relaxed">
-            {citation.textSegment}
+            {normalizedCitation.textSegment}
           </CardDescription>
         )}
       </CardHeader>
 
       <CardContent className="pt-0">
         <div className="space-y-2">
-          {citation.sourceUrls.map((url, urlIndex) => {
-            const title = citation.sourceTitles[urlIndex] || '未命名來源';
+          {normalizedCitation.sourceUrls.map((url, urlIndex) => {
+            const title = normalizedCitation.sourceTitles[urlIndex] || '未命名來源';
             
             return (
               <div 

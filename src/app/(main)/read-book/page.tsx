@@ -83,6 +83,15 @@ import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer';
 import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection';
 
+// Perplexity AI integration
+import { 
+  perplexityRedChamberQA, 
+  perplexityRedChamberQAStreaming,
+  createPerplexityQAInputForFlow 
+} from '@/ai/flows/perplexity-red-chamber-qa';
+import type { PerplexityQAResponse, PerplexityStreamingChunk } from '@/types/perplexity-qa';
+import { EnhancedAnswer } from '@/components/ui/EnhancedAnswer';
+
 // Custom hooks for application functionality
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from '@/hooks/useLanguage';
@@ -260,12 +269,20 @@ export default function ReadBookPage() {
 
   // AI Interface States
   const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
-  const [aiMode, setAiMode] = useState<'new-conversation' | 'book-sources' | 'ai-analysis'>('new-conversation');
+  const [aiMode, setAiMode] = useState<'new-conversation' | 'book-sources' | 'ai-analysis' | 'perplexity-qa'>('new-conversation');
   const [userQuestionInput, setUserQuestionInput] = useState<string>('');
   const [textExplanation, setTextExplanation] = useState<string | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
   const [aiInteractionState, setAiInteractionState] = useState<AIInteractionState>('asking');
   const [aiAnalysisContent, setAiAnalysisContent] = useState<string | null>(null);
+
+  // Perplexity AI States
+  const [usePerplexityAI, setUsePerplexityAI] = useState(true);
+  const [perplexityResponse, setPerplexityResponse] = useState<PerplexityQAResponse | null>(null);
+  const [perplexityStreamingChunks, setPerplexityStreamingChunks] = useState<PerplexityStreamingChunk[]>([]);
+  const [perplexityModel, setPerplexityModel] = useState<'sonar-pro' | 'sonar-reasoning' | 'sonar-reasoning-pro'>('sonar-reasoning-pro');
+  const [reasoningEffort, setReasoningEffort] = useState<'low' | 'medium' | 'high'>('high');
+  const [enableStreaming, setEnableStreaming] = useState(true);
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
   const [activeHighlightInfo, setActiveHighlightInfo] = useState<{ text: string; position: { top: number; left: number; } } | null>(null);
@@ -637,10 +654,13 @@ export default function ReadBookPage() {
   const handleUserSubmitQuestion = async () => { 
     if (!userQuestionInput.trim() || !currentChapter) return;
 
-    setAiMode('ai-analysis');
+    // Set appropriate mode based on AI provider choice
+    setAiMode(usePerplexityAI ? 'perplexity-qa' : 'ai-analysis');
     setIsLoadingExplanation(true);
     setTextExplanation(null);
     setAiAnalysisContent(null);
+    setPerplexityResponse(null);
+    setPerplexityStreamingChunks([]);
 
     try {
       const chapterContextSnippet = currentChapter.paragraphs
@@ -649,17 +669,104 @@ export default function ReadBookPage() {
         .join('\n')
         .substring(0, 1000); 
 
-      const input: ExplainTextSelectionInput = {
-        selectedText: selectedTextInfo?.text || "",
-        userQuestion: userQuestionInput, 
-        chapterContext: chapterContextSnippet,
-      };
-      const result = await explainTextSelection(input);
-      setAiAnalysisContent(result.explanation);
-      setAiInteractionState('answered');
+      if (usePerplexityAI) {
+        // Use Perplexity API
+        const perplexityInput = createPerplexityQAInputForFlow(
+          userQuestionInput,
+          selectedTextInfo,
+          chapterContextSnippet,
+          currentChapter.titleKey,
+          {
+            modelKey: perplexityModel,
+            reasoningEffort: reasoningEffort,
+            enableStreaming: enableStreaming,
+            showThinkingProcess: true,
+            questionContext: 'general',
+          }
+        );
+
+        if (enableStreaming) {
+          // Handle streaming response
+          setAiInteractionState('streaming');
+          const chunks: PerplexityStreamingChunk[] = [];
+          
+          for await (const chunk of perplexityRedChamberQAStreaming(perplexityInput)) {
+            chunks.push(chunk);
+            setPerplexityStreamingChunks([...chunks]);
+            
+            if (chunk.isComplete) {
+              // Create final response from last chunk
+              const finalResponse: PerplexityQAResponse = {
+                question: userQuestionInput,
+                answer: chunk.fullContent,
+                citations: chunk.citations,
+                groundingMetadata: chunk.metadata as any,
+                modelUsed: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                modelKey: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                reasoningEffort: perplexityInput.reasoningEffort,
+                questionContext: perplexityInput.questionContext,
+                processingTime: chunk.responseTime,
+                success: !chunk.error,
+                streaming: true,
+                chunkCount: chunk.chunkIndex,
+                stoppedByUser: false,
+                timestamp: chunk.timestamp,
+                answerLength: chunk.fullContent.length,
+                questionLength: userQuestionInput.length,
+                citationCount: chunk.citations.length,
+                error: chunk.error,
+              };
+              setPerplexityResponse(finalResponse);
+              setAiInteractionState('answered');
+              break;
+            }
+          }
+        } else {
+          // Handle non-streaming response
+          const result = await perplexityRedChamberQA(perplexityInput);
+          setPerplexityResponse(result);
+          setAiInteractionState('answered');
+        }
+      } else {
+        // Use original Gemini approach
+        const input: ExplainTextSelectionInput = {
+          selectedText: selectedTextInfo?.text || "",
+          userQuestion: userQuestionInput, 
+          chapterContext: chapterContextSnippet,
+        };
+        const result = await explainTextSelection(input);
+        setAiAnalysisContent(result.explanation);
+        setAiInteractionState('answered');
+      }
     } catch (error) {
-      console.error("Error explaining text selection:", error);
-      setAiAnalysisContent(error instanceof Error ? error.message : t('readBook.errorAIExplain'));
+      console.error("Error in AI question handling:", error);
+      const errorMessage = error instanceof Error ? error.message : t('readBook.errorAIExplain');
+      
+      if (usePerplexityAI) {
+        setPerplexityResponse({
+          question: userQuestionInput,
+          answer: `處理問題時發生錯誤：${errorMessage}`,
+          citations: [],
+          groundingMetadata: {
+            searchQueries: [],
+            webSources: [],
+            groundingSuccessful: false,
+          },
+          modelUsed: perplexityModel,
+          modelKey: perplexityModel,
+          processingTime: 0,
+          success: false,
+          streaming: false,
+          stoppedByUser: false,
+          timestamp: new Date().toISOString(),
+          answerLength: 0,
+          questionLength: userQuestionInput.length,
+          citationCount: 0,
+          error: errorMessage,
+        });
+      } else {
+        setAiAnalysisContent(errorMessage);
+      }
       setAiInteractionState('error');
     }
     setIsLoadingExplanation(false);
@@ -1422,7 +1529,7 @@ export default function ReadBookPage() {
       </Sheet>
 
       
-      <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) {setSelectedTextInfo(null); setAiMode('new-conversation'); setTextExplanation(null); setAiAnalysisContent(null);} handleInteraction(); }}>
+      <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) {setSelectedTextInfo(null); setAiMode('new-conversation'); setTextExplanation(null); setAiAnalysisContent(null); setPerplexityResponse(null); setPerplexityStreamingChunks([]);} handleInteraction(); }}>
         <SheetContent
             side="right"
             className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col h-full"
@@ -1435,11 +1542,13 @@ export default function ReadBookPage() {
                   {aiMode === 'new-conversation' && '開啟新對話'}
                   {aiMode === 'book-sources' && '書籍引源 · 11'}
                   {aiMode === 'ai-analysis' && `AI 問書 《紅樓夢》`}
+                  {aiMode === 'perplexity-qa' && `Perplexity 智慧問答`}
                 </SheetTitle>
                 <SheetDescription>
                   {aiMode === 'new-conversation' && '請選擇您想了解的內容或直接提問'}
                   {aiMode === 'book-sources' && '相關書籍文獻資料與背景資訊'}
                   {aiMode === 'ai-analysis' && `第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」`}
+                  {aiMode === 'perplexity-qa' && `第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」· 即時網路搜尋問答`}
                 </SheetDescription>
             </SheetHeader>
 
@@ -1535,10 +1644,94 @@ export default function ReadBookPage() {
                   )}
                 </div>
               )}
+
+              {/* Perplexity QA Mode */}
+              {aiMode === 'perplexity-qa' && (
+                <div className="space-y-4">
+                  <EnhancedAnswer
+                    response={perplexityResponse}
+                    provider="perplexity"
+                    isLoading={isLoadingExplanation}
+                    streamingChunks={perplexityStreamingChunks}
+                    showMetadata={true}
+                    showSearchQueries={true}
+                    showCitations={true}
+                    className="border-none shadow-none"
+                    enableActions={true}
+                    onRegenerate={() => handleUserSubmitQuestion()}
+                    onCopy={(text) => {
+                      navigator.clipboard.writeText(text);
+                      toast({
+                        title: "已複製",
+                        description: "回答已複製到剪貼板",
+                      });
+                    }}
+                  />
+                </div>
+              )}
             </ScrollArea>
 
             {/* Bottom Section with Action Buttons and Input */}
             <div className="shrink-0 p-4 border-t border-border bg-background/50">
+              {/* AI Provider Selection */}
+              <div className="mb-4 p-3 bg-background/30 rounded-lg border border-border/50">
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm font-medium">AI 提供商</Label>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-xs text-muted-foreground">Gemini</Label>
+                    <input
+                      type="checkbox"
+                      checked={usePerplexityAI}
+                      onChange={(e) => setUsePerplexityAI(e.target.checked)}
+                      className="w-4 h-4 rounded border border-gray-300 bg-white checked:bg-purple-600 checked:border-purple-600 focus:ring-2 focus:ring-purple-500"
+                    />
+                    <Label className="text-xs text-muted-foreground">Perplexity</Label>
+                  </div>
+                </div>
+                
+                {usePerplexityAI && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">模型：</Label>
+                      <select
+                        value={perplexityModel}
+                        onChange={(e) => setPerplexityModel(e.target.value as any)}
+                        className="text-xs bg-background border border-border rounded px-2 py-1 flex-1"
+                      >
+                        <option value="sonar-pro">Sonar Pro (快速)</option>
+                        <option value="sonar-reasoning">Sonar Reasoning (推理)</option>
+                        <option value="sonar-reasoning-pro">Sonar Reasoning Pro (推薦)</option>
+                      </select>
+                    </div>
+                    
+                    {perplexityModel.includes('reasoning') && (
+                      <div className="flex items-center gap-2">
+                        <Label className="text-xs">推理強度：</Label>
+                        <select
+                          value={reasoningEffort}
+                          onChange={(e) => setReasoningEffort(e.target.value as any)}
+                          className="text-xs bg-background border border-border rounded px-2 py-1 flex-1"
+                        >
+                          <option value="low">低強度 (快速)</option>
+                          <option value="medium">中強度 (平衡)</option>
+                          <option value="high">高強度 (深度)</option>
+                        </select>
+                      </div>
+                    )}
+                    
+                    <div className="flex items-center gap-2">
+                      <Label className="text-xs">流式回答：</Label>
+                      <input
+                        type="checkbox"
+                        checked={enableStreaming}
+                        onChange={(e) => setEnableStreaming(e.target.checked)}
+                        className="w-3 h-3 rounded border border-gray-300"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Action Buttons */}
               <div className="flex gap-2 mb-4">
                 <Button 

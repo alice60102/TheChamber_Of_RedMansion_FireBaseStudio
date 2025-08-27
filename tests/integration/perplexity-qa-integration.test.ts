@@ -1,0 +1,489 @@
+/**
+ * @fileOverview Integration tests for Perplexity QA system
+ * 測試 Perplexity QA 系統的整合測試
+ */
+
+import { describe, test, expect, jest, beforeEach } from '@jest/globals';
+import {
+  perplexityRedChamberQA,
+  perplexityRedChamberQABatch,
+  createPerplexityQAInputForFlow,
+} from '@/ai/flows/perplexity-red-chamber-qa';
+import type { 
+  PerplexityQAInput, 
+  PerplexityQAResponse, 
+  PerplexityBatchQAInput 
+} from '@/types/perplexity-qa';
+import { validatePerplexityQAInput } from '@/types/perplexity-qa';
+
+// Mock the entire Perplexity client module
+jest.mock('@/lib/perplexity-client', () => ({
+  getDefaultPerplexityClient: jest.fn(),
+  PerplexityClient: jest.fn(),
+  resetDefaultClient: jest.fn(),
+}));
+
+// Mock axios for HTTP requests
+jest.mock('axios', () => ({
+  create: jest.fn(() => ({
+    post: jest.fn(),
+    interceptors: {
+      request: { use: jest.fn() },
+      response: { use: jest.fn() },
+    },
+  })),
+  default: {
+    create: jest.fn(() => ({
+      post: jest.fn(),
+      interceptors: {
+        request: { use: jest.fn() },
+        response: { use: jest.fn() },
+      },
+    })),
+  },
+}));
+
+describe('Perplexity QA Integration Tests', () => {
+  let mockClient: any;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    // Create a mock client with all required methods
+    mockClient = {
+      completionRequest: jest.fn(),
+      streamingCompletionRequest: jest.fn(),
+      testConnection: jest.fn(),
+    };
+
+    // Mock the getDefaultPerplexityClient function
+    const { getDefaultPerplexityClient } = require('@/lib/perplexity-client');
+    (getDefaultPerplexityClient as jest.Mock).mockReturnValue(mockClient);
+  });
+
+  describe('End-to-End QA Flow', () => {
+    test('should process a complete question about character analysis', async () => {
+      const mockResponse: PerplexityQAResponse = {
+        question: '林黛玉的性格特點是什麼？',
+        answer: '林黛玉是《紅樓夢》中的重要女性角色，她具有以下性格特點：\n\n1. **敏感細膩**：對周圍環境和人際關係極為敏感\n2. **才華橫溢**：詩詞才華出眾，文學造詣深厚\n3. **清高孤傲**：不願與世俗同流合污',
+        rawAnswer: '林黛玉是《紅樓夢》中的重要女性角色...',
+        citations: [
+          {
+            number: '1',
+            title: '紅樓夢人物分析 - 維基百科',
+            url: 'https://zh.wikipedia.org/wiki/林黛玉',
+            type: 'web_citation',
+            domain: 'zh.wikipedia.org',
+          },
+          {
+            number: '2',
+            title: '古典文學研究 - 中國知網',
+            url: 'https://cnki.net/article/12345',
+            type: 'web_citation',
+            domain: 'cnki.net',
+          },
+        ],
+        groundingMetadata: {
+          searchQueries: ['林黛玉 性格特點', '紅樓夢 人物分析', '林黛玉 文學形象'],
+          webSources: [],
+          groundingSuccessful: true,
+          confidenceScore: 0.9,
+        },
+        modelUsed: 'sonar-reasoning-pro',
+        modelKey: 'sonar-reasoning-pro',
+        reasoningEffort: 'high',
+        questionContext: 'character',
+        processingTime: 3.2,
+        success: true,
+        streaming: false,
+        stoppedByUser: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 250,
+        questionLength: 12,
+        citationCount: 2,
+      };
+
+      mockClient.completionRequest.mockResolvedValue(mockResponse);
+
+      const input: PerplexityQAInput = {
+        userQuestion: '林黛玉的性格特點是什麼？',
+        selectedText: '黛玉聽了，便放下釣竿，走至亭中',
+        chapterContext: '第三回 賈雨村夤緣復舊職 林黛玉拋父進京都',
+        currentChapter: '第三回',
+        modelKey: 'sonar-reasoning-pro',
+        reasoningEffort: 'high',
+        questionContext: 'character',
+        enableStreaming: false,
+        includeDetailedCitations: true,
+        showThinkingProcess: true,
+      };
+
+      const result = await perplexityRedChamberQA(input);
+
+      expect(result.success).toBe(true);
+      expect(result.question).toBe('林黛玉的性格特點是什麼？');
+      expect(result.answer).toContain('林黛玉');
+      expect(result.answer).toContain('敏感細膩');
+      expect(result.citations).toHaveLength(2);
+      expect(result.groundingMetadata.searchQueries).toContain('林黛玉 性格特點');
+      expect(result.modelKey).toBe('sonar-reasoning-pro');
+      expect(result.reasoningEffort).toBe('high');
+      expect(result.processingTime).toBeGreaterThan(0);
+
+      // Verify that the client was called with the correct input
+      expect(mockClient.completionRequest).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userQuestion: '林黛玉的性格特點是什麼？',
+          modelKey: 'sonar-reasoning-pro',
+          reasoningEffort: 'high',
+          questionContext: 'character',
+        })
+      );
+    });
+
+    test('should handle plot analysis questions', async () => {
+      const mockResponse: PerplexityQAResponse = {
+        question: '劉姥姥進大觀園的情節意義是什麼？',
+        answer: '劉姥姥進大觀園是《紅樓夢》中的經典情節，具有多重意義：\n\n1. **對比手法**：通過劉姥姥的樸實與大觀園的奢華形成鮮明對比\n2. **社會諷刺**：揭示了貧富差距和階級矛盾',
+        citations: [
+          {
+            number: '1',
+            title: '紅樓夢情節分析',
+            url: 'https://literature.org.cn/hongloumeng/plot',
+            type: 'web_citation',
+            domain: 'literature.org.cn',
+          },
+        ],
+        groundingMetadata: {
+          searchQueries: ['劉姥姥進大觀園', '紅樓夢情節分析'],
+          webSources: [],
+          groundingSuccessful: true,
+          confidenceScore: 0.85,
+        },
+        modelUsed: 'sonar-reasoning-pro',
+        modelKey: 'sonar-reasoning-pro',
+        questionContext: 'plot',
+        processingTime: 2.8,
+        success: true,
+        streaming: false,
+        stoppedByUser: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 180,
+        questionLength: 15,
+        citationCount: 1,
+      };
+
+      mockClient.completionRequest.mockResolvedValue(mockResponse);
+
+      const input = createPerplexityQAInputForFlow(
+        '劉姥姥進大觀園的情節意義是什麼？',
+        null,
+        '第六回 賈寶玉初試雲雨情 劉姥姥一進榮國府',
+        '第六回',
+        {
+          questionContext: 'plot',
+          modelKey: 'sonar-reasoning-pro',
+        }
+      );
+
+      const result = await perplexityRedChamberQA(input);
+
+      expect(result.success).toBe(true);
+      expect(result.questionContext).toBe('plot');
+      expect(result.answer).toContain('劉姥姥');
+      expect(result.answer).toContain('大觀園');
+      expect(result.citations).toHaveLength(1);
+    });
+  });
+
+  describe('Data Flow Validation', () => {
+    test('should preserve all input data through the processing pipeline', async () => {
+      const originalInput: PerplexityQAInput = {
+        userQuestion: '《紅樓夢》的主題思想是什麼？',
+        selectedText: '滿紙荒唐言，一把辛酸淚',
+        chapterContext: '第一回 甄士隱夢幻識通靈 賈雨村風塵懷閨秀',
+        currentChapter: '第一回',
+        modelKey: 'sonar-reasoning-pro',
+        reasoningEffort: 'high',
+        questionContext: 'theme',
+        enableStreaming: false,
+        includeDetailedCitations: true,
+        showThinkingProcess: true,
+        temperature: 0.3,
+        maxTokens: 2500,
+      };
+
+      const mockResponse: PerplexityQAResponse = {
+        question: originalInput.userQuestion,
+        answer: '《紅樓夢》的主題思想深邃複雜...',
+        citations: [],
+        groundingMetadata: {
+          searchQueries: ['紅樓夢主題思想'],
+          webSources: [],
+          groundingSuccessful: true,
+        },
+        modelUsed: 'sonar-reasoning-pro',
+        modelKey: 'sonar-reasoning-pro',
+        reasoningEffort: 'high',
+        questionContext: 'theme',
+        processingTime: 4.1,
+        success: true,
+        streaming: false,
+        stoppedByUser: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 100,
+        questionLength: originalInput.userQuestion.length,
+        citationCount: 0,
+      };
+
+      mockClient.completionRequest.mockResolvedValue(mockResponse);
+
+      const result = await perplexityRedChamberQA(originalInput);
+
+      // Verify that all original input data is preserved in the response
+      expect(result.question).toBe(originalInput.userQuestion);
+      expect(result.modelKey).toBe(originalInput.modelKey);
+      expect(result.reasoningEffort).toBe(originalInput.reasoningEffort);
+      expect(result.questionContext).toBe(originalInput.questionContext);
+
+      // Verify that the client received the correct processed input
+      const clientCall = mockClient.completionRequest.mock.calls[0][0];
+      expect(clientCall.userQuestion).toBe(originalInput.userQuestion);
+      expect(clientCall.selectedText).toBe(originalInput.selectedText);
+      expect(clientCall.chapterContext).toBe(originalInput.chapterContext);
+      expect(clientCall.currentChapter).toBe(originalInput.currentChapter);
+    });
+  });
+
+  describe('Error Handling Integration', () => {
+    test('should handle network errors gracefully', async () => {
+      mockClient.completionRequest.mockRejectedValue(new Error('Network timeout'));
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試網絡錯誤處理',
+      };
+
+      const result = await perplexityRedChamberQA(input);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Network timeout');
+      expect(result.answer).toContain('處理您的問題時發生錯誤');
+      expect(result.question).toBe(input.userQuestion);
+      expect(result.citations).toEqual([]);
+      expect(result.groundingMetadata.groundingSuccessful).toBe(false);
+    });
+
+    test('should handle invalid API responses', async () => {
+      mockClient.completionRequest.mockResolvedValue({
+        question: '測試無效回應處理',
+        answer: '抱歉，處理您的問題時發生錯誤：Invalid API response format',
+        rawAnswer: '',
+        citations: [],
+        groundingMetadata: {
+          searchQueries: [],
+          webSources: [],
+          groundingSuccessful: false,
+        },
+        modelUsed: 'sonar-reasoning-pro',
+        modelKey: 'sonar-reasoning-pro',
+        reasoningEffort: 'high',
+        questionContext: 'general',
+        processingTime: 0,
+        success: false,
+        streaming: false,
+        stoppedByUser: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 0,
+        questionLength: 12,
+        citationCount: 0,
+        error: 'Invalid API response format',
+      });
+
+      const input: PerplexityQAInput = {
+        userQuestion: '測試無效回應處理',
+      };
+
+      const result = await perplexityRedChamberQA(input);
+
+      expect(result.success).toBe(false);
+      expect(result.answer).toContain('處理您的問題時發生錯誤');
+    });
+  });
+
+  describe('Batch Processing Integration', () => {
+    test('should process multiple questions in batch', async () => {
+      const mockResponses = [
+        {
+          question: '第一個問題',
+          answer: '第一個回答',
+          citations: [],
+          groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: true },
+          modelUsed: 'sonar-pro',
+          modelKey: 'sonar-pro',
+          processingTime: 1.0,
+          success: true,
+          streaming: false,
+          timestamp: new Date().toISOString(),
+          answerLength: 10,
+          questionLength: 5,
+          citationCount: 0,
+        },
+        {
+          question: '第二個問題',
+          answer: '第二個回答',
+          citations: [],
+          groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: true },
+          modelUsed: 'sonar-pro',
+          modelKey: 'sonar-pro',
+          processingTime: 1.5,
+          success: true,
+          streaming: false,
+          timestamp: new Date().toISOString(),
+          answerLength: 10,
+          questionLength: 5,
+          citationCount: 0,
+        },
+      ];
+
+      mockClient.completionRequest
+        .mockResolvedValueOnce(mockResponses[0])
+        .mockResolvedValueOnce(mockResponses[1]);
+
+      const batchInput: PerplexityBatchQAInput = {
+        questions: [
+          { userQuestion: '第一個問題', modelKey: 'sonar-pro' },
+          { userQuestion: '第二個問題', modelKey: 'sonar-pro' },
+        ],
+        sharedConfig: {
+          questionContext: 'general',
+          enableStreaming: false,
+        },
+        maxConcurrency: 2,
+      };
+
+      const result = await perplexityRedChamberQABatch(batchInput);
+
+      expect(result.success).toBe(true);
+      expect(result.responses).toHaveLength(2);
+      expect(result.batchMetadata.totalQuestions).toBe(2);
+      expect(result.batchMetadata.successfulQuestions).toBe(2);
+      expect(result.batchMetadata.failedQuestions).toBe(0);
+      expect(result.batchMetadata.totalProcessingTime).toBeGreaterThan(0);
+
+      // Verify that both questions were processed
+      expect(result.responses[0].question).toBe('第一個問題');
+      expect(result.responses[1].question).toBe('第二個問題');
+    });
+
+    test('should handle partial failures in batch processing', async () => {
+      mockClient.completionRequest
+        .mockResolvedValueOnce({
+          question: '成功的問題',
+          answer: '成功的回答',
+          citations: [],
+          groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: true },
+          modelUsed: 'sonar-pro',
+          modelKey: 'sonar-pro',
+          processingTime: 1.0,
+          success: true,
+          streaming: false,
+          timestamp: new Date().toISOString(),
+          answerLength: 10,
+          questionLength: 5,
+          citationCount: 0,
+        })
+        .mockRejectedValueOnce(new Error('API Error'));
+
+      const batchInput: PerplexityBatchQAInput = {
+        questions: [
+          { userQuestion: '成功的問題' },
+          { userQuestion: '失敗的問題' },
+        ],
+        maxConcurrency: 1,
+      };
+
+      const result = await perplexityRedChamberQABatch(batchInput);
+
+      expect(result.batchMetadata.totalQuestions).toBe(2);
+      expect(result.batchMetadata.successfulQuestions).toBe(1);
+      expect(result.batchMetadata.failedQuestions).toBe(1);
+      expect(result.errors).toBeDefined();
+      expect(result.errors![0]).toContain('Question 2: API Error');
+    });
+  });
+
+  describe('Input Validation Integration', () => {
+    test('should validate and reject invalid inputs', async () => {
+      const invalidInput = {
+        userQuestion: '', // Empty question
+        temperature: 2.0, // Invalid temperature
+        maxTokens: 10000, // Exceeds limit
+      } as PerplexityQAInput;
+
+      await expect(perplexityRedChamberQA(invalidInput)).rejects.toThrow('輸入驗證失敗');
+    });
+
+    test('should validate and accept valid inputs', () => {
+      const validInput: PerplexityQAInput = {
+        userQuestion: '這是一個有效的問題',
+        temperature: 0.5,
+        maxTokens: 1000,
+        modelKey: 'sonar-reasoning-pro',
+      };
+
+      const validation = validatePerplexityQAInput(validInput);
+      expect(validation.valid).toBe(true);
+      expect(validation.errors).toHaveLength(0);
+    });
+  });
+
+  describe('Type Safety and Compatibility', () => {
+    test('should maintain type safety across the integration pipeline', async () => {
+      const input = createPerplexityQAInputForFlow(
+        '類型安全測試問題',
+        { text: '選中的文字', position: null, range: null },
+        '章節上下文',
+        '測試章節'
+      );
+
+      // Type checks should pass at compile time
+      expect(typeof input.userQuestion).toBe('string');
+      expect(typeof input.selectedText).toBe('string');
+      expect(typeof input.chapterContext).toBe('string');
+      expect(typeof input.currentChapter).toBe('string');
+
+      // Mock a valid response
+      const mockResponse: PerplexityQAResponse = {
+        question: input.userQuestion,
+        answer: '類型安全的回答',
+        citations: [],
+        groundingMetadata: {
+          searchQueries: [],
+          webSources: [],
+          groundingSuccessful: true,
+        },
+        modelUsed: 'sonar-reasoning-pro',
+        modelKey: 'sonar-reasoning-pro',
+        processingTime: 1.0,
+        success: true,
+        streaming: false,
+        stoppedByUser: false,
+        timestamp: new Date().toISOString(),
+        answerLength: 20,
+        questionLength: input.userQuestion.length,
+        citationCount: 0,
+      };
+
+      mockClient.completionRequest.mockResolvedValue(mockResponse);
+
+      const result = await perplexityRedChamberQA(input);
+
+      // Type safety verification
+      expect(typeof result.question).toBe('string');
+      expect(typeof result.answer).toBe('string');
+      expect(Array.isArray(result.citations)).toBe(true);
+      expect(typeof result.processingTime).toBe('number');
+      expect(typeof result.success).toBe('boolean');
+    });
+  });
+});
