@@ -1,6 +1,10 @@
 ### Improvement Goal
 - The QA Module of the Reading Book
 
+- Realted code
+  - Front-end : `TheChamber_Of_RedMansion_FireBaseStudio\src\components\ui`
+  - back-end：  `TheChamber_Of_RedMansion_FireBaseStudio\src\ai`
+
 ### Current QA Module User Process Flow
 
 ```mermaid
