@@ -6,7 +6,7 @@ Start with reading the `CLAUDE.md` file if it exists to get an understanding of 
 
 Read the current root project folder README.md file to get an understanding of the project.
 
-Read key files in `streamlit_pipeline` of directory.
+Read key files in root project of directory.
 
 And please run this command to wake up the `serena` mcp sever in background : `uvx --from git+https://github.com/oraios/serena serena start-mcp-server --transport sse
   --enable-web-dashboard true --context ide-assistant` with openning local web dashboard.
