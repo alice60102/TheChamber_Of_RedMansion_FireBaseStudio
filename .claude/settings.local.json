@@ -48,7 +48,13 @@
       "Bash(else echo \"No package-lock.json found\")",
       "Bash(pnpm:*)",
       "Bash(then echo \"node_modules directory exists\")",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(curl -LsSf https://astral.sh/uv/install.sh)",
+      "Bash(sh)",
+      "Bash(source $HOME/.local/bin/env)",
+      "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
+      "Bash(wc:*)",
+      "Bash(ls:*)"
     ]
   },
   "outputStyle": "default"
