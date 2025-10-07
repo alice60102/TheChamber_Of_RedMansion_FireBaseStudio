@@ -22,7 +22,18 @@
       "Bash(env)",
       "Bash(claude help)",
       "Bash(git rm:*)",
-      "Read(//d/AboutCoding/AI_Research/GraphJudge_TextToKG_CLI/streamlit_pipeline/**)"
+      "Read(//d/AboutCoding/AI_Research/GraphJudge_TextToKG_CLI/streamlit_pipeline/**)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run build:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run dev:*)",
+      "Bash(rd:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(findstr:*)",
+      "Read(//d/AboutUniversity/114 NSTC_and_SeniorProject/2025-IM-senior-project/.git/**)"
     ]
   },
   "outputStyle": "default"

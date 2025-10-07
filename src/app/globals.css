@@ -36,134 +36,153 @@ body {
 }
 
 /**
- * CSS Custom Properties (Design Tokens)
- * 
+ * CSS Custom Properties (Design Tokens) - Museum-Observed Color System
+ *
  * This layer defines the core design system using CSS custom properties for consistent theming.
  * All colors are defined in HSL format for easier manipulation and better color relationships.
- * The color system is carefully crafted to evoke traditional Chinese aesthetics while
+ * The color system is inspired by museum exhibitions and classical Chinese aesthetics,
  * maintaining modern usability and accessibility standards.
+ *
+ * Color Scheme:
+ * - Deep Chinese Red (#B8312F) for homepage scroll background
+ * - Sage Green (#4A5D4F) for content pages
+ * - Black panels (#1A1A1A) with subtle shadows and rounded corners
+ * - Gold highlights (#D4AF37) for titles and emphasis
+ * - Warm gray-rose (#D4A5A5-#E8B4AA) for interactive elements and highlights
  */
 @layer base {
   :root {
-    /* Primary background and text colors */
-    --background: 0 60% 25%;    /* Deep red-brown background (#662929) - main app background */
-    --foreground: 30 40% 90%;   /* Warm off-white text - primary text color for readability */
+    /* Background colors based on display mode */
+    --background: 0 60% 25%;        /* Deep Chinese Red (#B8312F) - homepage scroll background */
+    --background-content: 85 12% 32%; /* Sage Green (#4A5D4F) - content pages background */
+    --foreground: 0 0% 100%;        /* Pure white (#FFFFFF) - primary text color for readability */
 
-    /* Card and container colors */
-    --card: 0 65% 15%;          /* Darker red for card backgrounds - creates depth and hierarchy */
-    --card-foreground: 30 40% 90%; /* Consistent text color on cards */
+    /* Card and container colors - Black panels with museum aesthetic */
+    --card: 0 0% 10%;               /* Black panels (#1A1A1A) - creates depth and hierarchy */
+    --card-foreground: 0 0% 100%;   /* White text on black cards for high contrast */
 
     /* Popover and dropdown colors */
-    --popover: 0 65% 15%;       /* Same as card for consistency in floating elements */
-    --popover-foreground: 30 40% 90%; /* Readable text on popovers */
+    --popover: 0 0% 10%;            /* Same as card for consistency in floating elements */
+    --popover-foreground: 0 0% 100%; /* White text on popovers */
 
-    /* Primary action colors (buttons, links) */
-    --primary: 45 56% 62%;      /* Gold (#D4B76A) - represents value and importance of learning */
-    --primary-foreground: 0 70% 11%; /* Dark red-brown for high contrast on gold backgrounds */
+    /* Primary action colors - Gold highlights */
+    --primary: 45 75% 54%;          /* Gold (#D4AF37) - represents value and importance of learning */
+    --primary-foreground: 0 0% 0%;  /* Black text for high contrast on gold backgrounds */
 
     /* Secondary element colors */
-    --secondary: 0 50% 25%;     /* Medium red for secondary buttons and elements */
-    --secondary-foreground: 30 40% 90%; /* Consistent light text */
+    --secondary: 85 12% 32%;        /* Sage green for secondary buttons and elements */
+    --secondary-foreground: 0 0% 100%; /* White text on sage green */
 
     /* Muted/disabled element colors */
-    --muted: 0 70% 8%;          /* Very dark red for disabled backgrounds */
-    --muted-foreground: 0 0% 60%; /* Gray text for disabled/muted content */
+    --muted: 0 0% 15%;              /* Dark gray for disabled backgrounds */
+    --muted-foreground: 0 0% 60%;   /* Gray text for disabled/muted content */
 
-    /* Accent colors for highlights and special elements */
-    --accent: 45 56% 62%;       /* Gold accent (#D4B76A) - same as primary for consistency */
-    --accent-foreground: 0 70% 11%; /* Dark text on accent backgrounds */
+    /* Accent colors - Perfect highlight pink from museum observations */
+    --accent: 0 25% 73%;            /* Warm gray-rose (#D4A5A5) - interactive elements */
+    --accent-hover: 12 32% 79%;     /* Warmer gray-rose (#E8B4AA) - hover states */
+    --accent-foreground: 0 0% 0%;   /* Black text on accent backgrounds for readability */
 
     /* Error and warning colors */
-    --destructive: 0 84.2% 60.2%; /* Bright red for errors and dangerous actions */
+    --destructive: 0 84% 60%;       /* Bright red for errors and dangerous actions */
     --destructive-foreground: 0 0% 98%; /* White text on error backgrounds */
 
-    /* Border and input styling */
-    --border: 45 56% 30%;       /* Dark gold for borders - subtle but elegant */
-    --input: 0 65% 20%;         /* Darker red for input borders - less prominent */
-    --ring: 45 56% 62%;         /* Gold focus rings for accessibility */
+    /* Border and input styling with subtle gold touches */
+    --border: 45 75% 25%;           /* Dark gold for borders - subtle but elegant */
+    --input: 0 0% 20%;              /* Dark gray for input borders */
+    --ring: 0 25% 73%;              /* Accent pink focus rings for accessibility */
 
     /* Border radius for consistent rounded corners */
-    --radius: 0.5rem;           /* 8px - moderate rounding for modern but not overly rounded feel */
+    --radius: 0.75rem;              /* 12px - slightly more rounded for museum elegance */
 
     /* Chart and data visualization colors */
-    /* These colors are chosen to work well together and provide good contrast */
-    --chart-1: 12 76% 61%;      /* Orange-red for primary data series */
-    --chart-2: 173 60% 75%;     /* Light teal/cyan for secondary data series */
-    --chart-3: 197 50% 65%;     /* Lighter blue/cyan for progress indicators */
-    --chart-4: 43 74% 66%;      /* Yellow-orange for tertiary data */
-    --chart-5: 27 87% 67%;      /* Orange for quaternary data */
+    /* Colors chosen to complement the new museum aesthetic */
+    --chart-1: 0 60% 55%;           /* Deep red for primary data series */
+    --chart-2: 85 25% 45%;          /* Sage green for secondary data series */
+    --chart-3: 45 75% 54%;          /* Gold for tertiary data */
+    --chart-4: 0 25% 73%;           /* Accent pink for quaternary data */
+    --chart-5: 0 0% 30%;            /* Dark gray for additional data */
 
     /* Sidebar navigation specific colors */
-    /* Optimized for the collapsible navigation component */
-    --sidebar-background: 0 68% 13%;    /* Very dark red background for sidebar */
-    --sidebar-foreground: 30 30% 85%;   /* Light text for sidebar items */
-    --sidebar-primary: 45 56% 62%;      /* Gold for active/selected navigation items */
-    --sidebar-primary-foreground: 0 70% 11%; /* Dark text on active items */
-    --sidebar-accent: 0 63% 35%;        /* Medium red for hover states */
-    --sidebar-accent-foreground: 30 40% 90%; /* Light text on hover */
-    --sidebar-border: 45 56% 30%;       /* Dark gold for sidebar borders */
-    --sidebar-ring: 45 56% 62%;         /* Gold focus rings for navigation accessibility */
+    --sidebar-background: 0 0% 8%;      /* Very dark gray background for sidebar */
+    --sidebar-foreground: 0 0% 90%;     /* Light gray text for sidebar items */
+    --sidebar-primary: 45 75% 54%;      /* Gold for active/selected navigation items */
+    --sidebar-primary-foreground: 0 0% 0%; /* Black text on active items */
+    --sidebar-accent: 0 25% 73%;        /* Accent pink for hover states */
+    --sidebar-accent-foreground: 0 0% 0%; /* Black text on hover */
+    --sidebar-border: 45 75% 25%;       /* Dark gold for sidebar borders */
+    --sidebar-ring: 0 25% 73%;          /* Accent pink focus rings for navigation accessibility */
+
+    /* Scroll-specific background colors */
+    --scroll-background: 0 61% 45%;     /* Deep Chinese Red (#B8312F) for horizontal scroll */
+    --content-background: 85 12% 32%;   /* Sage Green (#4A5D4F) for content pages */
   }
 
   /**
-   * Dark Mode Theme Colors
-   * 
-   * Currently maintaining consistency with light mode for this specific classical Chinese theme.
-   * The application uses a dark theme by default, so dark mode keeps the same sophisticated
-   * red and gold color palette. In the future, this could be customized for true dark mode
-   * if user preference data suggests different dark mode colors would be beneficial.
+   * Dark Mode Theme Colors - Museum-Observed Enhanced
+   *
+   * Maintains consistency with the museum-observed color system while providing
+   * enhanced contrast and visual refinement for dark mode preferences.
+   * The color palette preserves cultural authenticity while optimizing for
+   * extended reading sessions and visual comfort.
    */
   .dark {
-    /* Core colors - identical to light mode for consistent classical theme */
-    --background: 0 60% 25%;        /* Same deep red-brown background */
-    --foreground: 30 40% 90%;       /* Same warm off-white text */
+    /* Core colors - enhanced museum aesthetic for dark mode */
+    --background: 0 61% 45%;            /* Deep Chinese Red (#B8312F) - enhanced for dark mode */
+    --background-content: 85 12% 28%;   /* Darker sage green for content pages */
+    --foreground: 0 0% 100%;            /* Pure white text for maximum readability */
 
-    /* Container colors */
-    --card: 0 65% 15%;              /* Same dark red for cards */
-    --card-foreground: 30 40% 90%;  /* Same text color on cards */
+    /* Container colors - Museum black panels with enhanced depth */
+    --card: 0 0% 8%;                    /* Deeper black panels for enhanced depth */
+    --card-foreground: 0 0% 100%;       /* Pure white text on cards */
 
-    --popover: 0 65% 15%;           /* Same popover background */
-    --popover-foreground: 30 40% 90%; /* Same popover text */
+    --popover: 0 0% 8%;                 /* Same deep black for floating elements */
+    --popover-foreground: 0 0% 100%;    /* White text on popovers */
 
-    /* Action colors */
-    --primary: 45 56% 62%;          /* Same gold for primary actions */
-    --primary-foreground: 0 70% 11%; /* Same dark contrast text */
+    /* Action colors - Enhanced gold for dark mode */
+    --primary: 45 80% 58%;              /* Brighter gold (#D4AF37) for dark mode visibility */
+    --primary-foreground: 0 0% 0%;      /* Black text for contrast */
 
-    --secondary: 0 50% 25%;         /* Same secondary red */
-    --secondary-foreground: 30 40% 90%; /* Same secondary text */
+    --secondary: 85 12% 28%;            /* Darker sage green for secondary elements */
+    --secondary-foreground: 0 0% 100%;  /* White text on sage green */
 
-    /* State colors */
-    --muted: 0 70% 8%;              /* Same very dark red for muted elements */
-    --muted-foreground: 0 0% 60%;   /* Same gray for muted text */
+    /* State colors - Enhanced muted tones */
+    --muted: 0 0% 12%;                  /* Darker gray for disabled backgrounds */
+    --muted-foreground: 0 0% 55%;       /* Lighter gray for muted text visibility */
 
-    --accent: 45 56% 62%;           /* Same gold accent */
-    --accent-foreground: 0 70% 11%; /* Same accent text */
+    /* Accent colors - Enhanced highlight pink for dark mode */
+    --accent: 0 28% 75%;                /* Enhanced warm gray-rose for better visibility */
+    --accent-hover: 12 35% 81%;         /* Brighter hover state for clear feedback */
+    --accent-foreground: 0 0% 0%;       /* Black text on accent backgrounds */
 
-    /* Error colors - slightly adjusted for dark mode */
-    --destructive: 0 62.8% 30.6%;   /* Darker red for errors in dark mode */
-    --destructive-foreground: 0 0% 98%; /* Same white text on errors */
+    /* Error colors - Balanced for dark mode */
+    --destructive: 0 70% 50%;           /* Darker red for errors in dark mode */
+    --destructive-foreground: 0 0% 98%; /* White text on errors */
 
-    /* Interactive element colors */
-    --border: 45 56% 30%;           /* Same dark gold borders */
-    --input: 0 65% 20%;             /* Same input styling */
-    --ring: 45 56% 62%;             /* Same gold focus rings */
-    
-    /* Chart colors - slightly different palette for dark mode data visualization */
-    --chart-1: 220 70% 50%;         /* Blue for primary data in dark mode */
-    --chart-2: 173 60% 75%;         /* Light teal/cyan - consistent with light mode */
-    --chart-3: 197 50% 65%;         /* Lighter blue/cyan for progress - consistent */
-    --chart-4: 280 65% 60%;         /* Purple for tertiary data */
-    --chart-5: 340 75% 55%;         /* Pink for quaternary data */
+    /* Interactive element colors - Enhanced visibility */
+    --border: 45 75% 30%;               /* Lighter gold borders for better definition */
+    --input: 0 0% 25%;                  /* Lighter input borders for visibility */
+    --ring: 0 28% 75%;                  /* Enhanced accent pink for focus states */
 
-    /* Sidebar colors - same as light mode for consistency */
-    --sidebar-background: 0 68% 13%;    /* Same very dark red */
-    --sidebar-foreground: 30 30% 85%;   /* Same light text */
-    --sidebar-primary: 45 56% 62%;      /* Same gold for active items */
-    --sidebar-primary-foreground: 0 70% 11%; /* Same dark text on active */
-    --sidebar-accent: 0 63% 35%;        /* Same medium red for hover */
-    --sidebar-accent-foreground: 30 40% 90%; /* Same light text on hover */
-    --sidebar-border: 45 56% 30%;       /* Same gold borders */
-    --sidebar-ring: 45 56% 62%;         /* Same gold focus rings */
+    /* Chart colors - Dark mode optimized museum palette */
+    --chart-1: 0 65% 60%;               /* Enhanced red for primary data visibility */
+    --chart-2: 85 20% 50%;              /* Enhanced sage green for secondary data */
+    --chart-3: 45 80% 58%;              /* Bright gold for tertiary data */
+    --chart-4: 0 28% 75%;               /* Accent pink for quaternary data */
+    --chart-5: 0 0% 40%;                /* Lighter gray for additional data visibility */
+
+    /* Sidebar colors - Enhanced for dark mode navigation */
+    --sidebar-background: 0 0% 6%;          /* Deeper black for sidebar */
+    --sidebar-foreground: 0 0% 92%;         /* Brighter text for sidebar items */
+    --sidebar-primary: 45 80% 58%;          /* Enhanced gold for active items */
+    --sidebar-primary-foreground: 0 0% 0%;  /* Black text on active items */
+    --sidebar-accent: 0 28% 75%;            /* Enhanced accent pink for hover */
+    --sidebar-accent-foreground: 0 0% 0%;   /* Black text on hover for readability */
+    --sidebar-border: 45 75% 30%;           /* Enhanced gold borders */
+    --sidebar-ring: 0 28% 75%;              /* Enhanced accent pink focus rings */
+
+    /* Enhanced scroll-specific backgrounds for dark mode */
+    --scroll-background: 0 61% 45%;         /* Deep Chinese Red maintained */
+    --content-background: 85 12% 28%;       /* Darker sage green for content */
   }
 }
 
@@ -189,32 +208,41 @@ body {
 }
 
 /**
- * Custom Scrollbar Styling
- * 
- * Creates an elegant scrollbar that matches the classical Chinese theme.
- * Uses theme colors for consistency and provides a more refined user experience
- * than default browser scrollbars.
+ * Custom Scrollbar Styling - Museum Aesthetic
+ *
+ * Creates an elegant scrollbar that matches the museum-observed color scheme.
+ * Uses the perfect highlight pink for consistent theming and provides a refined
+ * user experience that complements the classical Chinese aesthetic.
  */
 ::-webkit-scrollbar {
-  width: 8px;   /* Narrow scrollbar for elegance */
-  height: 8px;  /* Same width for horizontal scrollbars */
+  width: 10px;   /* Slightly wider for better visibility and elegance */
+  height: 10px;  /* Same width for horizontal scrollbars */
 }
 
 /* Scrollbar track (background area) */
 ::-webkit-scrollbar-track {
   background: hsl(var(--muted));    /* Use muted theme color for subtle track */
   border-radius: var(--radius);     /* Rounded corners matching theme */
+  border: 1px solid hsl(var(--border) / 0.3); /* Subtle border for definition */
 }
 
 /* Scrollbar thumb (draggable part) */
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--accent) / 0.7); /* Semi-transparent accent color */
+  background: hsl(var(--accent) / 0.8); /* Semi-transparent accent pink */
   border-radius: var(--radius);          /* Rounded corners matching theme */
+  border: 1px solid hsl(var(--accent) / 0.9); /* Subtle border for definition */
+  transition: all 0.2s ease-in-out;      /* Smooth transition for interactions */
 }
 
-/* Scrollbar thumb on hover - more prominent */
+/* Scrollbar thumb on hover - enhanced feedback */
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--accent)); /* Full opacity accent color on hover */
+  background: hsl(var(--accent-hover)); /* Full accent pink on hover */
+  transform: scale(1.02);                /* Subtle scale effect for feedback */
+}
+
+/* Scrollbar corner (where horizontal and vertical scrollbars meet) */
+::-webkit-scrollbar-corner {
+  background: hsl(var(--muted));         /* Consistent with track background */
 }
 
 /**
@@ -234,7 +262,7 @@ body {
 
 /**
  * Artistic Typography Class
- * 
+ *
  * Used for headings and important text that should evoke traditional Chinese
  * calligraphy and classical literature. Currently uses Noto Serif SC but
  * could be enhanced with a dedicated calligraphy font for even more authenticity.
@@ -244,4 +272,427 @@ body {
   font-weight: 700;                     /* Bold weight for prominence and readability */
 }
 
-    
+/**
+ * Museum-Style Utility Classes
+ *
+ * Custom utility classes for implementing the museum-observed design system
+ * and supporting the multi-mode interface architecture.
+ */
+
+/* Background mode utilities */
+.bg-scroll {
+  background: hsl(var(--scroll-background)); /* Deep Chinese Red for scroll mode */
+}
+
+.bg-content {
+  background: hsl(var(--content-background)); /* Sage Green for content mode */
+}
+
+.bg-museum-panel {
+  background: hsl(var(--card));               /* Black panels for museum aesthetic */
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              0 2px 8px rgba(0, 0, 0, 0.2);    /* Sophisticated shadow system */
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border) / 0.3); /* Subtle border definition */
+}
+
+/* Horizontal scroll container */
+.horizontal-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+  scrollbar-width: thin;             /* Firefox thin scrollbar */
+}
+
+/* Perfect highlight pink utilities */
+.accent-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accent-hover:hover {
+  background: hsl(var(--accent-hover));
+  color: hsl(var(--accent-foreground));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px hsl(var(--accent) / 0.3);
+}
+
+/* Museum exhibition card styling */
+.museum-card {
+  background: hsl(var(--card));
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border) / 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+              0 1px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.museum-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              0 4px 16px hsl(var(--accent) / 0.2);
+  border-color: hsl(var(--accent) / 0.4);
+}
+
+/* Window frame navigation styling */
+.window-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.window-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--border) / 0.3) 0%,
+    hsl(var(--border) / 0.1) 50%,
+    hsl(var(--border) / 0.3) 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Parallax depth effects */
+.parallax-near {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.parallax-mid {
+  transform: translateZ(-1px) scale(1.1);
+  will-change: transform;
+}
+
+.parallax-far {
+  transform: translateZ(-2px) scale(1.2);
+  will-change: transform;
+}
+
+/* Traditional Chinese reading flow */
+.reading-flow-traditional {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  direction: rtl;
+}
+
+/* Momentum scroll enhancement */
+.momentum-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  transition: scroll-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Character garden navigation elements */
+.character-garden-item {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.character-garden-item:hover {
+  color: hsl(var(--accent-hover));
+  text-shadow: 0 0 8px hsl(var(--accent) / 0.5);
+}
+
+.character-garden-item::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: hsl(var(--accent));
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(-50%);
+}
+
+.character-garden-item:hover::after {
+  width: 100%;
+}
+
+/* Enhanced Animation System */
+
+/* Seasonal transformation animations */
+@keyframes seasonalShift {
+  0% { filter: hue-rotate(0deg) saturate(1); }
+  25% { filter: hue-rotate(10deg) saturate(1.1); }
+  50% { filter: hue-rotate(20deg) saturate(1.2); }
+  75% { filter: hue-rotate(10deg) saturate(1.1); }
+  100% { filter: hue-rotate(0deg) saturate(1); }
+}
+
+.seasonal-animation {
+  animation: seasonalShift 20s ease-in-out infinite;
+}
+
+/* Momentum scroll enhancement animations */
+@keyframes scrollMomentum {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(var(--momentum-distance, 0px)); }
+}
+
+.momentum-scrolling {
+  animation: scrollMomentum var(--momentum-duration, 0.5s) cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Floating animations for interactive elements */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-10px) rotate(1deg); }
+  66% { transform: translateY(-5px) rotate(-1deg); }
+}
+
+.floating-element {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Character garden breathing animation */
+@keyframes breathe {
+  0%, 100% { transform: scale(1) translateY(0px); }
+  50% { transform: scale(1.02) translateY(-2px); }
+}
+
+.character-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Museum card entrance animations */
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+.card-enter {
+  animation: cardSlideIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Stagger animation delays for multiple cards */
+.card-enter:nth-child(1) { animation-delay: 0.1s; }
+.card-enter:nth-child(2) { animation-delay: 0.2s; }
+.card-enter:nth-child(3) { animation-delay: 0.3s; }
+.card-enter:nth-child(4) { animation-delay: 0.4s; }
+.card-enter:nth-child(5) { animation-delay: 0.5s; }
+.card-enter:nth-child(6) { animation-delay: 0.6s; }
+
+/* Window frame reveal animation */
+@keyframes frameReveal {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    clip-path: circle(45% at 50% 50%);
+    opacity: 1;
+  }
+}
+
+.frame-reveal {
+  animation: frameReveal 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Text reveal animations */
+@keyframes textSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+.text-slide-up {
+  animation: textSlideUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Parallax enhancement animations */
+@keyframes parallaxFloat {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-5px) translateX(3px); }
+  50% { transform: translateY(-8px) translateX(0px); }
+  75% { transform: translateY(-3px) translateX(-3px); }
+}
+
+.parallax-floating {
+  animation: parallaxFloat 8s ease-in-out infinite;
+}
+
+/* Interactive hover pulse */
+@keyframes hoverPulse {
+  0% { box-shadow: 0 0 0 0 hsl(var(--accent) / 0.4); }
+  50% { box-shadow: 0 0 0 10px hsl(var(--accent) / 0.1); }
+  100% { box-shadow: 0 0 0 20px hsl(var(--accent) / 0); }
+}
+
+.hover-pulse:hover {
+  animation: hoverPulse 1.5s ease-out;
+}
+
+/* Progress indicator animations */
+@keyframes progressGlow {
+  0%, 100% { box-shadow: 0 0 5px hsl(var(--accent) / 0.3); }
+  50% { box-shadow: 0 0 15px hsl(var(--accent) / 0.6), 0 0 25px hsl(var(--accent) / 0.2); }
+}
+
+.progress-glow {
+  animation: progressGlow 2s ease-in-out infinite;
+}
+
+/* Enhanced scroll indicator */
+@keyframes scrollIndicator {
+  0% { opacity: 1; transform: translateX(0px); }
+  50% { opacity: 0.7; transform: translateX(10px); }
+  100% { opacity: 1; transform: translateX(0px); }
+}
+
+.scroll-indicator {
+  animation: scrollIndicator 2s ease-in-out infinite;
+}
+
+/* Garden element specific animations */
+@keyframes leafRustle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(2deg) scale(1.01); }
+  75% { transform: rotate(-2deg) scale(0.99); }
+}
+
+.leaf-rustle {
+  animation: leafRustle 4s ease-in-out infinite;
+}
+
+@keyframes waterRipple {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.water-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  border: 2px solid hsl(var(--accent));
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: waterRipple 3s ease-out infinite;
+}
+
+/* Enhanced entrance animations */
+@keyframes heroEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(60px) scale(0.9);
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+    filter: blur(0px);
+  }
+}
+
+.hero-entrance {
+  animation: heroEntrance 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Stagger delays for hero text elements */
+.hero-entrance-1 { animation-delay: 0.2s; }
+.hero-entrance-2 { animation-delay: 0.4s; }
+.hero-entrance-3 { animation-delay: 0.6s; }
+.hero-entrance-4 { animation-delay: 0.8s; }
+
+/* Interactive micro-animations */
+@keyframes buttonPress {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+.button-press:active {
+  animation: buttonPress 0.1s ease-out;
+}
+
+/* Enhanced accent hover with ripple effect */
+.accent-hover-enhanced {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accent-hover-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: hsl(var(--accent-hover) / 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease-out, height 0.3s ease-out;
+}
+
+.accent-hover-enhanced:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* Accessibility enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .accent-hover,
+  .museum-card,
+  .character-garden-item,
+  .momentum-scroll {
+    transition: none;
+    animation: none;
+  }
+
+  .parallax-near,
+  .parallax-mid,
+  .parallax-far {
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .museum-card {
+    border-width: 2px;
+    border-color: hsl(var(--foreground));
+  }
+
+  .accent-hover:hover {
+    outline: 2px solid hsl(var(--foreground));
+    outline-offset: 2px;
+  }
+}
+

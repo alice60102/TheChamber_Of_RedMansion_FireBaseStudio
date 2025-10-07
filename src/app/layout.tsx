@@ -32,6 +32,8 @@ import { AuthProvider } from '@/context/AuthContext';
 import { LanguageProvider } from '@/context/LanguageContext';
 // Import hydration debugger for development (only active in dev mode)
 import HydrationDebugger from '@/components/HydrationDebugger';
+// Import chunk error boundary for handling dynamic import failures
+import ChunkErrorBoundary from '@/components/ChunkErrorBoundary';
 
 // Note: Noto Serif SC (Chinese serif font) is imported in globals.css for classical literature display
 
@@ -84,19 +86,27 @@ export default function RootLayout({
       {/* Body with font-sans class for consistent typography */}
       <body className="font-sans">
         {/* Authentication Provider - Manages user login/logout state for entire app */}
-        <AuthProvider>
-          {/* Language Provider - Manages multilingual support and translations */}
-          <LanguageProvider>
-            {/* All page content is rendered here */}
-            {children}
-            
-            {/* Toast notification system for user feedback messages */}
-            <Toaster />
-            
-            {/* Development-only hydration debugger */}
-            <HydrationDebugger />
-          </LanguageProvider>
-        </AuthProvider>
+        <ChunkErrorBoundary enableAutoRetry={true} maxRetries={2}>
+          <AuthProvider>
+            {/* Language Provider - Manages multilingual support and translations */}
+            <ChunkErrorBoundary enableAutoRetry={true} maxRetries={2}>
+              <LanguageProvider>
+                {/* All page content is rendered here */}
+                {children}
+
+                {/* Toast notification system for user feedback messages */}
+                <ChunkErrorBoundary enableAutoRetry={true} maxRetries={3}>
+                  <Toaster />
+                </ChunkErrorBoundary>
+
+                {/* Development-only hydration debugger */}
+                <ChunkErrorBoundary>
+                  <HydrationDebugger />
+                </ChunkErrorBoundary>
+              </LanguageProvider>
+            </ChunkErrorBoundary>
+          </AuthProvider>
+        </ChunkErrorBoundary>
       </body>
     </html>
   );
