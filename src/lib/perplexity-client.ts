@@ -341,7 +341,7 @@ export class PerplexityClient {
     prompt += `3. 深入的文學分析和解讀\n`;
     prompt += `4. 必要的歷史文化背景\n`;
     prompt += `5. 與其他角色或情節的關聯\n\n`;
-    prompt += `請使用繁體中文回答，語言要學術性但易於理解。`;
+    prompt += `請使用繁體中文回答，語言要學術性但易於理解。若輸出包含 <think> 或思考過程文字，亦請以繁體中文撰寫（不要使用英文）。`;
 
     return prompt;
   }
@@ -610,29 +610,85 @@ export class PerplexityClient {
    */
   private async* parseStreamingResponse(stream: any): AsyncGenerator<PerplexityStreamChunk> {
     let buffer = '';
+    let chunkCount = 0;
+    let lineCount = 0;
+    let yieldCount = 0;
 
-    for await (const chunk of stream) {
-      buffer += chunk.toString();
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
+    console.log('🐛 [parseStreamingResponse] Starting stream parsing');
 
-      for (const line of lines) {
-        if (line.trim().startsWith('data: ')) {
-          const data = line.trim().substring(6);
-          
-          if (data === '[DONE]') {
-            return;
+    try {
+      for await (const chunk of stream) {
+        chunkCount++;
+        const chunkStr = chunk.toString();
+        console.log(`🐛 [parseStreamingResponse] Chunk ${chunkCount}:`, {
+          length: chunkStr.length,
+          preview: chunkStr.substring(0, 150).replace(/\n/g, '\\n'),
+          bufferLength: buffer.length
+        });
+
+        buffer += chunkStr;
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        console.log(`🐛 [parseStreamingResponse] Split into ${lines.length} lines, buffer remainder: ${buffer.length} chars`);
+
+        for (const line of lines) {
+          lineCount++;
+          const trimmedLine = line.trim();
+
+          if (trimmedLine.length > 0) {
+            console.log(`🐛 [parseStreamingResponse] Line ${lineCount}:`, {
+              starts: trimmedLine.substring(0, 20),
+              length: trimmedLine.length,
+              isData: trimmedLine.startsWith('data: ')
+            });
           }
 
-          try {
-            const parsed: PerplexityStreamChunk = JSON.parse(data);
-            yield parsed;
-          } catch (error) {
-            // Skip invalid JSON chunks
-            console.warn('Failed to parse streaming chunk:', data);
+          if (trimmedLine.startsWith('data: ')) {
+            const data = trimmedLine.substring(6);
+
+            if (data === '[DONE]') {
+              console.log('🐛 [parseStreamingResponse] Received [DONE] signal');
+              return;
+            }
+
+            try {
+              const parsed: PerplexityStreamChunk = JSON.parse(data);
+              yieldCount++;
+              console.log(`🐛 [parseStreamingResponse] Successfully parsed and yielding chunk ${yieldCount}:`, {
+                hasChoices: !!parsed.choices,
+                choicesLength: parsed.choices?.length,
+                hasDelta: !!parsed.choices?.[0]?.delta,
+                hasContent: !!parsed.choices?.[0]?.delta?.content,
+                contentPreview: parsed.choices?.[0]?.delta?.content?.substring(0, 50)
+              });
+              yield parsed;
+            } catch (error) {
+              // Skip invalid JSON chunks
+              console.error('🐛 [parseStreamingResponse] Failed to parse JSON:', {
+                data: data.substring(0, 200),
+                error: error instanceof Error ? error.message : 'Unknown error'
+              });
+            }
           }
         }
       }
+
+      console.log('🐛 [parseStreamingResponse] Stream iteration completed:', {
+        totalChunks: chunkCount,
+        totalLines: lineCount,
+        totalYields: yieldCount,
+        remainingBuffer: buffer.length
+      });
+
+    } catch (error) {
+      console.error('🐛 [parseStreamingResponse] Stream iteration error:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        chunksProcessed: chunkCount,
+        linesProcessed: lineCount,
+        yieldsProcessed: yieldCount
+      });
+      throw error;
     }
   }
 

@@ -30,6 +30,9 @@
 @tailwind components; /* Component-level styles */
 @tailwind utilities;  /* Utility classes for rapid development */
 
+/* Import QA Module professional styles */
+@import '../styles/qa-module.css';
+
 /* Set global font family for consistent Chinese text rendering */
 body {
   font-family: 'Noto Serif SC', serif; /* Primary font for Chinese text with serif fallback */

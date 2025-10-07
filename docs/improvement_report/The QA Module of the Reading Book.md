@@ -1,9 +1,24 @@
 ### Improvement Goal
 - The QA Module of the Reading Book
 
-- Realted code
-  - Front-end : `TheChamber_Of_RedMansion_FireBaseStudio\src\components\ui`
-  - back-end：  `TheChamber_Of_RedMansion_FireBaseStudio\src\ai`
+- Related code (17 files)
+  1. `src/components/ui/AIMessageBubble.tsx` - Unified AI message component combining thinking process, answer content, and citations in a single bubble
+  2. `src/components/ui/StructuredQAResponse.tsx` - Structured answer display with numbered sections, professional typography, and inline citation integration
+  3. `src/components/ui/ThinkingProcessIndicator.tsx` - AI thinking status visualization with collapsible "Thought for X seconds" header
+  4. `src/components/ui/ConversationFlow.tsx` - Messaging-app-style conversation interface with message bubbles, timestamps, and "--開啟新對話--" separator
+  5. `src/components/ui/CitationDisplay.tsx` - Citation rendering component with interactive links and reference management
+  6. `src/styles/qa-module.css` - Professional visual hierarchy with typography scales, spacing tokens, and semantic color system
+  7. `src/app/api/perplexity-qa-stream/route.ts` - Server-Sent Events (SSE) streaming API endpoint for real-time response delivery
+  8. `src/ai/flows/perplexity-red-chamber-qa.ts` - Perplexity AI integration flow using Sonar reasoning models for Red Chamber literature QA
+  9. `src/ai/flows/grounded-red-chamber-qa.ts` - Grounded QA implementation with knowledge base grounding for accurate literary analysis
+  10. `src/ai/perplexity-config.ts` - Perplexity model configuration with adaptive timeout strategy (30s-120s based on question complexity)
+  11. `src/lib/perplexity-client.ts` - Perplexity API client wrapper with streaming support and error handling
+  12. `src/lib/perplexity-error-handler.ts` - Error classification system (timeout, rate limit, API, network) and progressive recovery strategies
+  13. `src/lib/citation-processor.ts` - Citation parsing, inline integration utilities, and reference section generation
+  14. `src/types/perplexity-qa.ts` - Perplexity QA type definitions including streaming response interfaces and citation structures
+  15. `src/types/grounded-qa.ts` - Grounded QA type definitions for knowledge-base-backed literary analysis
+  16. `src/app/(main)/read-book/page.tsx` - QA module integration in reading interface with conversation state management and localStorage persistence
+  17. `docs/improvement_report/The QA Module of the Reading Book.md` - Comprehensive documentation of QA module architecture, user flow, and implementation standards
 
 ### Current QA Module User Process Flow
 

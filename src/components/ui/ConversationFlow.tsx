@@ -48,6 +48,9 @@ export interface ConversationMessage {
   /** Optional thinking process (for AI messages) */
   thinkingProcess?: string;
 
+  /** Thinking duration in seconds (for AI messages) */
+  thinkingDuration?: number;
+
   /** Whether message is currently streaming */
   isStreaming?: boolean;
 
@@ -185,13 +188,22 @@ function MessageBubble({ message, renderContent }: MessageBubbleProps) {
           )}
         >
           {/* Custom or default content rendering */}
-          {renderContent ? (
-            renderContent(message)
-          ) : (
-            <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
-              {message.content}
-            </div>
-          )}
+          {(() => {
+            // If custom render function provided, try using it
+            if (renderContent) {
+              const customContent = renderContent(message);
+              // Only use custom content if it's not undefined
+              if (customContent !== undefined) {
+                return customContent;
+              }
+            }
+            // Fall back to default rendering
+            return (
+              <div className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                {message.content}
+              </div>
+            );
+          })()}
 
           {/* Error message */}
           {message.hasError && message.errorMessage && (

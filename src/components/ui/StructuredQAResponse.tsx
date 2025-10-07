@@ -62,7 +62,10 @@ function processContentWithCitations(
   citations: PerplexityCitation[],
   onCitationClick?: (citationId: number) => void
 ): React.ReactNode {
-  if (!content) return null;
+  // Handle empty content by returning empty fragment instead of null
+  if (!content || content.trim().length === 0) {
+    return <span className="text-muted-foreground italic">No content available</span>;
+  }
 
   // Split content by citation patterns like [1], [2], [3]
   const parts = content.split(/(\[\d+\])/g);
@@ -196,7 +199,12 @@ export function StructuredQAResponse({
       );
     }
 
-    return null;
+    // Fallback for when no content is provided
+    return (
+      <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground italic">
+        No answer content available
+      </div>
+    );
   }, [sections, rawContent, citations, onCitationClick]);
 
   return (

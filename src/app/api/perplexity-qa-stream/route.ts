@@ -95,8 +95,21 @@ export async function POST(request: NextRequest) {
 
           try {
             // Iterate through async generator and send chunks
+            let chunkCounter = 0;
+            console.log('[Perplexity Stream API] Starting chunk iteration');
+
             for await (const chunk of perplexityRedChamberQAStreaming(perplexityInput)) {
+              chunkCounter++;
               hasReceivedAnyChunks = true;
+
+              console.log(`[Perplexity Stream API] Chunk ${chunkCounter}:`, {
+                hasContent: !!chunk.content,
+                contentLength: chunk.content?.length || 0,
+                fullContentLength: chunk.fullContent?.length || 0,
+                isComplete: chunk.isComplete,
+                hasError: !!chunk.error,
+                chunkIndex: chunk.chunkIndex
+              });
 
               // Store partial content for error recovery
               if (chunk.content) {
@@ -110,9 +123,18 @@ export async function POST(request: NextRequest) {
               // If complete, close the stream
               if (chunk.isComplete) {
                 clearTimeout(timeoutId);
-                console.log('[Perplexity Stream API] Stream completed successfully');
+                console.log('[Perplexity Stream API] Stream completed successfully:', {
+                  totalChunks: chunkCounter,
+                  totalContentLength: partialContent.length
+                });
                 break;
               }
+            }
+
+            if (chunkCounter === 0) {
+              console.error('[Perplexity Stream API] ⚠️ NO CHUNKS RECEIVED FROM GENERATOR');
+            } else {
+              console.log(`[Perplexity Stream API] Generator iteration complete: ${chunkCounter} chunks processed`);
             }
           } finally {
             clearTimeout(timeoutId);

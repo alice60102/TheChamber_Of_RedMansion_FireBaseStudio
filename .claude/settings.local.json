@@ -54,7 +54,11 @@
       "Bash(source $HOME/.local/bin/env)",
       "Bash(export PATH=\"$HOME/.local/bin:$PATH\")",
       "Bash(wc:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(git add src/app/(main)/read-book/page.tsx src/components/ui/AIMessageBubble.tsx)",
+      "Read(//mnt/d/AboutUniversity/**)",
+      "Bash(git add src/app/(main)/read-book/page.tsx src/components/ui/ConversationFlow.tsx \"docs/improvement_report/The QA Module of the Reading Book.md\")"
     ]
   },
   "outputStyle": "default"

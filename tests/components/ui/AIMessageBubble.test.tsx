@@ -1,0 +1,334 @@
+/**
+ * @fileOverview Tests for AIMessageBubble Component
+ *
+ * Tests cover:
+ * - Thinking section rendering and collapsibility
+ * - Answer content rendering
+ * - Citation interaction
+ * - Streaming indicator
+ * - Edge cases (no thinking, empty citations, etc.)
+ */
+
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { AIMessageBubble } from '@/components/ui/AIMessageBubble';
+import type { PerplexityCitation } from '@/types/perplexity-qa';
+
+// Mock StructuredQAResponse component
+jest.mock('@/components/ui/StructuredQAResponse', () => ({
+  StructuredQAResponse: ({ rawContent, citations, onCitationClick }: any) => (
+    <div data-testid="structured-qa-response">
+      <div data-testid="answer-content">{rawContent}</div>
+      <div data-testid="citations-count">{citations.length}</div>
+      {citations.map((citation: PerplexityCitation, index: number) => (
+        <button
+          key={index}
+          data-testid={`citation-${citation.number}`}
+          onClick={() => onCitationClick?.(parseInt(citation.number, 10))}
+        >
+          Citation {citation.number}
+        </button>
+      ))}
+    </div>
+  ),
+}));
+
+// Mock lucide-react icons
+jest.mock('lucide-react', () => ({
+  ChevronDown: () => <div data-testid="chevron-down-icon" />,
+  ChevronRight: () => <div data-testid="chevron-right-icon" />,
+}));
+
+describe('AIMessageBubble Component', () => {
+  const mockCitations: PerplexityCitation[] = [
+    { number: '1', url: 'https://example.com/1', title: 'Source 1' },
+    { number: '2', url: 'https://example.com/2', title: 'Source 2' },
+  ];
+
+  const defaultProps = {
+    answer: 'This is the AI answer content.',
+    citations: mockCitations,
+    thinkingProcess: 'This is the thinking process...',
+    thinkingDuration: 15,
+    isThinkingComplete: true,
+    isStreaming: false,
+  };
+
+  describe('Thinking Section Rendering', () => {
+    test('should render thinking section when thinkingProcess provided', () => {
+      render(<AIMessageBubble {...defaultProps} />);
+
+      expect(screen.getByText('Thought for 15 seconds')).toBeInTheDocument();
+    });
+
+    test('should NOT render thinking section when thinkingProcess is undefined', () => {
+      render(
+        <AIMessageBubble
+          {...defaultProps}
+          thinkingProcess={undefined}
+        />
+      );
+
+      expect(screen.queryByText(/Thought for/)).not.toBeInTheDocument();
+    });
+
+    test('should NOT render thinking section when thinkingProcess is empty string', () => {
+      render(
+        <AIMessageBubble
+          {...defaultProps}
+          thinkingProcess=""
+        />
+      );
+
+      expect(screen.queryByText(/Thought for/)).not.toBeInTheDocument();
+    });
+
+    test('should NOT render thinking section when thinkingProcess is whitespace only', () => {
+      render(
+        <AIMessageBubble
+          {...defaultProps}
+          thinkingProcess="   "
+        />
+      );
+
+      expect(screen.queryByText(/Thought for/)).not.toBeInTheDocument();
+    });
+
+    test('should show "Thinking..." when thinking not complete', () => {
+      render(
+        <AIMessageBubble
+          {...defaultProps}
+          isThinkingComplete={false}
+        />
+      );
+
+      expect(screen.getByText('Thinking...')).toBeInTheDocument();
+    });
+
+    test('should use default duration of 10 seconds when not provided', () => {
+      render(
+        <AIMessageBubble
+          {...defaultProps}
+          thinkingDuration={undefined}
+        />
+      );
+
+      expect(screen.getByText('Thought for 10 seconds')).toBeInTheDocument();
+    });
+  });
+
+  describe('Thinking Section Collapsibility', () => {
+    test('should start with thinking section collapsed (chevron right)', () => {
+      render(<AIMessageBubble {...defaultProps} />);
+
+      expect(screen.getByTestId('chevron-right-icon')).toBeInTheDocument();
+      expect(screen.queryByText(defaultProps.thinkingProcess)).not.toBeInTheDocument();
+    });
+
+    test('should expand thinking section on click', () => {
+      render(<AIMessageBubble {...defaultProps} />);
+
+      const toggleButton = screen.getByRole('button', { name: /Thought for 15 seconds/i });
+      fireEvent.click(toggleButton);
+
+      expect(screen.getByTestId('chevron-down-icon')).toBeInTheDocument();
+      expect(screen.getByText(defaultProps.thinkingProcess)).toBeInTheDocument();
+    });
+
+    test('should collapse thinking section on second click', () => {
+      render(<AIMessageBubble {...defaultProps} />);
+
+      const toggleButton = screen.getByRole('button', { name: /Thought for 15 seconds/i });
+
+      // Expand
+      fireEvent.click(toggleButton);
+      expect(screen.getByText(defaultProps.thinkingProcess)).toBeInTheDocument();
+
+      // Collapse
+      fireEvent.click(toggleButton);
+      expect(screen.queryByText(defaultProps.thinkingProcess)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Answer Section Rendering', () => {
+    test('should render answer content via StructuredQAResponse', () => {
+      render(<AIMessageBubble {...defaultProps} />);
+
+      expect(screen.getByTestId('structured-qa-response')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-content')).toHaveTextContent(defaultProps.answer);
+    });
+
+    test('should pass citations to StructuredQAResponse', () => {
+      render(<AIMessageBubble {...defaultProps} />);
+
+      expect(screen.getByTestId('citations-count')).toHaveTextContent('2');
+    });
+
+    test('should handle empty answer gracefully', () => {
+      render(<AIMessageBubble {...defaultProps} answer="" />);
+
+      expect(screen.getByTestId('answer-content')).toBeInTheDocument();
+      expect(screen.getByTestId('answer-content')).toHaveTextContent('');
+    });
+
+    test('should handle empty citations array', () => {
+      render(<AIMessageBubble {...defaultProps} citations={[]} />);
+
+      expect(screen.getByTestId('citations-count')).toHaveTextContent('0');
+    });
+  });
+
+  describe('Citation Click Handling', () => {
+    test('should call onCitationClick with correct citation ID', () => {
+      const onCitationClick = jest.fn();
+      render(<AIMessageBubble {...defaultProps} onCitationClick={onCitationClick} />);
+
+      const citation1Button = screen.getByTestId('citation-1');
+      fireEvent.click(citation1Button);
+
+      expect(onCitationClick).toHaveBeenCalledWith(1);
+    });
+
+    test('should handle multiple citation clicks', () => {
+      const onCitationClick = jest.fn();
+      render(<AIMessageBubble {...defaultProps} onCitationClick={onCitationClick} />);
+
+      fireEvent.click(screen.getByTestId('citation-1'));
+      fireEvent.click(screen.getByTestId('citation-2'));
+
+      expect(onCitationClick).toHaveBeenCalledTimes(2);
+      expect(onCitationClick).toHaveBeenNthCalledWith(1, 1);
+      expect(onCitationClick).toHaveBeenNthCalledWith(2, 2);
+    });
+
+    test('should work without onCitationClick handler', () => {
+      expect(() => {
+        render(<AIMessageBubble {...defaultProps} onCitationClick={undefined} />);
+        fireEvent.click(screen.getByTestId('citation-1'));
+      }).not.toThrow();
+    });
+  });
+
+  describe('Streaming Indicator', () => {
+    test('should show streaming indicator when isStreaming is true', () => {
+      render(<AIMessageBubble {...defaultProps} isStreaming={true} />);
+
+      expect(screen.getByText('AI 正在回答中...')).toBeInTheDocument();
+    });
+
+    test('should NOT show streaming indicator when isStreaming is false', () => {
+      render(<AIMessageBubble {...defaultProps} isStreaming={false} />);
+
+      expect(screen.queryByText('AI 正在回答中...')).not.toBeInTheDocument();
+    });
+
+    test('should NOT show streaming indicator by default', () => {
+      const { isStreaming, ...propsWithoutStreaming } = defaultProps;
+      render(<AIMessageBubble {...propsWithoutStreaming} />);
+
+      expect(screen.queryByText('AI 正在回答中...')).not.toBeInTheDocument();
+    });
+
+    test('should show animated dots when streaming', () => {
+      const { container } = render(<AIMessageBubble {...defaultProps} isStreaming={true} />);
+
+      const dots = container.querySelectorAll('.animate-bounce');
+      expect(dots).toHaveLength(3);
+    });
+  });
+
+  describe('CSS Classes and Styling', () => {
+    test('should apply custom className', () => {
+      const { container } = render(
+        <AIMessageBubble {...defaultProps} className="custom-test-class" />
+      );
+
+      expect(container.querySelector('.custom-test-class')).toBeInTheDocument();
+    });
+
+    test('should have base ai-message-bubble class', () => {
+      const { container } = render(<AIMessageBubble {...defaultProps} />);
+
+      expect(container.querySelector('.ai-message-bubble')).toBeInTheDocument();
+    });
+  });
+
+  describe('Edge Cases', () => {
+    test('should handle very long thinking process text', () => {
+      const longThinkingProcess = 'A'.repeat(5000);
+      render(
+        <AIMessageBubble
+          {...defaultProps}
+          thinkingProcess={longThinkingProcess}
+        />
+      );
+
+      const toggleButton = screen.getByRole('button', { name: /Thought for/i });
+      fireEvent.click(toggleButton);
+
+      expect(screen.getByText(longThinkingProcess)).toBeInTheDocument();
+    });
+
+    test('should handle very long answer text', () => {
+      const longAnswer = 'B'.repeat(5000);
+      render(<AIMessageBubble {...defaultProps} answer={longAnswer} />);
+
+      expect(screen.getByTestId('answer-content')).toHaveTextContent(longAnswer);
+    });
+
+    test('should handle special characters in thinking process', () => {
+      const specialChars = '特殊字符 <>&"\'`\\n\\t';
+      render(
+        <AIMessageBubble
+          {...defaultProps}
+          thinkingProcess={specialChars}
+        />
+      );
+
+      const toggleButton = screen.getByRole('button', { name: /Thought for/i });
+      fireEvent.click(toggleButton);
+
+      expect(screen.getByText(specialChars)).toBeInTheDocument();
+    });
+
+    test('should handle zero thinking duration', () => {
+      render(<AIMessageBubble {...defaultProps} thinkingDuration={0} />);
+
+      expect(screen.getByText('Thought for 0 seconds')).toBeInTheDocument();
+    });
+
+    test('should handle very large thinking duration', () => {
+      render(<AIMessageBubble {...defaultProps} thinkingDuration={9999} />);
+
+      expect(screen.getByText('Thought for 9999 seconds')).toBeInTheDocument();
+    });
+  });
+
+  describe('Component Integration', () => {
+    test('should render all sections together correctly', () => {
+      const { container } = render(<AIMessageBubble {...defaultProps} />);
+
+      // Check all sections exist
+      expect(container.querySelector('.thinking-section')).toBeInTheDocument();
+      expect(container.querySelector('.answer-section')).toBeInTheDocument();
+      expect(screen.getByTestId('structured-qa-response')).toBeInTheDocument();
+    });
+
+    test('should maintain state across re-renders', () => {
+      const { rerender } = render(<AIMessageBubble {...defaultProps} />);
+
+      // Expand thinking
+      const toggleButton = screen.getByRole('button', { name: /Thought for/i });
+      fireEvent.click(toggleButton);
+      expect(screen.getByText(defaultProps.thinkingProcess)).toBeInTheDocument();
+
+      // Re-render with different answer
+      rerender(<AIMessageBubble {...defaultProps} answer="New answer content" />);
+
+      // Thinking should still be expanded
+      expect(screen.getByText(defaultProps.thinkingProcess)).toBeInTheDocument();
+      expect(screen.getByTestId('answer-content')).toHaveTextContent('New answer content');
+    });
+  });
+});

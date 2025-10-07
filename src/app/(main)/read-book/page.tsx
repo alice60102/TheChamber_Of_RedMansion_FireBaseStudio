@@ -80,8 +80,7 @@ import { SimulatedKnowledgeGraph } from '@/components/SimulatedKnowledgeGraph';
 import KnowledgeGraphViewer from '@/components/KnowledgeGraphViewer';
 
 // AI integration for text analysis
-import { explainTextSelection } from '@/ai/flows/explain-text-selection';
-import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection';
+// Note: legacy Genkit explainTextSelection not used in unified QA flow
 
 // Perplexity AI integration
 import {
@@ -89,15 +88,24 @@ import {
   createPerplexityQAInputForFlow
 } from '@/ai/flows/perplexity-red-chamber-qa';
 import type { PerplexityQAResponse, PerplexityStreamingChunk } from '@/types/perplexity-qa';
-import { EnhancedAnswer } from '@/components/ui/EnhancedAnswer';
-import { terminalLogger, debugLog, errorLog } from '@/lib/terminal-logger';
+// Deprecated local analysis UI and terminal logger imports removed in unified flow
+
+// New QA Module Components (Phase 2 Implementation)
+import { ThinkingProcessIndicator } from '@/components/ui/ThinkingProcessIndicator';
+import type { ThinkingStatus } from '@/components/ui/ThinkingProcessIndicator';
+import { ConversationFlow } from '@/components/ui/ConversationFlow';
+import type { ConversationMessage, MessageRole } from '@/components/ui/ConversationFlow';
+import { AIMessageBubble } from '@/components/ui/AIMessageBubble';
+
+// Citation and Error Handling Utilities
+// Citation processing handled within AI bubble components
+import { classifyError, formatErrorForUser, logError } from '@/lib/perplexity-error-handler';
 
 // Custom hooks for application functionality
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from '@/hooks/useLanguage';
 
 // Utility for text transformation based on language
-import { transformTextForLang } from '@/lib/translations';
 import { saveNote, getNotesByUserAndChapter, Note, deleteNoteById, updateNote } from '@/lib/notes-service';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -282,7 +290,24 @@ export default function ReadBookPage() {
   const [perplexityStreamingChunks, setPerplexityStreamingChunks] = useState<PerplexityStreamingChunk[]>([]);
   const [perplexityModel, setPerplexityModel] = useState<'sonar-pro' | 'sonar-reasoning' | 'sonar-reasoning-pro'>('sonar-reasoning');
   const [reasoningEffort, setReasoningEffort] = useState<'low' | 'medium' | 'high'>('medium');
-  const [enableStreaming, setEnableStreaming] = useState(true);
+  // Fix #6 - Streaming always enabled per user requirement
+  const ENABLE_STREAMING = true;  // Constant - cannot be toggled
+
+  // New QA Module States (Phase 2 Implementation)
+  // Conversation sessions model
+  type ConversationSession = {
+    id: string;
+    title?: string;
+    createdAt: Date;
+    messages: ConversationMessage[];
+  };
+
+  const [sessions, setSessions] = useState<ConversationSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [thinkingContent, setThinkingContent] = useState<string>('');
+  const [thinkingStatus, setThinkingStatus] = useState<ThinkingStatus>('idle');
+  const [streamingProgress, setStreamingProgress] = useState<number>(0);
+  const streamingAIMessageIdRef = useRef<string | null>(null);
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
   const [activeHighlightInfo, setActiveHighlightInfo] = useState<{ text: string; position: { top: number; left: number; } } | null>(null);
@@ -310,6 +335,103 @@ export default function ReadBookPage() {
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
   const selectedTheme = themes[activeThemeKey];
+
+  // Storage keys (new sessions model + legacy migration)
+  const SESSIONS_STORAGE_KEY = 'redmansion_qa_sessions_v1';
+  const LEGACY_MESSAGES_KEY = 'redmansion_qa_conversations';
+
+  // Helpers
+  const createSession = (title?: string): ConversationSession => ({
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    title,
+    createdAt: new Date(),
+    messages: [],
+  });
+
+  const getActiveSession = () => sessions.find(s => s.id === activeSessionId) || null;
+
+  const setActiveSessionMessages = (updater: (msgs: ConversationMessage[]) => ConversationMessage[]) => {
+    setSessions(prev => {
+      const idx = prev.findIndex(s => s.id === activeSessionId);
+      if (idx === -1) return prev;
+      const updated = [...prev];
+      const current = updated[idx];
+      updated[idx] = { ...current, messages: updater(current.messages) };
+      return updated;
+    });
+  };
+
+  const startNewSession = (title?: string) => {
+    const newSession = createSession(title);
+    setSessions(prev => [...prev, newSession]);
+    setActiveSessionId(newSession.id);
+    return newSession.id;
+  };
+
+  // Load sessions (with legacy migration)
+  useEffect(() => {
+    try {
+      const storedSessions = localStorage.getItem(SESSIONS_STORAGE_KEY);
+      if (storedSessions) {
+        const parsed: any[] = JSON.parse(storedSessions);
+        const restored: ConversationSession[] = parsed.map((s: any) => ({
+          ...s,
+          createdAt: new Date(s.createdAt),
+          messages: (s.messages || []).map((m: any) => ({ ...m, timestamp: new Date(m.timestamp) })),
+        }));
+        setSessions(restored);
+        // Select last session or create a fresh one if none
+        if (restored.length > 0) {
+          setActiveSessionId(restored[restored.length - 1].id);
+        } else {
+          const sid = startNewSession();
+          setActiveSessionId(sid);
+        }
+        return;
+      }
+
+      // Legacy migration from flat messages
+      const legacy = localStorage.getItem(LEGACY_MESSAGES_KEY);
+      if (legacy) {
+        const parsed = JSON.parse(legacy);
+        const messagesWithDates: ConversationMessage[] = parsed.map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        const historical: ConversationSession = {
+          id: `${Date.now()}-legacy`,
+          title: 'History',
+          createdAt: new Date(),
+          messages: messagesWithDates,
+        };
+        const fresh = createSession();
+        setSessions([historical, fresh]);
+        setActiveSessionId(fresh.id);
+        return;
+      }
+
+      // Nothing stored → create fresh session
+      const sid = startNewSession();
+      setActiveSessionId(sid);
+    } catch (error) {
+      console.error('Failed to load conversation sessions:', error);
+      const sid = startNewSession();
+      setActiveSessionId(sid);
+    }
+  }, []);
+
+  // Persist sessions
+  useEffect(() => {
+    try {
+      const serializable = sessions.map(s => ({
+        ...s,
+        // Dates will be stringified; restore on load
+      }));
+      localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(serializable));
+    } catch (error) {
+      console.error('Failed to save conversation sessions:', error);
+    }
+  }, [sessions]);
   const selectedFontFamily = fontFamilies[activeFontFamilyKey];
 
   const changeFontSize = (delta: number) => {
@@ -547,6 +669,11 @@ export default function ReadBookPage() {
   // Handle clicking on suggestion questions
   const handleSuggestionClick = (question: string) => {
     setUserQuestionInput(question);
+    // Use unified send path to keep UI consistent
+    setAiMode('perplexity-qa');
+    setUsePerplexityAI(true);
+    // Defer to next tick to allow state update
+    setTimeout(() => handleUserSubmitQuestion(question), 0);
   };
 
   // Handle switching to book sources mode
@@ -556,111 +683,87 @@ export default function ReadBookPage() {
 
   // Handle AI action buttons
   const handleBookHighlights = async () => {
-    setAiMode('ai-analysis');
-    setIsLoadingExplanation(true);
-    setTextExplanation(null);
-    setAiAnalysisContent(null);
-    try {
-      const analysisPrompt = `請分析《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」的主要亮點和重要內容，包括：
+    // Unify to Perplexity streaming flow for consistent UI
+    const analysisPrompt = `請分析《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」的主要亮點和重要內容，包括：
 1. 文學價值的體現
 2. 人物刻畫的精彩之處  
 3. 情節發展的關鍵轉折
 4. 文化內涵與藝術手法
 5. 敘事與象徵的藝術亮點`;
-      
-      const input: ExplainTextSelectionInput = {
-        selectedText: "",
-        userQuestion: analysisPrompt,
-        chapterContext: getChapterTitle(currentChapter.titleKey),
-      };
-      const result = await explainTextSelection(input);
-      setAiAnalysisContent(result.explanation);
-    } catch (error) {
-      console.error("Error generating book highlights:", error);
-      toast({
-        title: t('common.error'),
-        description: "生成書籍亮點時發生錯誤",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingExplanation(false);
-    }
+    setAiMode('perplexity-qa');
+    setUsePerplexityAI(true);
+    setUserQuestionInput(analysisPrompt);
+    setTimeout(() => handleUserSubmitQuestion(analysisPrompt), 0);
   };
 
   const handleBackgroundReading = async () => {
-    setAiMode('ai-analysis');
-    setIsLoadingExplanation(true);
-    setTextExplanation(null);
-    setAiAnalysisContent(null);
-    try {
-      const analysisPrompt = `請提供《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」的背景解讀，包括：
+    const analysisPrompt = `請提供《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」的背景解讀，包括：
 1. 歷史背景與時代意義
 2. 文學史地位
 3. 作者創作意圖  
 4. 文化內涵與社會反映
 5. 與其他章回的關聯性`;
-      
-      const input: ExplainTextSelectionInput = {
-        selectedText: "",
-        userQuestion: analysisPrompt,
-        chapterContext: getChapterTitle(currentChapter.titleKey),
-      };
-      const result = await explainTextSelection(input);
-      setAiAnalysisContent(result.explanation);
-    } catch (error) {
-      console.error("Error generating background reading:", error);
-      toast({
-        title: t('common.error'),
-        description: "生成背景解讀時發生錯誤",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingExplanation(false);
-    }
+    setAiMode('perplexity-qa');
+    setUsePerplexityAI(true);
+    setUserQuestionInput(analysisPrompt);
+    setTimeout(() => handleUserSubmitQuestion(analysisPrompt), 0);
   };
 
   const handleKeyConcepts = async () => {
-    setAiMode('ai-analysis');
-    setIsLoadingExplanation(true);
-    setTextExplanation(null);
-    setAiAnalysisContent(null);
-    try {
-      const analysisPrompt = `請分析《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」中的關鍵概念和重要主題，包括：
+    const analysisPrompt = `請分析《紅樓夢》第${currentChapterIndex + 1}回「${getChapterTitle(currentChapter.titleKey)}」中的關鍵概念和重要主題，包括：
 1. 核心主題思想
 2. 重要文學概念
 3. 人物性格特點
 4. 情感與心理描寫
 5. 象徵意義與隱喻`;
-      
-      const input: ExplainTextSelectionInput = {
-        selectedText: "",
-        userQuestion: analysisPrompt,
-        chapterContext: getChapterTitle(currentChapter.titleKey),
-      };
-      const result = await explainTextSelection(input);
-      setAiAnalysisContent(result.explanation);
-    } catch (error) {
-      console.error("Error generating key concepts:", error);
-      toast({
-        title: t('common.error'),
-        description: "生成關鍵概念時發生錯誤",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingExplanation(false);
-    }
+    setAiMode('perplexity-qa');
+    setUsePerplexityAI(true);
+    setUserQuestionInput(analysisPrompt);
+    setTimeout(() => handleUserSubmitQuestion(analysisPrompt), 0);
   };
 
-  const handleUserSubmitQuestion = async () => { 
-    if (!userQuestionInput.trim() || !currentChapter) return;
+  // Double-send guard
+  const isSubmittingRef = useRef(false);
+  const lastSubmitAtRef = useRef(0);
+
+  const handleUserSubmitQuestion = async (overrideQuestion?: string) => {
+    // Prevent duplicate submission - check all blocking conditions first
+    const now = Date.now();
+    if (isSubmittingRef.current || (now - lastSubmitAtRef.current) < 800 || isLoadingExplanation) {
+      console.log('[QA Module] Submission blocked - already processing a request');
+      return;
+    }
+    isSubmittingRef.current = true;
+    lastSubmitAtRef.current = now;
+
+    const effectiveInput = (overrideQuestion ?? userQuestionInput).trim();
+    if (!effectiveInput || !currentChapter) {
+      console.log('[QA Module] Submission blocked - invalid input or no chapter:', {
+        hasInput: !!effectiveInput,
+        hasChapter: !!currentChapter
+      });
+      isSubmittingRef.current = false;
+      return;
+    }
+
+    console.log('[QA Module] Starting question submission:', {
+      question: effectiveInput.substring(0, 50),
+      timestamp: new Date().toISOString()
+    });
+
+    // Store question text before any state changes (Fix Issue #2)
+    const questionText = effectiveInput;
 
     // Set appropriate mode based on AI provider choice
     setAiMode(usePerplexityAI ? 'perplexity-qa' : 'ai-analysis');
+
+    // Set loading state IMMEDIATELY to prevent duplicate submissions
     setIsLoadingExplanation(true);
     setTextExplanation(null);
     setAiAnalysisContent(null);
     setPerplexityResponse(null);
     setPerplexityStreamingChunks([]);
+    streamingAIMessageIdRef.current = null;
 
     try {
       const chapterContextSnippet = currentChapter.paragraphs
@@ -679,16 +782,41 @@ export default function ReadBookPage() {
           {
             modelKey: perplexityModel,
             reasoningEffort: reasoningEffort,
-            enableStreaming: enableStreaming,
+            enableStreaming: ENABLE_STREAMING,
             showThinkingProcess: true,
             questionContext: 'general',
           }
         );
 
-        if (enableStreaming) {
+        if (ENABLE_STREAMING) {  // Always true (Fix #6)
           // Handle streaming response via SSE API endpoint
           setAiInteractionState('streaming');
           const chunks: PerplexityStreamingChunk[] = [];
+
+          // Add user message to conversation
+          // Ensure there is an active session
+          if (!activeSessionId) {
+            startNewSession();
+          }
+          const userMessage: ConversationMessage = {
+            id: `user-${Date.now()}`,
+            role: 'user' as MessageRole,
+            content: questionText,
+            timestamp: new Date(),
+          };
+          console.log('[QA Module] Adding user message:', userMessage);
+          setActiveSessionMessages(prev => [...prev, userMessage]);
+
+          // Clear input field immediately after submission (Fix Issue #2)
+          setUserQuestionInput('');
+
+          // Release quick-submit guard; long-running guarded by isLoadingExplanation
+          isSubmittingRef.current = false;
+
+          // Initialize thinking process
+          setThinkingStatus('thinking');
+          setThinkingContent('正在分析您的問題並搜尋相關資料...');
+          setStreamingProgress(0);
 
           try {
             // Call the streaming API endpoint instead of direct async generator
@@ -698,7 +826,7 @@ export default function ReadBookPage() {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                userQuestion: userQuestionInput,
+                userQuestion: questionText,
                 selectedTextInfo: selectedTextInfo,
                 chapterContext: chapterContextSnippet,
                 currentChapter: currentChapter.titleKey,
@@ -717,21 +845,136 @@ export default function ReadBookPage() {
               throw new Error('Response body is null');
             }
 
-            // Process SSE stream
+            // Process SSE stream with timeout protection
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
+            let lastChunkTime = Date.now();
+            const STREAM_TIMEOUT_MS = 30000; // 30 seconds without data = timeout
+            let isStreamActive = true;
+            let timeoutError: Error | null = null;
+            let watchdogInterval: NodeJS.Timeout | null = null;
 
-            while (true) {
-              const { done, value } = await reader.read();
+            console.log('[QA Module] Starting stream processing with timeout protection');
 
-              if (done) {
-                console.log('Stream complete');
-                break;
+            // Setup watchdog timer to detect stream stalls
+            watchdogInterval = setInterval(() => {
+              if (!isStreamActive) {
+                if (watchdogInterval) {
+                  clearInterval(watchdogInterval);
+                  watchdogInterval = null;
+                }
+                return;
               }
 
-              // Decode chunk and add to buffer
-              buffer += decoder.decode(value, { stream: true });
+              const timeSinceLastChunk = Date.now() - lastChunkTime;
+              console.log('[QA Module] Watchdog check:', {
+                timeSinceLastChunk: `${(timeSinceLastChunk / 1000).toFixed(1)}s`,
+                timeoutThreshold: `${STREAM_TIMEOUT_MS / 1000}s`
+              });
+
+              if (timeSinceLastChunk > STREAM_TIMEOUT_MS) {
+                console.error('[QA Module] Stream timeout - no data received for 30s');
+                isStreamActive = false;
+                timeoutError = new Error('串流超時：30秒內未收到任何資料。請重試您的問題。');
+                reader.cancel('Stream timeout');
+                if (watchdogInterval) {
+                  clearInterval(watchdogInterval);
+                  watchdogInterval = null;
+                }
+              }
+            }, 5000); // Check every 5 seconds
+
+            try {
+              let sawCompletion = false;
+              while (true) {
+                // Check for timeout error from watchdog
+                if (timeoutError) {
+                  throw timeoutError;
+                }
+
+                const { done, value } = await reader.read();
+
+                if (done) {
+                  console.log('[QA Module] Stream complete');
+                  isStreamActive = false;
+                  if (watchdogInterval) {
+                    clearInterval(watchdogInterval);
+                    watchdogInterval = null;
+                  }
+                  // If no explicit isComplete chunk was received, finalize using last chunk
+                  if (!sawCompletion && chunks.length > 0) {
+                    const last = chunks[chunks.length - 1];
+                    const combined = last.fullContent && last.fullContent.length > 0
+                      ? last.fullContent
+                      : chunks.map(c => c.content).join('');
+                    try {
+                      setThinkingStatus('complete');
+                      setStreamingProgress(100);
+
+                      const finalResponse: PerplexityQAResponse = {
+                        question: questionText,
+                        answer: combined,
+                        citations: last.citations || [],
+                        groundingMetadata: (last.metadata as any) || { searchQueries: [], webSources: [], groundingSuccessful: false },
+                        modelUsed: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                        modelKey: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                        reasoningEffort: perplexityInput.reasoningEffort,
+                        questionContext: perplexityInput.questionContext,
+                        processingTime: last.responseTime || 0,
+                        success: !last.error,
+                        streaming: true,
+                        chunkCount: last.chunkIndex,
+                        stoppedByUser: false,
+                        timestamp: last.timestamp,
+                        answerLength: combined.length,
+                        questionLength: questionText.length,
+                        citationCount: (last.citations || []).length,
+                        error: last.error,
+                      };
+                      setPerplexityResponse(finalResponse);
+
+                      if (streamingAIMessageIdRef.current) {
+                        const msgId = streamingAIMessageIdRef.current;
+                        setActiveSessionMessages(prev => prev.map(m => m.id === msgId ? {
+                          ...m,
+                          content: combined,
+                          citations: last.citations || m.citations,
+                          thinkingProcess: thinkingContent,
+                          thinkingDuration: Math.round((last.responseTime || 0) / 1000),
+                          isStreaming: false,
+                        } : m));
+                        streamingAIMessageIdRef.current = null;
+                      } else {
+                        const aiMessage: ConversationMessage = {
+                          id: `ai-${Date.now()}`,
+                          role: 'ai' as MessageRole,
+                          content: combined,
+                          timestamp: new Date(),
+                          citations: last.citations || [],
+                          thinkingProcess: thinkingContent,
+                          thinkingDuration: Math.round((last.responseTime || 0) / 1000),
+                          isStreaming: false,
+                        };
+                        setActiveSessionMessages(prev => [...prev, aiMessage]);
+                      }
+                      setAiInteractionState('answered');
+                    } catch (finalizeErr) {
+                      console.error('[QA Module] Finalization error on stream end:', finalizeErr);
+                    }
+                  }
+                  break;
+                }
+
+                // Update last chunk time to reset timeout counter
+                lastChunkTime = Date.now();
+                console.log('[QA Module] Received chunk:', {
+                  size: value.length,
+                  timestamp: new Date().toISOString()
+                });
+
+                // Decode chunk and add to buffer
+                buffer += decoder.decode(value, { stream: true });
 
               // Process complete SSE messages
               const lines = buffer.split('\n');
@@ -744,6 +987,65 @@ export default function ReadBookPage() {
                   // Check for completion signal
                   if (data === '[DONE]') {
                     console.log('Received completion signal');
+                    // Finalize if generator didn't send explicit isComplete chunk
+                    if (!sawCompletion && chunks.length > 0) {
+                      const last = chunks[chunks.length - 1];
+                      const combined = last.fullContent && last.fullContent.length > 0
+                        ? last.fullContent
+                        : chunks.map(c => c.content).join('');
+                      setThinkingStatus('complete');
+                      setStreamingProgress(100);
+
+                      const finalResponse: PerplexityQAResponse = {
+                        question: questionText,
+                        answer: combined,
+                        citations: last.citations || [],
+                        groundingMetadata: (last.metadata as any) || { searchQueries: [], webSources: [], groundingSuccessful: false },
+                        modelUsed: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                        modelKey: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                        reasoningEffort: perplexityInput.reasoningEffort,
+                        questionContext: perplexityInput.questionContext,
+                        processingTime: last.responseTime || 0,
+                        success: !last.error,
+                        streaming: true,
+                        chunkCount: last.chunkIndex,
+                        stoppedByUser: false,
+                        timestamp: last.timestamp,
+                        answerLength: combined.length,
+                        questionLength: questionText.length,
+                        citationCount: (last.citations || []).length,
+                        error: last.error,
+                      };
+                      setPerplexityResponse(finalResponse);
+
+                      // Finalize existing streaming message if present; otherwise create one
+                      if (streamingAIMessageIdRef.current) {
+                        const msgId = streamingAIMessageIdRef.current;
+                        setActiveSessionMessages(prev => prev.map(m => m.id === msgId ? {
+                          ...m,
+                          content: combined,
+                          citations: last.citations || m.citations,
+                          thinkingProcess: thinkingContent,
+                          thinkingDuration: Math.round((last.responseTime || 0) / 1000),
+                          isStreaming: false,
+                        } : m));
+                        streamingAIMessageIdRef.current = null;
+                      } else {
+                        const aiMessage: ConversationMessage = {
+                          id: `ai-${Date.now()}`,
+                          role: 'ai' as MessageRole,
+                          content: combined,
+                          timestamp: new Date(),
+                          citations: last.citations || [],
+                          thinkingProcess: thinkingContent,
+                          thinkingDuration: Math.round((last.responseTime || 0) / 1000),
+                          isStreaming: false,
+                        };
+                        setActiveSessionMessages(prev => [...prev, aiMessage]);
+                      }
+                      setAiInteractionState('answered');
+                      sawCompletion = true;
+                    }
                     continue;
                   }
 
@@ -752,10 +1054,76 @@ export default function ReadBookPage() {
                     chunks.push(chunk);
                     setPerplexityStreamingChunks([...chunks]);
 
+                    // Update thinking content with search queries or progress
+                    if (chunk.searchQueries && chunk.searchQueries.length > 0) {
+                      setThinkingContent(`搜尋查詢: ${chunk.searchQueries.join(', ')}`);
+                    }
+
+                    // Update streaming progress (Fix Issue #1 - realistic progress estimation)
+                    if (chunk.chunkIndex > 0) {
+                      // More realistic progress estimation with smoother growth
+                      // Start fast, then slow down to avoid getting stuck
+                      const progress = Math.min(
+                        20 + (chunk.chunkIndex * 1.5),  // Starts at 20%, grows 1.5% per chunk
+                        98  // Cap at 98% to show we're almost done but not complete
+                      );
+                      setStreamingProgress(Math.round(progress));
+                    }
+
+                    // Extract thinking process (in Traditional Chinese) from cleaned fullContent if present
+                    try {
+                      if (chunk.fullContent) {
+                        const match = chunk.fullContent.match(/\*\*💭\s*思考過程[^*]*\*\*\s*([\s\S]*?)(?:\n\s*---|$)/);
+                        if (match && match[1]) {
+                          const thinkText = match[1].trim();
+                          if (thinkText && thinkText !== thinkingContent) {
+                            setThinkingContent(thinkText);
+                          }
+                        }
+                      }
+                    } catch (e) {
+                      // Non-fatal parsing failure
+                    }
+
+                    // Create or update streaming AI message for immediate rendering
+                    if (!streamingAIMessageIdRef.current) {
+                      const initialContent = chunk.fullContent?.length ? chunk.fullContent : (chunk.content || '');
+                      const aiMsgId = `ai-stream-${Date.now()}`;
+                      streamingAIMessageIdRef.current = aiMsgId;
+                      const aiStreamingMessage: ConversationMessage = {
+                        id: aiMsgId,
+                        role: 'ai',
+                        content: initialContent,
+                        timestamp: new Date(),
+                        citations: chunk.citations || [],
+                        thinkingProcess: thinkingContent,
+                        isStreaming: true,
+                      };
+                      setActiveSessionMessages(prev => [...prev, aiStreamingMessage]);
+                    } else {
+                      const msgId = streamingAIMessageIdRef.current;
+                      setActiveSessionMessages(prev => prev.map(m => {
+                        if (m.id !== msgId) return m;
+                        const updatedText = chunk.fullContent?.length ? chunk.fullContent : (m.content + (chunk.content || ''));
+                        return {
+                          ...m,
+                          content: updatedText,
+                          citations: chunk.citations && chunk.citations.length ? chunk.citations : m.citations,
+                          thinkingProcess: thinkingContent,
+                          isStreaming: !chunk.isComplete,
+                        };
+                      }));
+                    }
+
                     if (chunk.isComplete) {
+                      sawCompletion = true;
+                      // Mark thinking as complete
+                      setThinkingStatus('complete');
+                      setStreamingProgress(100);
+
                       // Create final response from last chunk
                       const finalResponse: PerplexityQAResponse = {
-                        question: userQuestionInput,
+                        question: questionText,
                         answer: chunk.fullContent,
                         citations: chunk.citations,
                         groundingMetadata: chunk.metadata as any,
@@ -770,11 +1138,25 @@ export default function ReadBookPage() {
                         stoppedByUser: false,
                         timestamp: chunk.timestamp,
                         answerLength: chunk.fullContent.length,
-                        questionLength: userQuestionInput.length,
+                        questionLength: questionText.length,
                         citationCount: chunk.citations.length,
                         error: chunk.error,
                       };
                       setPerplexityResponse(finalResponse);
+                      // Finalize streaming message in place
+                      if (streamingAIMessageIdRef.current) {
+                        const msgId = streamingAIMessageIdRef.current;
+                        setActiveSessionMessages(prev => prev.map(m => m.id === msgId ? {
+                          ...m,
+                          content: chunk.fullContent || m.content,
+                          citations: chunk.citations || m.citations,
+                          thinkingProcess: thinkingContent,
+                          thinkingDuration: Math.round(chunk.responseTime / 1000),
+                          isStreaming: false,
+                        } : m));
+                        streamingAIMessageIdRef.current = null;
+                      }
+
                       setAiInteractionState('answered');
                       break;
                     }
@@ -784,13 +1166,40 @@ export default function ReadBookPage() {
                 }
               }
             }
+            } catch (innerStreamError: any) {
+              // Clean up watchdog on inner stream error
+              isStreamActive = false;
+              if (watchdogInterval) {
+                clearInterval(watchdogInterval);
+                watchdogInterval = null;
+              }
+              throw innerStreamError;
+            }
           } catch (streamingError: any) {
-            console.error('Streaming QA error:', streamingError);
+            // Ensure watchdog is always cleared
+            if (watchdogInterval) {
+              clearInterval(watchdogInterval);
+              watchdogInterval = null;
+            }
+
+            console.error('[QA Module] Streaming QA error:', streamingError);
+
+            // Update thinking status to error
+            setThinkingStatus('error');
+            setThinkingContent(`錯誤: ${streamingError?.message || 'Unknown error'}`);
+
+            // Classify error using error handler
+            const classifiedError = classifyError(streamingError, {
+              modelKey: perplexityModel,
+              reasoningEffort: reasoningEffort,
+              questionLength: questionText.length,
+            });
+            const formattedError = formatErrorForUser(classifiedError);
 
             // Set error state
             setPerplexityResponse({
-              question: userQuestionInput,
-              answer: `處理問題時發生錯誤：${streamingError?.message || 'Unknown streaming error'}`,
+              question: questionText,
+              answer: `${formattedError.message}\n\n建議:\n${formattedError.suggestions.join('\n')}`,
               citations: [],
               groundingMetadata: { searchQueries: [], webSources: [], groundingSuccessful: false },
               modelUsed: perplexityModel,
@@ -803,19 +1212,28 @@ export default function ReadBookPage() {
               stoppedByUser: false,
               timestamp: new Date().toISOString(),
               answerLength: 0,
-              questionLength: userQuestionInput.length,
+              questionLength: questionText.length,
               citationCount: 0,
-              error: streamingError?.message || 'Streaming error occurred',
+              error: classifiedError.technicalMessage,
             });
 
+            // Add error message to conversation
+            const errorMessage: ConversationMessage = {
+              id: `ai-error-${Date.now()}`,
+              role: 'ai' as MessageRole,
+              content: `${formattedError.message}\n\n建議:\n${formattedError.suggestions.join('\n')}`,
+              timestamp: new Date(),
+              citations: [],
+            };
+            setActiveSessionMessages(prev => [...prev, errorMessage]);
+
             setAiInteractionState('answered');
+
+            // Reset loading state to allow user to retry
+            setIsLoadingExplanation(false);
           }
-        } else {
-          // Handle non-streaming response
-          const result = await perplexityRedChamberQA(perplexityInput);
-          setPerplexityResponse(result);
-          setAiInteractionState('answered');
         }
+        // Fix #7 - Removed non-streaming fallback (streaming always enabled)
       } else {
         // Use Perplexity approach for all AI analysis
         const perplexityInput = await createPerplexityQAInputForFlow(
@@ -846,7 +1264,7 @@ export default function ReadBookPage() {
       
       if (usePerplexityAI) {
         setPerplexityResponse({
-          question: userQuestionInput,
+          question: questionText,
           answer: `處理問題時發生錯誤：${errorMessage}`,
           citations: [],
           groundingMetadata: {
@@ -862,7 +1280,7 @@ export default function ReadBookPage() {
           stoppedByUser: false,
           timestamp: new Date().toISOString(),
           answerLength: 0,
-          questionLength: userQuestionInput.length,
+          questionLength: questionText.length,
           citationCount: 0,
           error: errorMessage,
         });
@@ -1633,10 +2051,10 @@ export default function ReadBookPage() {
       
       <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) {setSelectedTextInfo(null); setAiMode('new-conversation'); setTextExplanation(null); setAiAnalysisContent(null); setPerplexityResponse(null); setPerplexityStreamingChunks([]);} handleInteraction(); }}>
         <SheetContent
-            side="right"
-            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col h-full"
-            data-no-selection="true"
-            onClick={(e) => {e.stopPropagation(); handleInteraction();}}
+          side="right"
+          className="!w-[90vw] sm:!w-[80vw] md:!w-[60vw] lg:!w-[50vw] !max-w-none sm:!max-w-none md:!max-w-none lg:!max-w-none bg-card text-card-foreground p-0 flex flex-col h-full"
+          data-no-selection="true"
+          onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
             {/* Header */}
             <SheetHeader className="p-4 border-b border-border shrink-0">
@@ -1747,28 +2165,67 @@ export default function ReadBookPage() {
                 </div>
               )}
 
-              {/* Perplexity QA Mode */}
+              {/* Perplexity QA Mode - Redesigned UI (Fix Issue #4 & #5) */}
               {aiMode === 'perplexity-qa' && (
-                <div className="space-y-4">
-                  <EnhancedAnswer
-                    response={perplexityResponse || undefined}
-                    provider="perplexity"
-                    isLoading={isLoadingExplanation}
-                    streamingChunks={perplexityStreamingChunks}
-                    showMetadata={true}
-                    showSearchQueries={true}
-                    showCitations={true}
-                    className="border-none shadow-none"
-                    enableActions={true}
-                    onRegenerate={() => handleUserSubmitQuestion()}
-                    onCopy={(text) => {
-                      navigator.clipboard.writeText(text);
-                      toast({
-                        title: "已複製",
-                        description: "回答已複製到剪貼板",
-                      });
+                <div className="space-y-4 qa-module">
+                  {/* Conversation Flow with Integrated Thinking Process */}
+                  <ConversationFlow
+                    messages={getActiveSession()?.messages || []}
+                    showNewConversationSeparator={(getActiveSession()?.messages?.length || 0) > 0}
+                    onNewConversation={() => {
+                      // Start new session (do not delete history)
+                      startNewSession();
+                      setPerplexityResponse(null);
+                      setPerplexityStreamingChunks([]);
+                      setUserQuestionInput('');
+                      setThinkingStatus('idle');
+                      setThinkingContent('');
+                      setStreamingProgress(0);
+
+                      toast({ title: "新對話已開始", description: "已建立新的對話頁籤" });
+                      streamingAIMessageIdRef.current = null;
+                    }}
+                    autoScroll={true}
+                    renderMessageContent={(message) => {
+                      console.log('[QA Module] Rendering message:', message);
+                      // Render AI responses with AIMessageBubble (Fix #6, #7, #8)
+                      if (message.role === 'ai') {
+                        console.log('[QA Module] Rendering AI message with content length:', message.content.length);
+                        return (
+                          <AIMessageBubble
+                            answer={message.content}  // ✅ Use message data, not global state
+                            citations={message.citations || []}  // ✅ Use message data
+                            thinkingProcess={message.thinkingProcess}  // ✅ Use message data
+                            thinkingDuration={message.thinkingDuration || 10}  // ✅ Use message data
+                            isThinkingComplete={!message.isStreaming}
+                            isStreaming={message.isStreaming || false}
+                            onCitationClick={(citationId) => {
+                              const citation = message.citations?.find(
+                                c => parseInt(c.number, 10) === citationId
+                              );
+                              if (citation?.url) {
+                                window.open(citation.url, '_blank');
+                              }
+                            }}
+                          />
+                        );
+                      }
+                      // Use default rendering for user messages (Fix #6)
+                      console.log('[QA Module] Using default rendering for user message');
+                      return undefined;  // ✅ Not null - allows default blue bubble rendering
                     }}
                   />
+
+                  {/* Show standalone thinking indicator only when no messages yet */}
+                  {(getActiveSession()?.messages.length || 0) === 0 && thinkingStatus === 'thinking' && (
+                    <ThinkingProcessIndicator
+                      status={thinkingStatus}
+                      content={thinkingContent}
+                      isExpandable={true}
+                      defaultExpanded={true}
+                      progress={streamingProgress}
+                    />
+                  )}
                 </div>
               )}
             </ScrollArea>
