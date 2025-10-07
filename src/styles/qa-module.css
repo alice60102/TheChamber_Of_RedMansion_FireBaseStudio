@@ -1,0 +1,332 @@
+/**
+ * QA Module Professional Styles
+ *
+ * Professional typography hierarchy and visual design for the QA module
+ * Implements the design patterns specified in the improvement report
+ */
+
+/* ===== Typography Scale ===== */
+.qa-module {
+  /* Typography hierarchy */
+  --qa-heading-size: 1.25rem;        /* 20px - Main section headings */
+  --qa-subheading-size: 1.1rem;      /* 17.6px - Subsection headings */
+  --qa-body-size: 1rem;              /* 16px - Main content */
+  --qa-citation-size: 0.875rem;      /* 14px - Citations and metadata */
+  --qa-small-size: 0.8125rem;        /* 13px - Timestamps, labels */
+
+  /* Semantic spacing system */
+  --qa-section-spacing: 2rem;        /* Between major sections */
+  --qa-paragraph-spacing: 1rem;      /* Between paragraphs */
+  --qa-citation-spacing: 0.5rem;     /* Around citations */
+  --qa-element-spacing: 0.75rem;     /* Between UI elements */
+
+  /* Line heights for readability */
+  --qa-heading-line-height: 1.3;
+  --qa-body-line-height: 1.7;
+  --qa-citation-line-height: 1.5;
+}
+
+/* ===== Structured QA Response Styles ===== */
+.structured-qa-response {
+  font-size: var(--qa-body-size);
+  line-height: var(--qa-body-line-height);
+}
+
+.structured-section {
+  margin-bottom: var(--qa-section-spacing);
+}
+
+.section-header {
+  font-size: var(--qa-heading-size);
+  font-weight: 600;
+  line-height: var(--qa-heading-line-height);
+  margin-bottom: var(--qa-paragraph-spacing);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.section-content {
+  font-size: var(--qa-body-size);
+  line-height: var(--qa-body-line-height);
+}
+
+.section-content p {
+  margin-bottom: var(--qa-paragraph-spacing);
+}
+
+.section-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* ===== Thinking Process Styles ===== */
+.thinking-process {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--qa-citation-size);
+  font-style: italic;
+  line-height: var(--qa-citation-line-height);
+  padding: 1rem;
+  background: hsl(var(--accent) / 0.3);
+  border-radius: 0.5rem;
+  border-left: 3px solid hsl(var(--primary));
+}
+
+.thinking-content {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* ===== Citation Styles ===== */
+.citation-inline {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.125rem;
+  padding: 0.125rem 0.375rem;
+  font-size: var(--qa-citation-size);
+  font-weight: 500;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.citation-inline:hover {
+  background: hsl(var(--primary) / 0.2);
+  transform: translateY(-1px);
+}
+
+.references-section {
+  margin-top: var(--qa-section-spacing);
+  padding-top: calc(var(--qa-section-spacing) * 0.75);
+  border-top: 2px solid hsl(var(--border));
+}
+
+.references-section h3 {
+  font-size: var(--qa-heading-size);
+  font-weight: 600;
+  line-height: var(--qa-heading-line-height);
+  margin-bottom: var(--qa-paragraph-spacing);
+}
+
+.citation-reference {
+  padding: 0.75rem;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  margin-bottom: var(--qa-citation-spacing);
+  transition: all 0.2s ease;
+}
+
+.citation-reference:hover {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--primary));
+  transform: translateX(4px);
+}
+
+.citation-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: var(--qa-citation-size);
+  font-weight: 600;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.citation-title {
+  font-size: var(--qa-body-size);
+  font-weight: 500;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+}
+
+.citation-snippet {
+  font-size: var(--qa-citation-size);
+  line-height: var(--qa-citation-line-height);
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.25rem;
+}
+
+.citation-metadata {
+  font-size: var(--qa-small-size);
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.5rem;
+}
+
+/* ===== Conversation Flow Styles ===== */
+.conversation-flow {
+  padding: 1rem;
+}
+
+.message-bubble {
+  max-width: 85%;
+  margin-bottom: var(--qa-paragraph-spacing);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble.user {
+  margin-left: auto;
+}
+
+.message-bubble.ai {
+  margin-right: auto;
+}
+
+.message-content {
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  font-size: var(--qa-body-size);
+  line-height: var(--qa-body-line-height);
+  word-wrap: break-word;
+}
+
+.message-bubble.user .message-content {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-top-right-radius: 0.25rem;
+}
+
+.message-bubble.ai .message-content {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-top-left-radius: 0.25rem;
+}
+
+.message-timestamp {
+  font-size: var(--qa-small-size);
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.25rem;
+  padding: 0 0.25rem;
+}
+
+.message-bubble.user .message-timestamp {
+  text-align: right;
+}
+
+.new-conversation-separator {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 0 1rem;
+}
+
+.new-conversation-separator::before,
+.new-conversation-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    hsl(var(--border)),
+    transparent
+  );
+}
+
+.new-conversation-separator-text {
+  font-size: var(--qa-small-size);
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.new-conversation-separator-text:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+/* ===== Responsive Design ===== */
+@media (max-width: 768px) {
+  .qa-module {
+    --qa-heading-size: 1.125rem;      /* 18px on mobile */
+    --qa-subheading-size: 1rem;       /* 16px on mobile */
+    --qa-body-size: 0.9375rem;        /* 15px on mobile */
+    --qa-section-spacing: 1.5rem;
+    --qa-paragraph-spacing: 0.875rem;
+  }
+
+  .message-bubble {
+    max-width: 90%;
+  }
+
+  .structured-section {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* ===== Dark Mode Adjustments ===== */
+@media (prefers-color-scheme: dark) {
+  .thinking-process {
+    background: hsl(var(--accent) / 0.2);
+    border-left-color: hsl(var(--primary) / 0.8);
+  }
+
+  .citation-inline {
+    background: hsl(var(--primary) / 0.15);
+  }
+
+  .citation-inline:hover {
+    background: hsl(var(--primary) / 0.25);
+  }
+
+  .citation-reference {
+    background: hsl(var(--card) / 0.5);
+  }
+
+  .citation-reference:hover {
+    background: hsl(var(--accent) / 0.5);
+  }
+}
+
+/* ===== Accessibility Improvements ===== */
+.citation-inline:focus-visible,
+.citation-reference:focus-visible,
+.new-conversation-separator-text:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+/* Reduced motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .message-bubble,
+  .citation-inline,
+  .citation-reference {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ===== Print Styles ===== */
+@media print {
+  .thinking-process {
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+  }
+
+  .citation-reference {
+    page-break-inside: avoid;
+  }
+
+  .new-conversation-separator {
+    display: none;
+  }
+}

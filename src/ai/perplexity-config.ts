@@ -85,9 +85,18 @@ export const PERPLEXITY_CONFIG = {
   DEFAULT_MAX_TOKENS: 2000,
   
   // Request settings
-  REQUEST_TIMEOUT_MS: 60000, // 60 seconds
+  REQUEST_TIMEOUT_MS: 60000, // 60 seconds (base timeout)
   MAX_RETRIES: 3,
   RETRY_DELAY_MS: 2000,
+
+  // Adaptive timeout configuration
+  ADAPTIVE_TIMEOUT: {
+    BASE_TIMEOUT: 45000,           // 45 seconds base
+    REASONING_MULTIPLIER: 1.5,     // 1.5x for reasoning models
+    COMPLEX_QUESTION_BONUS: 30000, // +30s for complex questions
+    MAX_TIMEOUT: 120000,           // 2 minutes maximum
+    MIN_TIMEOUT: 30000,            // 30 seconds minimum
+  },
   
   // Streaming settings
   STREAM_CHUNK_DELAY_MS: 50, // Delay between processing chunks
@@ -226,4 +235,68 @@ export function createPerplexityConfig(options?: {
   }
 
   return config;
+}
+
+/**
+ * Calculate adaptive timeout based on question complexity and model type
+ * 根據問題複雜度和模型類型計算自適應超時時間
+ *
+ * Reason: Different questions and models require different processing times.
+ * Reasoning models need more time, and complex questions need additional buffer.
+ */
+export function calculateAdaptiveTimeout(options: {
+  modelKey: PerplexityModelKey;
+  reasoningEffort?: ReasoningEffort;
+  questionLength?: number;
+  questionContext?: QuestionContext;
+}): number {
+  const { BASE_TIMEOUT, REASONING_MULTIPLIER, COMPLEX_QUESTION_BONUS, MAX_TIMEOUT, MIN_TIMEOUT } =
+    PERPLEXITY_CONFIG.ADAPTIVE_TIMEOUT;
+
+  let timeout = BASE_TIMEOUT;
+
+  // Apply reasoning multiplier for reasoning models
+  if (supportsReasoning(options.modelKey)) {
+    timeout *= REASONING_MULTIPLIER;
+
+    // Additional time for high reasoning effort
+    if (options.reasoningEffort === 'high') {
+      timeout += 15000; // +15 seconds for high reasoning
+    } else if (options.reasoningEffort === 'medium') {
+      timeout += 7500; // +7.5 seconds for medium reasoning
+    }
+  }
+
+  // Add bonus for complex questions (long questions are typically more complex)
+  if (options.questionLength && options.questionLength > 200) {
+    timeout += COMPLEX_QUESTION_BONUS;
+  } else if (options.questionLength && options.questionLength > 100) {
+    timeout += COMPLEX_QUESTION_BONUS / 2; // Half bonus for medium-length questions
+  }
+
+  // Context-specific adjustments
+  if (options.questionContext === 'theme' || options.questionContext === 'character') {
+    timeout += 10000; // +10 seconds for deep analysis contexts
+  }
+
+  // Clamp to min/max bounds
+  return Math.max(MIN_TIMEOUT, Math.min(MAX_TIMEOUT, timeout));
+}
+
+/**
+ * Get timeout configuration summary for logging
+ * 獲取超時配置摘要用於日誌記錄
+ */
+export function getTimeoutSummary(timeout: number): {
+  seconds: number;
+  minutes: number;
+  formatted: string;
+} {
+  const seconds = Math.round(timeout / 1000);
+  const minutes = Math.round((timeout / 1000 / 60) * 10) / 10;
+  const formatted = minutes >= 1
+    ? `${minutes} 分鐘`
+    : `${seconds} 秒`;
+
+  return { seconds, minutes, formatted };
 }

@@ -84,10 +84,9 @@ import { explainTextSelection } from '@/ai/flows/explain-text-selection';
 import type { ExplainTextSelectionInput } from '@/ai/flows/explain-text-selection';
 
 // Perplexity AI integration
-import { 
-  perplexityRedChamberQA, 
-  perplexityRedChamberQAStreaming,
-  createPerplexityQAInputForFlow 
+import {
+  perplexityRedChamberQA,
+  createPerplexityQAInputForFlow
 } from '@/ai/flows/perplexity-red-chamber-qa';
 import type { PerplexityQAResponse, PerplexityStreamingChunk } from '@/types/perplexity-qa';
 import { EnhancedAnswer } from '@/components/ui/EnhancedAnswer';
@@ -687,45 +686,107 @@ export default function ReadBookPage() {
         );
 
         if (enableStreaming) {
-          // Handle streaming response
+          // Handle streaming response via SSE API endpoint
           setAiInteractionState('streaming');
           const chunks: PerplexityStreamingChunk[] = [];
-          
+
           try {
-            for await (const chunk of perplexityRedChamberQAStreaming(perplexityInput)) {
-              chunks.push(chunk);
-              setPerplexityStreamingChunks([...chunks]);
-              
-              if (chunk.isComplete) {
-                // Create final response from last chunk
-                const finalResponse: PerplexityQAResponse = {
-                  question: userQuestionInput,
-                  answer: chunk.fullContent,
-                  citations: chunk.citations,
-                  groundingMetadata: chunk.metadata as any,
-                  modelUsed: perplexityInput.modelKey || 'sonar-reasoning-pro',
-                  modelKey: perplexityInput.modelKey || 'sonar-reasoning-pro',
-                  reasoningEffort: perplexityInput.reasoningEffort,
-                  questionContext: perplexityInput.questionContext,
-                  processingTime: chunk.responseTime,
-                  success: !chunk.error,
-                  streaming: true,
-                  chunkCount: chunk.chunkIndex,
-                  stoppedByUser: false,
-                  timestamp: chunk.timestamp,
-                  answerLength: chunk.fullContent.length,
-                  questionLength: userQuestionInput.length,
-                  citationCount: chunk.citations.length,
-                  error: chunk.error,
-                };
-                setPerplexityResponse(finalResponse);
-                setAiInteractionState('answered');
+            // Call the streaming API endpoint instead of direct async generator
+            const response = await fetch('/api/perplexity-qa-stream', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userQuestion: userQuestionInput,
+                selectedTextInfo: selectedTextInfo,
+                chapterContext: chapterContextSnippet,
+                currentChapter: currentChapter.titleKey,
+                modelKey: perplexityModel,
+                reasoningEffort: reasoningEffort,
+                questionContext: 'general',
+                showThinkingProcess: true,
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+            }
+
+            if (!response.body) {
+              throw new Error('Response body is null');
+            }
+
+            // Process SSE stream
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            while (true) {
+              const { done, value } = await reader.read();
+
+              if (done) {
+                console.log('Stream complete');
                 break;
+              }
+
+              // Decode chunk and add to buffer
+              buffer += decoder.decode(value, { stream: true });
+
+              // Process complete SSE messages
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6); // Remove 'data: ' prefix
+
+                  // Check for completion signal
+                  if (data === '[DONE]') {
+                    console.log('Received completion signal');
+                    continue;
+                  }
+
+                  try {
+                    const chunk: PerplexityStreamingChunk = JSON.parse(data);
+                    chunks.push(chunk);
+                    setPerplexityStreamingChunks([...chunks]);
+
+                    if (chunk.isComplete) {
+                      // Create final response from last chunk
+                      const finalResponse: PerplexityQAResponse = {
+                        question: userQuestionInput,
+                        answer: chunk.fullContent,
+                        citations: chunk.citations,
+                        groundingMetadata: chunk.metadata as any,
+                        modelUsed: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                        modelKey: perplexityInput.modelKey || 'sonar-reasoning-pro',
+                        reasoningEffort: perplexityInput.reasoningEffort,
+                        questionContext: perplexityInput.questionContext,
+                        processingTime: chunk.responseTime,
+                        success: !chunk.error,
+                        streaming: true,
+                        chunkCount: chunk.chunkIndex,
+                        stoppedByUser: false,
+                        timestamp: chunk.timestamp,
+                        answerLength: chunk.fullContent.length,
+                        questionLength: userQuestionInput.length,
+                        citationCount: chunk.citations.length,
+                        error: chunk.error,
+                      };
+                      setPerplexityResponse(finalResponse);
+                      setAiInteractionState('answered');
+                      break;
+                    }
+                  } catch (parseError) {
+                    console.error('Failed to parse SSE message:', data, parseError);
+                  }
+                }
               }
             }
           } catch (streamingError: any) {
             console.error('Streaming QA error:', streamingError);
-            
+
             // Set error state
             setPerplexityResponse({
               question: userQuestionInput,
@@ -746,7 +807,7 @@ export default function ReadBookPage() {
               citationCount: 0,
               error: streamingError?.message || 'Streaming error occurred',
             });
-            
+
             setAiInteractionState('answered');
           }
         } else {
