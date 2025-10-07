@@ -33,7 +33,22 @@
       "Bash(npm install:*)",
       "Bash(npm cache clean:*)",
       "Bash(findstr:*)",
-      "Read(//d/AboutUniversity/114 NSTC_and_SeniorProject/2025-IM-senior-project/.git/**)"
+      "Read(//d/AboutUniversity/114 NSTC_and_SeniorProject/2025-IM-senior-project/.git/**)",
+      "Bash(npm config:*)",
+      "Bash(reg query:*)",
+      "Bash(npm outdated:*)",
+      "Bash(powershell:*)",
+      "Bash(git config:*)",
+      "Bash(if [ -d \"node_modules\" ])",
+      "Bash(then echo \"node_modules exists\")",
+      "Bash(else echo \"node_modules not found\")",
+      "Bash(fi)",
+      "Bash(if [ -f \"package-lock.json\" ])",
+      "Bash(then cp package-lock.json .backup/package-lock.json.backup)",
+      "Bash(else echo \"No package-lock.json found\")",
+      "Bash(pnpm:*)",
+      "Bash(then echo \"node_modules directory exists\")",
+      "Bash(node:*)"
     ]
   },
   "outputStyle": "default"

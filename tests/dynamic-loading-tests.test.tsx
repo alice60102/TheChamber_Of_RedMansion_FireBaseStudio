@@ -128,6 +128,7 @@ describe('🧪 Dynamic Data Loading Integration Test Suite', () => {
       
       console.log('✅ Empty data handling validated');
     });
+  });
 
   describe('🌐 API Route Integration', () => {
     beforeEach(() => {
@@ -346,4 +347,4 @@ describe('🧪 Dynamic Data Loading Integration Test Suite', () => {
     expect(coverageAreas).toHaveLength(6);
     expect(true).toBe(true); // Integration test completion marker
   });
-}); 
+});
