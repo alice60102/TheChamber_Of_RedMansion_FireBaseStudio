@@ -36,6 +36,7 @@ import { useRouter } from 'next/navigation';
 
 // UI component imports from design system
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 // Progress bar removed per new design for double-column pagination controls
@@ -68,7 +69,9 @@ import {
   Volume2,                      // Text-to-speech
   Copy,                         // Copy selected text
   Quote,                        // Quote/annotation
-  ChevronDown                   // Dropdown indicators
+  ChevronDown,                  // Dropdown indicators
+  ArrowUp,                      // Submit question button (circular design)
+  Square                        // Stop streaming button (for Phase 2)
 } from "lucide-react";
 
 // Third-party libraries for content rendering
@@ -308,6 +311,12 @@ export default function ReadBookPage() {
   const [thinkingStatus, setThinkingStatus] = useState<ThinkingStatus>('idle');
   const [streamingProgress, setStreamingProgress] = useState<number>(0);
   const streamingAIMessageIdRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null); // Fix Issue #3
+
+  // Auto-scroll control (Fix Issue #7)
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const lastScrollTopRef = useRef(0);
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
   const [activeHighlightInfo, setActiveHighlightInfo] = useState<{ text: string; position: { top: number; left: number; } } | null>(null);
@@ -726,6 +735,78 @@ export default function ReadBookPage() {
   const isSubmittingRef = useRef(false);
   const lastSubmitAtRef = useRef(0);
 
+  /**
+   * Detect user scroll intent
+   * Fix Issue #7 - Allow free scrolling during AI response
+   */
+  const handleScrollIntent = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const scrollTop = container.scrollTop;
+    const scrollHeight = container.scrollHeight;
+    const clientHeight = container.clientHeight;
+
+    // Calculate if user is near bottom (within 100px)
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+
+    // Detect scroll direction
+    const scrollingUp = scrollTop < lastScrollTopRef.current;
+    lastScrollTopRef.current = scrollTop;
+
+    // Disable auto-scroll if user scrolls up
+    if (scrollingUp && !isNearBottom && autoScrollEnabled) {
+      console.log('[QA Module] User scrolled up, disabling auto-scroll');
+      setAutoScrollEnabled(false);
+    }
+
+    // Re-enable auto-scroll if user scrolls near bottom
+    if (isNearBottom && !autoScrollEnabled) {
+      console.log('[QA Module] User at bottom, re-enabling auto-scroll');
+      setAutoScrollEnabled(true);
+      setUnreadMessageCount(0);
+    }
+  }, [autoScrollEnabled]);
+
+  /**
+   * Stop currently streaming AI response
+   * Fix Issue #3 - Allow users to stop long-running responses
+   */
+  const handleStopStreaming = () => {
+    console.log('[QA Module] User requested to stop streaming');
+
+    // Abort the fetch request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // Finalize current AI message with partial content
+    if (streamingAIMessageIdRef.current) {
+      const msgId = streamingAIMessageIdRef.current;
+      setActiveSessionMessages(prev =>
+        prev.map(msg =>
+          msg.id === msgId
+            ? {
+                ...msg,
+                isStreaming: false,
+                content: msg.content + '\n\n_[回答已中止]_',
+              }
+            : msg
+        )
+      );
+      streamingAIMessageIdRef.current = null;
+    }
+
+    // Reset states
+    setIsLoadingExplanation(false);
+    setThinkingStatus('idle');
+    setAiInteractionState('answered');
+
+    toast({
+      title: '已停止回答',
+      description: '部分回答已保留',
+    });
+  };
+
   const handleUserSubmitQuestion = async (overrideQuestion?: string) => {
     // Prevent duplicate submission - check all blocking conditions first
     const now = Date.now();
@@ -807,6 +888,22 @@ export default function ReadBookPage() {
           console.log('[QA Module] Adding user message:', userMessage);
           setActiveSessionMessages(prev => [...prev, userMessage]);
 
+          // IMMEDIATELY create AI message placeholder (Fix Issue #2 - immediate avatar)
+          const aiMessagePlaceholderId = `ai-${Date.now()}`;
+          const aiMessagePlaceholder: ConversationMessage = {
+            id: aiMessagePlaceholderId,
+            role: 'ai' as MessageRole,
+            content: '', // Empty initially, will be populated during streaming
+            timestamp: new Date(),
+            isStreaming: true, // Show loading state
+            citations: [],
+            thinkingProcess: '', // Will be populated during streaming
+            thinkingDuration: 0,
+          };
+          console.log('[QA Module] Creating AI placeholder:', aiMessagePlaceholderId);
+          setActiveSessionMessages(prev => [...prev, aiMessagePlaceholder]);
+          streamingAIMessageIdRef.current = aiMessagePlaceholderId; // Track for updates
+
           // Clear input field immediately after submission (Fix Issue #2)
           setUserQuestionInput('');
 
@@ -819,12 +916,16 @@ export default function ReadBookPage() {
           setStreamingProgress(0);
 
           try {
+            // Create new AbortController for this request (Fix Issue #3)
+            abortControllerRef.current = new AbortController();
+
             // Call the streaming API endpoint instead of direct async generator
             const response = await fetch('/api/perplexity-qa-stream', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
+              signal: abortControllerRef.current.signal, // Add abort signal
               body: JSON.stringify({
                 userQuestion: questionText,
                 selectedTextInfo: selectedTextInfo,
@@ -945,6 +1046,10 @@ export default function ReadBookPage() {
                           isStreaming: false,
                         } : m));
                         streamingAIMessageIdRef.current = null;
+                        // Increment unread count if auto-scroll is disabled (Fix Issue #7 - Task 2.3)
+                        if (!autoScrollEnabled) {
+                          setUnreadMessageCount(prev => prev + 1);
+                        }
                       } else {
                         const aiMessage: ConversationMessage = {
                           id: `ai-${Date.now()}`,
@@ -957,6 +1062,10 @@ export default function ReadBookPage() {
                           isStreaming: false,
                         };
                         setActiveSessionMessages(prev => [...prev, aiMessage]);
+                        // Increment unread count if auto-scroll is disabled (Fix Issue #7 - Task 2.3)
+                        if (!autoScrollEnabled) {
+                          setUnreadMessageCount(prev => prev + 1);
+                        }
                       }
                       setAiInteractionState('answered');
                     } catch (finalizeErr) {
@@ -1030,6 +1139,10 @@ export default function ReadBookPage() {
                           isStreaming: false,
                         } : m));
                         streamingAIMessageIdRef.current = null;
+                        // Increment unread count if auto-scroll is disabled (Fix Issue #7 - Task 2.3)
+                        if (!autoScrollEnabled) {
+                          setUnreadMessageCount(prev => prev + 1);
+                        }
                       } else {
                         const aiMessage: ConversationMessage = {
                           id: `ai-${Date.now()}`,
@@ -1042,6 +1155,10 @@ export default function ReadBookPage() {
                           isStreaming: false,
                         };
                         setActiveSessionMessages(prev => [...prev, aiMessage]);
+                        // Increment unread count if auto-scroll is disabled (Fix Issue #7 - Task 2.3)
+                        if (!autoScrollEnabled) {
+                          setUnreadMessageCount(prev => prev + 1);
+                        }
                       }
                       setAiInteractionState('answered');
                       sawCompletion = true;
@@ -1085,8 +1202,24 @@ export default function ReadBookPage() {
                       // Non-fatal parsing failure
                     }
 
-                    // Create or update streaming AI message for immediate rendering
-                    if (!streamingAIMessageIdRef.current) {
+                    // Update existing AI placeholder message (Fix Issue #2 - no duplicate creation)
+                    // streamingAIMessageIdRef.current should already be set from placeholder creation
+                    if (streamingAIMessageIdRef.current) {
+                      const msgId = streamingAIMessageIdRef.current;
+                      setActiveSessionMessages(prev => prev.map(m => {
+                        if (m.id !== msgId) return m;
+                        const updatedText = chunk.fullContent?.length ? chunk.fullContent : (m.content + (chunk.content || ''));
+                        return {
+                          ...m,
+                          content: updatedText,
+                          citations: chunk.citations && chunk.citations.length ? chunk.citations : m.citations,
+                          thinkingProcess: thinkingContent,
+                          isStreaming: !chunk.isComplete,
+                        };
+                      }));
+                    } else {
+                      // Fallback: create new message if placeholder somehow missing
+                      console.warn('[QA Module] No placeholder found, creating new AI message');
                       const initialContent = chunk.fullContent?.length ? chunk.fullContent : (chunk.content || '');
                       const aiMsgId = `ai-stream-${Date.now()}`;
                       streamingAIMessageIdRef.current = aiMsgId;
@@ -1100,19 +1233,6 @@ export default function ReadBookPage() {
                         isStreaming: true,
                       };
                       setActiveSessionMessages(prev => [...prev, aiStreamingMessage]);
-                    } else {
-                      const msgId = streamingAIMessageIdRef.current;
-                      setActiveSessionMessages(prev => prev.map(m => {
-                        if (m.id !== msgId) return m;
-                        const updatedText = chunk.fullContent?.length ? chunk.fullContent : (m.content + (chunk.content || ''));
-                        return {
-                          ...m,
-                          content: updatedText,
-                          citations: chunk.citations && chunk.citations.length ? chunk.citations : m.citations,
-                          thinkingProcess: thinkingContent,
-                          isStreaming: !chunk.isComplete,
-                        };
-                      }));
                     }
 
                     if (chunk.isComplete) {
@@ -1176,6 +1296,12 @@ export default function ReadBookPage() {
               throw innerStreamError;
             }
           } catch (streamingError: any) {
+            // Handle abort specifically (user-initiated stop) - Fix Issue #3
+            if (streamingError.name === 'AbortError') {
+              console.log('[QA Module] Stream aborted by user');
+              return; // Don't show error toast for user-initiated abort
+            }
+
             // Ensure watchdog is always cleared
             if (watchdogInterval) {
               clearInterval(watchdogInterval);
@@ -2186,6 +2312,8 @@ export default function ReadBookPage() {
                       streamingAIMessageIdRef.current = null;
                     }}
                     autoScroll={true}
+                    autoScrollEnabled={autoScrollEnabled}
+                    onScrollIntent={handleScrollIntent}
                     renderMessageContent={(message) => {
                       console.log('[QA Module] Rendering message:', message);
                       // Render AI responses with AIMessageBubble (Fix #6, #7, #8)
@@ -2216,6 +2344,36 @@ export default function ReadBookPage() {
                     }}
                   />
 
+                  {/* Scroll to Bottom Button (Fix Issue #7) */}
+                  {!autoScrollEnabled && (
+                    <div className="sticky bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+                      <Button
+                        onClick={() => {
+                          setAutoScrollEnabled(true);
+                          setUnreadMessageCount(0);
+                          // Scroll to bottom
+                          const scrollArea = document.querySelector('.conversation-flow');
+                          if (scrollArea) {
+                            scrollArea.scrollTo({
+                              top: scrollArea.scrollHeight,
+                              behavior: 'smooth',
+                            });
+                          }
+                        }}
+                        className="shadow-lg rounded-full px-4 py-2 flex items-center gap-2 pointer-events-auto"
+                        variant="secondary"
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                        <span>回到底部</span>
+                        {unreadMessageCount > 0 && (
+                          <Badge variant="destructive" className="ml-1">
+                            {unreadMessageCount}
+                          </Badge>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+
                   {/* Show standalone thinking indicator only when no messages yet */}
                   {(getActiveSession()?.messages.length || 0) === 0 && thinkingStatus === 'thinking' && (
                     <ThinkingProcessIndicator
@@ -2235,25 +2393,40 @@ export default function ReadBookPage() {
 
               {/* Action Buttons */}
               <div className="flex gap-2 mb-4">
-                <Button 
-                  variant="outline" 
-                  className="flex-1 text-sm bg-background/70 hover:bg-primary/10" 
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "flex-1 text-sm bg-background/70",
+                    "hover:bg-pink-100 dark:hover:bg-pink-950",
+                    "transition-colors duration-200",
+                    "text-foreground hover:text-black dark:hover:text-white"
+                  )}
                   onClick={handleBookHighlights}
                   disabled={isLoadingExplanation}
                 >
                   該章回亮點
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="flex-1 text-sm bg-background/70 hover:bg-primary/10" 
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "flex-1 text-sm bg-background/70",
+                    "hover:bg-pink-100 dark:hover:bg-pink-950",
+                    "transition-colors duration-200",
+                    "text-foreground hover:text-black dark:hover:text-white"
+                  )}
                   onClick={handleBackgroundReading}
                   disabled={isLoadingExplanation}
                 >
                   背景解讀
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="flex-1 text-sm bg-background/70 hover:bg-primary/10" 
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "flex-1 text-sm bg-background/70",
+                    "hover:bg-pink-100 dark:hover:bg-pink-950",
+                    "transition-colors duration-200",
+                    "text-foreground hover:text-black dark:hover:text-white"
+                  )}
                   onClick={handleKeyConcepts}
                   disabled={isLoadingExplanation}
                 >
@@ -2276,13 +2449,25 @@ export default function ReadBookPage() {
                     }
                   }}
                 />
-                <Button 
-                  onClick={handleUserSubmitQuestion} 
-                  disabled={isLoadingExplanation || !userQuestionInput.trim()}
+                <Button
+                  onClick={isLoadingExplanation ? handleStopStreaming : handleUserSubmitQuestion}
+                  disabled={!isLoadingExplanation && !userQuestionInput.trim()}
                   size="icon"
-                  className="shrink-0"
+                  className={cn(
+                    "shrink-0 rounded-full h-10 w-10 p-0 transition-all duration-200",
+                    "hover:scale-105 active:scale-95",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    // Change color when showing stop button (Fix Issue #3)
+                    isLoadingExplanation && "bg-destructive hover:bg-destructive/90"
+                  )}
+                  aria-label={isLoadingExplanation ? "停止回答" : "送出問題"}
+                  title={isLoadingExplanation ? "停止回答" : "送出問題"}
                 >
-                  ↑
+                  {isLoadingExplanation ? (
+                    <Square className="h-5 w-5" strokeWidth={2.5} />
+                  ) : (
+                    <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+                  )}
                 </Button>
               </div>
             </div>

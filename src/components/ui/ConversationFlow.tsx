@@ -77,6 +77,12 @@ export interface ConversationFlowProps {
   /** Whether to auto-scroll to latest message */
   autoScroll?: boolean;
 
+  /** Whether auto-scroll is enabled (Fix Issue #7) */
+  autoScrollEnabled?: boolean;
+
+  /** Scroll event handler for detecting user scroll intent (Fix Issue #7) */
+  onScrollIntent?: (e: React.UIEvent<HTMLDivElement>) => void;
+
   /** Custom render function for message content */
   renderMessageContent?: (message: ConversationMessage) => React.ReactNode;
 
@@ -165,8 +171,11 @@ function MessageBubble({ message, renderContent }: MessageBubbleProps) {
   return (
     <div
       className={cn(
-        'flex gap-3 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-300',
-        isUser && 'ml-auto flex-row-reverse',
+        'flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300',
+        // User messages: max 70% on desktop, 85% on mobile for better readability
+        isUser && 'ml-auto flex-row-reverse max-w-[85%] md:max-w-[70%]',
+        // AI messages: max 85% on desktop, 90% on mobile (can be wider as they contain more info)
+        !isUser && !isSystem && 'max-w-[90%] md:max-w-[85%]',
         isSystem && 'mx-auto max-w-md'
       )}
     >
@@ -259,18 +268,20 @@ export function ConversationFlow({
   showNewConversationSeparator = true,
   onNewConversation,
   autoScroll = true,
+  autoScrollEnabled = true,
+  onScrollIntent,
   renderMessageContent,
   className,
 }: ConversationFlowProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive (if enabled - Fix Issue #7)
   useEffect(() => {
-    if (autoScroll && bottomRef.current) {
+    if (autoScroll && autoScrollEnabled && bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
-  }, [messages, autoScroll]);
+  }, [messages, autoScroll, autoScrollEnabled]);
 
   return (
     <div
@@ -279,6 +290,7 @@ export function ConversationFlow({
         'conversation-flow space-y-4 overflow-y-auto',
         className
       )}
+      onScroll={onScrollIntent}
     >
       {/* Message history */}
       {messages.length > 0 ? (

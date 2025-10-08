@@ -58,7 +58,12 @@
       "Bash(cd:*)",
       "Bash(git add src/app/(main)/read-book/page.tsx src/components/ui/AIMessageBubble.tsx)",
       "Read(//mnt/d/AboutUniversity/**)",
-      "Bash(git add src/app/(main)/read-book/page.tsx src/components/ui/ConversationFlow.tsx \"docs/improvement_report/The QA Module of the Reading Book.md\")"
+      "Bash(git add src/app/(main)/read-book/page.tsx src/components/ui/ConversationFlow.tsx \"docs/improvement_report/The QA Module of the Reading Book.md\")",
+      "Bash(npx tsc:*)",
+      "Bash(netstat:*)",
+      "Bash(lsof:*)",
+      "Bash(ss:*)",
+      "Bash(PORT=3001 npm run dev)"
     ]
   },
   "outputStyle": "default"
