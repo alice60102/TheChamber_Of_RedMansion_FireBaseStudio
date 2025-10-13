@@ -312,6 +312,10 @@ export default function ReadBookPage() {
   const [streamingProgress, setStreamingProgress] = useState<number>(0);
   const streamingAIMessageIdRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null); // Fix Issue #3
+  // Task 3.3: Track timing for thinking duration (submit -> first token)
+  const questionSubmittedAtRef = useRef<number | null>(null);
+  const responseStartedAtRef = useRef<number | null>(null);
+  const firstChunkSeenRef = useRef<boolean>(false);
 
   // Auto-scroll control (Fix Issue #7)
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
@@ -914,6 +918,10 @@ export default function ReadBookPage() {
           setThinkingStatus('thinking');
           setThinkingContent('正在分析您的問題並搜尋相關資料...');
           setStreamingProgress(0);
+          // Task 3.3: mark submission time for duration calculation
+          questionSubmittedAtRef.current = Date.now();
+          responseStartedAtRef.current = null;
+          firstChunkSeenRef.current = false;
 
           try {
             // Create new AbortController for this request (Fix Issue #3)
@@ -1042,7 +1050,9 @@ export default function ReadBookPage() {
                           content: combined,
                           citations: last.citations || m.citations,
                           thinkingProcess: thinkingContent,
-                          thinkingDuration: Math.round((last.responseTime || 0) / 1000),
+                          thinkingDuration: (m.thinkingDuration && m.thinkingDuration > 0)
+                            ? m.thinkingDuration
+                            : Math.round((last.responseTime || 0) / 1000),
                           isStreaming: false,
                         } : m));
                         streamingAIMessageIdRef.current = null;
@@ -1051,6 +1061,9 @@ export default function ReadBookPage() {
                           setUnreadMessageCount(prev => prev + 1);
                         }
                       } else {
+                        const measuredSec = (questionSubmittedAtRef.current != null && responseStartedAtRef.current != null)
+                          ? Math.max(0, Math.round((responseStartedAtRef.current - questionSubmittedAtRef.current) / 1000))
+                          : Math.round((last.responseTime || 0) / 1000);
                         const aiMessage: ConversationMessage = {
                           id: `ai-${Date.now()}`,
                           role: 'ai' as MessageRole,
@@ -1058,7 +1071,7 @@ export default function ReadBookPage() {
                           timestamp: new Date(),
                           citations: last.citations || [],
                           thinkingProcess: thinkingContent,
-                          thinkingDuration: Math.round((last.responseTime || 0) / 1000),
+                          thinkingDuration: measuredSec,
                           isStreaming: false,
                         };
                         setActiveSessionMessages(prev => [...prev, aiMessage]);
@@ -1171,6 +1184,17 @@ export default function ReadBookPage() {
                     chunks.push(chunk);
                     setPerplexityStreamingChunks([...chunks]);
 
+                    // Task 3.3: record first response time and update message's thinkingDuration
+                    if (!firstChunkSeenRef.current) {
+                      firstChunkSeenRef.current = true;
+                      responseStartedAtRef.current = Date.now();
+                      if (questionSubmittedAtRef.current != null && streamingAIMessageIdRef.current) {
+                        const elapsed = Math.max(0, Math.round((responseStartedAtRef.current - questionSubmittedAtRef.current) / 1000));
+                        const msgId = streamingAIMessageIdRef.current;
+                        setActiveSessionMessages(prev => prev.map(m => m.id === msgId ? { ...m, thinkingDuration: elapsed } : m));
+                      }
+                    }
+
                     // Update thinking content with search queries or progress
                     if (chunk.searchQueries && chunk.searchQueries.length > 0) {
                       setThinkingContent(`搜尋查詢: ${chunk.searchQueries.join(', ')}`);
@@ -1271,7 +1295,9 @@ export default function ReadBookPage() {
                           content: chunk.fullContent || m.content,
                           citations: chunk.citations || m.citations,
                           thinkingProcess: thinkingContent,
-                          thinkingDuration: Math.round(chunk.responseTime / 1000),
+                          thinkingDuration: (m.thinkingDuration && m.thinkingDuration > 0)
+                            ? m.thinkingDuration
+                            : Math.round(chunk.responseTime / 1000),
                           isStreaming: false,
                         } : m));
                         streamingAIMessageIdRef.current = null;
@@ -2209,7 +2235,7 @@ export default function ReadBookPage() {
                       <Button
                         key={index}
                         variant="outline"
-                        className="w-full h-auto p-4 text-left whitespace-normal justify-start text-sm bg-background/50 hover:bg-primary/10 border-primary/20"
+                        className="w-full h-auto p-4 text-left whitespace-normal justify-start text-sm bg-background/50 hover:bg-pink-100 dark:hover:bg-pink-950 border-primary/20 transition-colors duration-200 text-foreground hover:text-black dark:hover:text-white"
                         onClick={() => handleSuggestionClick(question)}
                       >
                         {question}
@@ -2361,6 +2387,8 @@ export default function ReadBookPage() {
                           }
                         }}
                         className="shadow-lg rounded-full px-4 py-2 flex items-center gap-2 pointer-events-auto"
+                        aria-label="Scroll to bottom"
+                        title="回到底部"
                         variant="secondary"
                       >
                         <ChevronDown className="h-4 w-4" />

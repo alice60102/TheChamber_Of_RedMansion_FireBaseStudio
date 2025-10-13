@@ -83,7 +83,7 @@ This document outlines the improvement tasks for the QA Module based on 13 speci
 - **Completion Status**: ✅ Completed (2025-10-08)
 - **Notes**: Ensure icon stroke-width is 2.5 or 3 for "bold" appearance
 
-### [] **Task 1.3**: Implement All Suggestion Button Hover Effects
+### [x] **Task 1.3**: Implement All Suggestion Button Hover Effects
 - **Task Name**: Add Pink Background Hover State for Suggestion Buttons, remainning e.g. 第一回的主要宗旨所在?、賈寶玉的玉有甚麼意涵?、林黛玉為何是絳珠仙草?
 - **Work Description**:
     - **Why**: Suggestion buttons need visual feedback on hover to improve interactivity

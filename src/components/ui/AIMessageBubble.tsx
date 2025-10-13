@@ -17,7 +17,7 @@
  * This fixes Issue #4 from the problem report.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useId } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PerplexityCitation } from '@/types/perplexity-qa';
@@ -66,6 +66,7 @@ export function AIMessageBubble({
   className,
 }: AIMessageBubbleProps) {
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
+  const collapseId = useId();
   const hasThinkingContent = Boolean(thinkingProcess && thinkingProcess.trim().length > 0);
 
   // Prefer collapsed by default, user can expand on demand
@@ -80,12 +81,15 @@ export function AIMessageBubble({
         <div className="thinking-section">
           {/* Thinking Header - Clickable to expand/collapse */}
           <button
+            type="button"
             onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
             className={cn(
               'flex items-center gap-2 w-full text-[12px] text-muted-foreground',
               'hover:text-foreground transition-colors',
               'py-1 px-2 rounded hover:bg-accent/50'
             )}
+            aria-expanded={isThinkingExpanded}
+            aria-controls={`thinking-collapse-${collapseId}`}
           >
             {isThinkingExpanded ? (
               <ChevronDown className="w-4 h-4 flex-shrink-0" />
@@ -101,20 +105,25 @@ export function AIMessageBubble({
             </span>
           </button>
 
-          {/* Thinking Content - Expanded view */}
-          {isThinkingExpanded && (
-            <div className="thinking-content mt-2 px-2">
-              <div
-                className={cn(
-                  'text-[12px] italic text-muted-foreground/90',
-                  'leading-6 whitespace-pre-wrap',
-                  'border-l-[3px] border-muted pl-5 ml-1'
-                )}
-              >
-                {thinkingProcess}
-              </div>
+          {/* Thinking Content - Collapsible with smooth height transition */}
+          <div
+            id={`thinking-collapse-${collapseId}`}
+            className={cn(
+              'mt-2 px-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out',
+              isThinkingExpanded ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'
+            )}
+            aria-hidden={!isThinkingExpanded}
+          >
+            <div
+              className={cn(
+                'text-[12px] italic text-muted-foreground/90',
+                'leading-6 whitespace-pre-wrap',
+                'border-l-[3px] border-muted pl-5 ml-1'
+              )}
+            >
+              {thinkingProcess}
             </div>
-          )}
+          </div>
         </div>
       )}
 

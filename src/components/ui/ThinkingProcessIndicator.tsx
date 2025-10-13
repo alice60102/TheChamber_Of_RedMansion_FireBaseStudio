@@ -192,17 +192,26 @@ export function ThinkingProcessIndicator({
       </div>
 
       {/* Thinking Content */}
-      {hasContent && (isExpanded || alwaysVisible) && (
+      {/* Collapsible thinking content with smooth height transition */}
+      {hasContent && (
         <div
           className={cn(
-            'thinking-content px-4 pb-4 text-sm',
-            'text-muted-foreground italic',
-            'border-t border-current border-opacity-10 pt-4',
-            'animate-in fade-in slide-in-from-top-2 duration-300'
+            'overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out',
+            (isExpanded || alwaysVisible) ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'
           )}
+          aria-hidden={!(isExpanded || alwaysVisible)}
         >
-          <div className="whitespace-pre-wrap leading-relaxed">
-            {content}
+          <div
+            className={cn(
+              'thinking-content px-4 pb-4',
+              'text-xs',
+              'text-muted-foreground italic',
+              'pt-2 ml-2 border-l-2 pl-4 border-blue-500/20'
+            )}
+          >
+            <div className="whitespace-pre-wrap leading-relaxed">
+              {content}
+            </div>
           </div>
         </div>
       )}
