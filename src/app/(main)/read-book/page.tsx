@@ -749,25 +749,31 @@ export default function ReadBookPage() {
     const scrollHeight = container.scrollHeight;
     const clientHeight = container.clientHeight;
 
-    // Calculate if user is near bottom (within 100px)
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    // Distance from bottom; positive means above bottom
+    const distanceFromBottom = Math.max(0, scrollHeight - scrollTop - clientHeight);
+    const NEAR_BOTTOM_THRESHOLD = 200;      // generous threshold for showing the button
+    const STRICT_BOTTOM_THRESHOLD = 12;     // very close to bottom
 
     // Detect scroll direction
-    const scrollingUp = scrollTop < lastScrollTopRef.current;
+    const prevTop = lastScrollTopRef.current;
+    const scrollingDown = scrollTop > prevTop;
+    const scrollingUp = scrollTop < prevTop;
     lastScrollTopRef.current = scrollTop;
 
-    // Disable auto-scroll if user scrolls up
-    if (scrollingUp && !isNearBottom && autoScrollEnabled) {
-      console.log('[QA Module] User scrolled up, disabling auto-scroll');
+    // Disable auto-scroll as soon as user is not essentially at the bottom
+    if (autoScrollEnabled && distanceFromBottom > STRICT_BOTTOM_THRESHOLD) {
       setAutoScrollEnabled(false);
+      return; // avoid immediate re-enable in the same tick
     }
 
-    // Re-enable auto-scroll if user scrolls near bottom
-    if (isNearBottom && !autoScrollEnabled) {
-      console.log('[QA Module] User at bottom, re-enabling auto-scroll');
+    // Only re-enable when user intentionally scrolls down to the very bottom
+    if (!autoScrollEnabled && scrollingDown && distanceFromBottom <= STRICT_BOTTOM_THRESHOLD) {
       setAutoScrollEnabled(true);
       setUnreadMessageCount(0);
+      return;
     }
+
+    // No-op otherwise; this prevents the "pull to bottom" feeling
   }, [autoScrollEnabled]);
 
   /**
@@ -2225,7 +2231,18 @@ export default function ReadBookPage() {
             </SheetHeader>
 
             {/* Content Area */}
-            <ScrollArea className="flex-grow p-4">
+            <ScrollArea
+              className="flex-grow p-4"
+              viewportProps={{
+                id: 'qa-viewport',
+                onScroll: (e) => {
+                  // Delegate to conversation scroll intent handler so auto-scroll disables when user scrolls
+                  try {
+                    handleScrollIntent(e as unknown as React.UIEvent<HTMLDivElement>);
+                  } catch {}
+                },
+              }}
+            >
               {/* New Conversation Mode */}
               {aiMode === 'new-conversation' && (
                 <div className="space-y-4">
@@ -2378,12 +2395,16 @@ export default function ReadBookPage() {
                           setAutoScrollEnabled(true);
                           setUnreadMessageCount(0);
                           // Scroll to bottom
-                          const scrollArea = document.querySelector('.conversation-flow');
-                          if (scrollArea) {
-                            scrollArea.scrollTo({
-                              top: scrollArea.scrollHeight,
+                          const viewport = document.getElementById('qa-viewport');
+                          if (viewport) {
+                            viewport.scrollTo({
+                              top: viewport.scrollHeight,
                               behavior: 'smooth',
                             });
+                          } else {
+                            // Fallback: scroll the bottom anchor into view
+                            const bottomAnchor = document.querySelector('.conversation-flow .h-px:last-child') as HTMLElement | null;
+                            bottomAnchor?.scrollIntoView({ behavior: 'smooth', block: 'end' });
                           }
                         }}
                         className="shadow-lg rounded-full px-4 py-2 flex items-center gap-2 pointer-events-auto"
