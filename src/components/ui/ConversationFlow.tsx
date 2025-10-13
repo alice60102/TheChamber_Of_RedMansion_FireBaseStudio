@@ -172,10 +172,9 @@ function MessageBubble({ message, renderContent }: MessageBubbleProps) {
     <div
       className={cn(
         'flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300',
-        // User messages: max 70% on desktop, 85% on mobile for better readability
-        isUser && 'ml-auto flex-row-reverse max-w-[85%] md:max-w-[70%]',
-        // AI messages: max 85% on desktop, 90% on mobile (can be wider as they contain more info)
-        !isUser && !isSystem && 'max-w-[90%] md:max-w-[85%]',
+        // Align user messages to the right
+        isUser && 'ml-auto flex-row-reverse',
+        // Center system messages with a narrow width
         isSystem && 'mx-auto max-w-md'
       )}
     >
@@ -183,7 +182,17 @@ function MessageBubble({ message, renderContent }: MessageBubbleProps) {
       {!isSystem && <MessageAvatar role={message.role} />}
 
       {/* Message Content */}
-      <div className="flex-1 min-w-0">
+      <div
+        className={cn(
+          'min-w-0',
+          // Constrain bubble container width instead of stretching full row
+          isUser
+            ? 'max-w-[85%] md:max-w-[70%]'
+            : (isSystem
+                ? 'max-w-md'
+                : 'max-w-[90%] md:max-w-[85%]')
+        )}
+      >
         <div
           className={cn(
             'rounded-2xl px-4 py-3 shadow-sm',
