@@ -287,9 +287,12 @@ export function useAuth() {
   };
 
   // Return all authentication methods and state
-  return { 
-    user: context.user, 
+  // Now includes user level profile and refresh functionality
+  return {
+    user: context.user,
+    userProfile: context.userProfile,  // User level profile with XP data
     isLoading: context.isLoading,
+    refreshUserProfile: context.refreshUserProfile,  // Refresh profile after XP awards
     signInWithGoogle,
     signInWithEmail,
     signUpWithEmail,
