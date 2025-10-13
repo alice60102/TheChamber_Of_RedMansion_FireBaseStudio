@@ -31,7 +31,7 @@ This document outlines the improvement tasks for the QA Module based on 13 speci
 
 ## Phase 1: Message Bubble & Layout Refinements
 
-### [] **Task 1.1**: Fix User Message Bubble Width Constraint
+### [X] **Task 1.1**: Fix User Message Bubble Width Constraint
 - **Task Name**: Implement User Message Bubble Max-Width
 - **Work Description**:
     - **Why**: User's blue message bubbles are too long (spanning entire width), reducing readability and breaking messaging app UX pattern
