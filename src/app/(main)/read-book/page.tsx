@@ -811,6 +811,11 @@ export default function ReadBookPage() {
     setThinkingStatus('idle');
     setAiInteractionState('answered');
 
+    // Reset timing refs to avoid stale duration for next question (Task 3.3)
+    questionSubmittedAtRef.current = null;
+    responseStartedAtRef.current = null;
+    firstChunkSeenRef.current = false;
+
     toast({
       title: '已停止回答',
       description: '部分回答已保留',
@@ -969,8 +974,67 @@ export default function ReadBookPage() {
             let isStreamActive = true;
             let timeoutError: Error | null = null;
             let watchdogInterval: NodeJS.Timeout | null = null;
+            // Capture latest thinking text from server-extracted <think> content
+            let latestThinkingText: string = '';
+            const sanitizeThinking = (text: string) => {
+              try {
+                if (!text) return '';
+                let t = text.replace(/\r\n/g, '\n');
+                t = t
+                  .split('\n')
+                  .map((l) => l.replace(/\s+$/g, ''))
+                  .join('\n')
+                  .trim();
+                t = t.replace(/\n{3,}/g, '\n\n');
+                return t;
+              } catch {
+                return text || '';
+              }
+            };
 
             console.log('[QA Module] Starting stream processing with timeout protection');
+
+            // Utility: split thinking section from generated content
+            const splitThinkingFromContent = (text: string) => {
+              try {
+                if (!text) return { cleanContent: text, thinkingText: '' };
+                // 1) Explicit markers (preferred)
+                const markerPattern = /(\*\*\s*💭\s*思考過程[^*]*\*\*|^#+\s*思考過程\s*$|^\s*💭\s*思考過程\s*:?[\t ]*)([\s\S]*?)(?:\n\s*-{3,}\s*\n|\n##\s|\n\*\*|$)/m;
+                const markerMatch = text.match(markerPattern);
+                if (markerMatch) {
+                  const thinkingText = (markerMatch[2] || '').trim();
+                  const cleanContent = text.replace(markerMatch[0], '').trim();
+                  return { cleanContent, thinkingText };
+                }
+                // 2) Heuristic preface detection (common LLM prefaces without labels)
+                const answerStartMarkers = [
+                  '好的，這是', '好的，這是一個', '以下為', '以下是', '以下將',
+                  '下面是', '總結', '結論', '綜上', '接下來', '為您整理', '綜合來看'
+                ];
+                let earliest = -1;
+                for (const m of answerStartMarkers) {
+                  // prefer matches at line starts to reduce false positives
+                  const re = new RegExp(`(^|\n)\s*${m}`);
+                  const found = text.search(re);
+                  if (found !== -1 && (earliest === -1 || found < earliest)) {
+                    earliest = found === 0 ? 0 : found + (text[found] === '\n' ? 1 : 0);
+                  }
+                }
+                if (earliest > 60) {
+                  const preface = text.slice(0, earliest).trim();
+                  // require at least one paragraph break and some analytical cue to avoid over-cutting
+                  const hasPara = /\n\s*\n/.test(preface);
+                  const analyticalCue = /(首先|還要|需要|因此|最後|總之|綜合|建議|分析|思考)/.test(preface);
+                  if (hasPara && analyticalCue) {
+                    const rest = text.slice(earliest).trim();
+                    return { cleanContent: rest, thinkingText: preface };
+                  }
+                }
+                return { cleanContent: text, thinkingText: '' };
+              } catch {
+                return { cleanContent: text, thinkingText: '' };
+              }
+            };
 
             // Setup watchdog timer to detect stream stalls
             watchdogInterval = setInterval(() => {
@@ -1020,9 +1084,13 @@ export default function ReadBookPage() {
                   // If no explicit isComplete chunk was received, finalize using last chunk
                   if (!sawCompletion && chunks.length > 0) {
                     const last = chunks[chunks.length - 1];
-                    const combined = last.fullContent && last.fullContent.length > 0
+                    const combinedRaw = last.fullContent && last.fullContent.length > 0
                       ? last.fullContent
                       : chunks.map(c => c.content).join('');
+                    const { cleanContent: combined } = splitThinkingFromContent(combinedRaw);
+                    if (latestThinkingText && latestThinkingText !== thinkingContent) {
+                      setThinkingContent(latestThinkingText);
+                    }
                     try {
                       setThinkingStatus('complete');
                       setStreamingProgress(100);
@@ -1055,7 +1123,7 @@ export default function ReadBookPage() {
                           ...m,
                           content: combined,
                           citations: last.citations || m.citations,
-                          thinkingProcess: thinkingContent,
+                          thinkingProcess: latestThinkingText || m.thinkingProcess || thinkingContent,
                           thinkingDuration: (m.thinkingDuration && m.thinkingDuration > 0)
                             ? m.thinkingDuration
                             : Math.round((last.responseTime || 0) / 1000),
@@ -1076,7 +1144,7 @@ export default function ReadBookPage() {
                           content: combined,
                           timestamp: new Date(),
                           citations: last.citations || [],
-                          thinkingProcess: thinkingContent,
+                          thinkingProcess: latestThinkingText || thinkingContent,
                           thinkingDuration: measuredSec,
                           isStreaming: false,
                         };
@@ -1118,9 +1186,13 @@ export default function ReadBookPage() {
                     // Finalize if generator didn't send explicit isComplete chunk
                     if (!sawCompletion && chunks.length > 0) {
                       const last = chunks[chunks.length - 1];
-                      const combined = last.fullContent && last.fullContent.length > 0
+                      const combinedRaw = last.fullContent && last.fullContent.length > 0
                         ? last.fullContent
                         : chunks.map(c => c.content).join('');
+                      const { cleanContent: combined } = splitThinkingFromContent(combinedRaw);
+                      if (latestThinkingText && latestThinkingText !== thinkingContent) {
+                        setThinkingContent(latestThinkingText);
+                      }
                       setThinkingStatus('complete');
                       setStreamingProgress(100);
 
@@ -1153,7 +1225,7 @@ export default function ReadBookPage() {
                           ...m,
                           content: combined,
                           citations: last.citations || m.citations,
-                          thinkingProcess: thinkingContent,
+                          thinkingProcess: latestThinkingText || m.thinkingProcess || thinkingContent,
                           thinkingDuration: Math.round((last.responseTime || 0) / 1000),
                           isStreaming: false,
                         } : m));
@@ -1169,7 +1241,7 @@ export default function ReadBookPage() {
                           content: combined,
                           timestamp: new Date(),
                           citations: last.citations || [],
-                          thinkingProcess: thinkingContent,
+                          thinkingProcess: latestThinkingText || thinkingContent,
                           thinkingDuration: Math.round((last.responseTime || 0) / 1000),
                           isStreaming: false,
                         };
@@ -1201,9 +1273,20 @@ export default function ReadBookPage() {
                       }
                     }
 
-                    // Update thinking content with search queries or progress
+                    // Update thinking content with search queries or progress (also push into message)
                     if (chunk.searchQueries && chunk.searchQueries.length > 0) {
-                      setThinkingContent(`搜尋查詢: ${chunk.searchQueries.join(', ')}`);
+                      const sq = `搜尋查詢: ${chunk.searchQueries.join(', ')}`;
+                      setThinkingContent(sq);
+                      if (streamingAIMessageIdRef.current) {
+                        const msgId = streamingAIMessageIdRef.current;
+                        setActiveSessionMessages(prev => prev.map(m => {
+                          if (m.id !== msgId) return m;
+                          const base = (m.thinkingProcess || '').trim();
+                          if (!base) return { ...m, thinkingProcess: sq };
+                          if (base.includes(sq)) return m;
+                          return { ...m, thinkingProcess: `${base}\n\n${sq}` };
+                        }));
+                      }
                     }
 
                     // Update streaming progress (Fix Issue #1 - realistic progress estimation)
@@ -1217,19 +1300,21 @@ export default function ReadBookPage() {
                       setStreamingProgress(Math.round(progress));
                     }
 
-                    // Extract thinking process (in Traditional Chinese) from cleaned fullContent if present
-                    try {
-                      if (chunk.fullContent) {
-                        const match = chunk.fullContent.match(/\*\*💭\s*思考過程[^*]*\*\*\s*([\s\S]*?)(?:\n\s*---|$)/);
-                        if (match && match[1]) {
-                          const thinkText = match[1].trim();
-                          if (thinkText && thinkText !== thinkingContent) {
-                            setThinkingContent(thinkText);
-                          }
-                        }
+                    // Prefer server-extracted thinking content from <think> tags
+                    let extractedThinkingText: string | null = null;
+                    if ((chunk as any).thinkingContent && (chunk as any).thinkingContent.trim().length > 0) {
+                      extractedThinkingText = (chunk as any).thinkingContent.trim();
+                      if (extractedThinkingText && extractedThinkingText !== thinkingContent) {
+                        setThinkingContent(extractedThinkingText);
                       }
-                    } catch (e) {
-                      // Non-fatal parsing failure
+                    } else if (chunk.fullContent) {
+                      // Fallback: attempt client-side split if server didn't provide it
+                      const { cleanContent, thinkingText } = splitThinkingFromContent(chunk.fullContent);
+                      if (thinkingText && thinkingText !== thinkingContent) {
+                        extractedThinkingText = thinkingText;
+                        setThinkingContent(thinkingText);
+                      }
+                      (chunk as any).fullContent = cleanContent;
                     }
 
                     // Update existing AI placeholder message (Fix Issue #2 - no duplicate creation)
@@ -1238,12 +1323,28 @@ export default function ReadBookPage() {
                       const msgId = streamingAIMessageIdRef.current;
                       setActiveSessionMessages(prev => prev.map(m => {
                         if (m.id !== msgId) return m;
-                        const updatedText = chunk.fullContent?.length ? chunk.fullContent : (m.content + (chunk.content || ''));
+                        let updatedText = chunk.fullContent?.length ? chunk.fullContent : (m.content + (chunk.content || ''));
+                        // If we only have incremental content, attempt to split thinking from the aggregated text
+                        let incrementalThinking: string | null = null;
+                        if (!chunk.fullContent && updatedText) {
+                          const split = splitThinkingFromContent(updatedText);
+                          incrementalThinking = split.thinkingText || null;
+                          updatedText = split.cleanContent;
+                        }
+                        // If we have aggregated thinking from server, prefer replacing (not appending) to avoid duplication
+                        let newThinking = (m.thinkingProcess || '').trim();
+                        if (extractedThinkingText && extractedThinkingText.trim().length > 0) {
+                          newThinking = extractedThinkingText.trim();
+                        } else if (incrementalThinking && incrementalThinking.trim().length > 0) {
+                          const base = newThinking;
+                          if (!base) newThinking = incrementalThinking.trim();
+                          else if (!base.includes(incrementalThinking.trim())) newThinking = `${base}\n\n${incrementalThinking.trim()}`;
+                        }
                         return {
                           ...m,
                           content: updatedText,
                           citations: chunk.citations && chunk.citations.length ? chunk.citations : m.citations,
-                          thinkingProcess: thinkingContent,
+                          thinkingProcess: newThinking,
                           isStreaming: !chunk.isComplete,
                         };
                       }));
@@ -1259,7 +1360,7 @@ export default function ReadBookPage() {
                         content: initialContent,
                         timestamp: new Date(),
                         citations: chunk.citations || [],
-                        thinkingProcess: thinkingContent,
+                        thinkingProcess: extractedThinkingText || thinkingContent || '',
                         isStreaming: true,
                       };
                       setActiveSessionMessages(prev => [...prev, aiStreamingMessage]);
@@ -1271,10 +1372,12 @@ export default function ReadBookPage() {
                       setThinkingStatus('complete');
                       setStreamingProgress(100);
 
-                      // Create final response from last chunk
+                      // Create final response from last chunk (cleaned of thinking section)
+                      const finalServerThinking = (chunk as any).thinkingContent ? sanitizeThinking((chunk as any).thinkingContent) : '';
+                      const cleaned = splitThinkingFromContent(chunk.fullContent || '').cleanContent || chunk.fullContent || '';
                       const finalResponse: PerplexityQAResponse = {
                         question: questionText,
-                        answer: chunk.fullContent,
+                        answer: cleaned,
                         citations: chunk.citations,
                         groundingMetadata: chunk.metadata as any,
                         modelUsed: perplexityInput.modelKey || 'sonar-reasoning-pro',
@@ -1287,7 +1390,7 @@ export default function ReadBookPage() {
                         chunkCount: chunk.chunkIndex,
                         stoppedByUser: false,
                         timestamp: chunk.timestamp,
-                        answerLength: chunk.fullContent.length,
+                        answerLength: cleaned.length,
                         questionLength: questionText.length,
                         citationCount: chunk.citations.length,
                         error: chunk.error,
@@ -1298,9 +1401,9 @@ export default function ReadBookPage() {
                         const msgId = streamingAIMessageIdRef.current;
                         setActiveSessionMessages(prev => prev.map(m => m.id === msgId ? {
                           ...m,
-                          content: chunk.fullContent || m.content,
+                          content: cleaned || m.content,
                           citations: chunk.citations || m.citations,
-                          thinkingProcess: thinkingContent,
+                          thinkingProcess: finalServerThinking || m.thinkingProcess || thinkingContent,
                           thinkingDuration: (m.thinkingDuration && m.thinkingDuration > 0)
                             ? m.thinkingDuration
                             : Math.round(chunk.responseTime / 1000),

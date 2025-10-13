@@ -247,34 +247,11 @@ export class PerplexityClient {
 
     let cleanText = text;
 
-    // Handle <think> tags based on showThinking preference
-    const thinkPattern = /<think>(.*?)<\/think>/gs;
-    
-    if (showThinking) {
-      // Convert thinking process to readable format
-      cleanText = cleanText.replace(thinkPattern, (match, thinkContent) => {
-        const content = thinkContent.trim();
-        if (content) {
-          return `\n\n**💭 思考過程：**\n\n${content}\n\n---\n\n`;
-        }
-        return '';
-      });
-
-      // Handle incomplete think tags
-      const incompleteThinkPattern = /<think[^>]*>([^<]*?)(?=<(?!\/?think)|$)/gs;
-      cleanText = cleanText.replace(incompleteThinkPattern, (match, content) => {
-        const thinkContent = content.trim();
-        if (thinkContent) {
-          return `\n\n**💭 思考過程（不完整）：**\n\n${thinkContent}\n\n---\n\n`;
-        }
-        return '';
-      });
-    } else {
-      // Remove all thinking content
-      cleanText = cleanText.replace(thinkPattern, '');
-      const incompleteThinkPattern = /<think[^>]*>.*?(?=<(?!\/?think)|$)/gs;
-      cleanText = cleanText.replace(incompleteThinkPattern, '');
-    }
+    // Always remove <think> tags from the answer text; thinking will be sent separately
+    const thinkPattern = /<think>([\s\S]*?)<\/think>/gs;
+    cleanText = cleanText.replace(thinkPattern, '');
+    const incompleteThinkPattern = /<think[^>]*>([\s\S]*?)(?=<(?!\/?think)|$)/gs;
+    cleanText = cleanText.replace(incompleteThinkPattern, '');
 
     // Clean other HTML tags
     const htmlPatterns = [
@@ -552,11 +529,19 @@ export class PerplexityClient {
           }
 
           const citations = this.extractCitations(fullContent, collectedCitations, collectedSearchQueries);
+          // Extract current thinking content from raw fullContent
+          const thinkAllMatches = Array.from(fullContent.matchAll(/<think>([\s\S]*?)<\/think>/g)).map(m => (m[1] || '').trim());
+          let thinkingContent = thinkAllMatches.join('\n\n').trim();
+          if (!thinkingContent) {
+            const inc = fullContent.match(/<think[^>]*>([\s\S]*?)$/);
+            if (inc && inc[1]) thinkingContent = inc[1].trim();
+          }
           const isComplete = chunk.choices[0].finish_reason !== null;
 
           yield {
             content,
             fullContent: this.cleanResponse(fullContent, input.showThinkingProcess),
+            thinkingContent,
             timestamp: new Date().toISOString(),
             citations,
             searchQueries: collectedSearchQueries,

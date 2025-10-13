@@ -165,7 +165,7 @@ This document outlines the improvement tasks for the QA Module based on 13 speci
 - **Completion Status**: ✅ Completed (2025-10-08)
 - **Notes**: Consider keeping partial response visible when user stops streaming
 
-### [] **Task 2.3**: Enable Free Scrolling During AI Response
+### [x] **Task 2.3**: Enable Free Scrolling During AI Response
 - **Task Name**: Implement Independent Scroll Control
 - **Work Description**:
     - **Why**: Users are currently locked to auto-scroll during AI streaming; they should be able to review previous messages freely

@@ -65,43 +65,45 @@ export function AIMessageBubble({
   onCitationClick,
   className,
 }: AIMessageBubbleProps) {
-  const [isThinkingExpanded, setIsThinkingExpanded] = useState(false);
-  const collapseId = useId();
   const hasThinkingContent = Boolean(thinkingProcess && thinkingProcess.trim().length > 0);
-
-  // Prefer collapsed by default, user can expand on demand
+  // Show the thinking section ONLY when actual thinking content exists
+  const showThinkingSection = hasThinkingContent;
+  const [isThinkingExpanded, setIsThinkingExpanded] = useState<boolean>(hasThinkingContent);
+  const collapseId = useId();
+  // When thinking content first appears, expand by default to match reference design
   useEffect(() => {
-    setIsThinkingExpanded(false);
-  }, []);
+    if (hasThinkingContent) setIsThinkingExpanded(true);
+  }, [hasThinkingContent]);
 
   return (
     <div className={cn('ai-message-bubble space-y-3', className)}>
       {/* Thinking Process Section - Collapsible */}
-      {hasThinkingContent && (
+      {showThinkingSection && (
         <div className="thinking-section">
           {/* Thinking Header - Clickable to expand/collapse */}
           <button
             type="button"
             onClick={() => setIsThinkingExpanded(!isThinkingExpanded)}
             className={cn(
-              'flex items-center gap-2 w-full text-[12px] text-muted-foreground',
+              'flex items-center gap-2 w-full text-[13px] text-muted-foreground',
               'hover:text-foreground transition-colors',
               'py-1 px-2 rounded hover:bg-accent/50'
             )}
             aria-expanded={isThinkingExpanded}
             aria-controls={`thinking-collapse-${collapseId}`}
+            aria-label={isThinkingExpanded ? '收合思考過程' : '展開思考過程'}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsThinkingExpanded(!isThinkingExpanded);
+              }
+            }}
           >
-            {isThinkingExpanded ? (
-              <ChevronDown className="w-4 h-4 flex-shrink-0" />
-            ) : (
-              <ChevronRight className="w-4 h-4 flex-shrink-0" />
-            )}
+            <ChevronDown className={cn('w-4 h-4 flex-shrink-0 transition-transform', isThinkingExpanded ? 'rotate-0' : '-rotate-90')} />
             <span className="font-medium">
-              {isThinkingExpanded
-                ? `💭 思考過程${isThinkingComplete ? `（已思考 ${thinkingDuration || 10} 秒）` : ''}`
-                : (isThinkingComplete
-                    ? `思考了 ${thinkingDuration || 10} 秒`
-                    : '正在思考中…')}
+              {isThinkingComplete
+                ? (typeof thinkingDuration === 'number' ? `Thought for ${Math.max(0, thinkingDuration)} seconds` : 'Thought complete')
+                : 'Thinking…'}
             </span>
           </button>
 
@@ -110,19 +112,21 @@ export function AIMessageBubble({
             id={`thinking-collapse-${collapseId}`}
             className={cn(
               'mt-2 px-2 overflow-hidden transition-[max-height,opacity] duration-300 ease-in-out',
-              isThinkingExpanded ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0'
+              isThinkingExpanded ? 'max-h-[60vh] opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
             )}
             aria-hidden={!isThinkingExpanded}
           >
+            {hasThinkingContent && (
             <div
               className={cn(
                 'text-[12px] italic text-muted-foreground/90',
                 'leading-6 whitespace-pre-wrap',
-                'border-l-[3px] border-muted pl-5 ml-1'
+                'border-l-[2px] border-border pl-4 ml-2'
               )}
             >
               {thinkingProcess}
             </div>
+            )}
           </div>
         </div>
       )}

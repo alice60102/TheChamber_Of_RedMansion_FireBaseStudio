@@ -132,6 +132,8 @@ export interface PerplexityStreamingChunk {
   content: string;
   /** Full content up to this point */
   fullContent: string;
+  /** Extracted thinking content from <think>…</think> */
+  thinkingContent?: string;
   /** Chunk timestamp */
   timestamp: string;
   /** Associated citations (may be partial) */
