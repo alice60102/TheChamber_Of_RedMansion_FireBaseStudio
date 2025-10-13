@@ -25,7 +25,7 @@
 - **Task Name**: 身份進階系統「紅樓修行路」開發
 - **Work Description**:
     - **Why**: 建立清晰的用戶成長軌跡，提供進度可視化和成就感，解決用戶缺乏學習動機的問題
-    - **How**: 在現有Firebase用戶系統基礎上，擴展用戶等級數據模型，實現8級進階路徑和相應權限控制
+    - **How**: 在現有Firebase用戶系統基礎上，擴展用戶等級數據模型，實現8級進階路徑和相應權限控制(但因為目前firebase無法連接，所以也請確保不連接firebase也能展示。)
         - **Resources Required**: Firebase Firestore, TypeScript類型定義, React組件開發
     - **Materials**: 現有用戶認證系統, 成就頁面基礎架構
     - **Personnel**:
