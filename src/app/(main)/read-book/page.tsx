@@ -2063,6 +2063,14 @@ export default function ReadBookPage() {
               {isFullscreenActive ? <Minimize className={toolbarIconClass} /> : <Maximize className={toolbarIconClass} />}
               <span className={toolbarLabelClass}>{isFullscreenActive ? t('buttons.exitFullscreen') : t('buttons.fullscreen')}</span>
             </Button>
+
+            {/* Level Badge XP Indicator */}
+            {userProfile && (
+              <>
+                <div className={cn("h-10 border-l mx-2 md:mx-3", selectedTheme.toolbarBorderClass)}></div>
+                <LevelBadge variant="compact" showTitle={false} className="cursor-pointer hover:scale-105 transition-transform" />
+              </>
+            )}
           </div>
         </div>
       </div>
