@@ -6,10 +6,18 @@
  *
  * Usage:
  * ```tsx
- * import { LevelBadge, LevelProgressBar, LevelDisplay } from '@/components/gamification';
+ * import {
+ *   LevelBadge,
+ *   LevelProgressBar,
+ *   LevelDisplay,
+ *   LevelUpModal,
+ *   LevelGate
+ * } from '@/components/gamification';
  * ```
  */
 
 export { LevelBadge } from './LevelBadge';
 export { LevelProgressBar } from './LevelProgressBar';
 export { LevelDisplay } from './LevelDisplay';
+export { LevelUpModal } from './LevelUpModal';
+export { LevelGate } from './LevelGate';

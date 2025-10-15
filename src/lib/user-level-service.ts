@@ -470,6 +470,19 @@ export class UserLevelService {
   }
 
   /**
+   * Synchronously check if a level has a specific permission
+   * Used for client-side permission gating when user level is already known
+   *
+   * @param userLevel - User's current level
+   * @param permission - Permission to check
+   * @returns Boolean indicating if level has permission
+   */
+  checkPermissionSync(userLevel: number, permission: LevelPermission): boolean {
+    const userPermissions = getAllPermissionsForLevel(userLevel);
+    return userPermissions.includes(permission);
+  }
+
+  /**
    * Check multiple permissions at once
    *
    * @param userId - User ID
