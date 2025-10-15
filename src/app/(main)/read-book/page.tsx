@@ -112,6 +112,10 @@ import { useLanguage } from '@/hooks/useLanguage';
 import { saveNote, getNotesByUserAndChapter, Note, deleteNoteById, updateNote } from '@/lib/notes-service';
 import { useAuth } from '@/hooks/useAuth';
 
+// XP Integration for gamification
+import { userLevelService, XP_REWARDS } from '@/lib/user-level-service';
+import { LevelUpModal } from '@/components/gamification';
+
 interface Annotation {
   text: string;
   note: string; // Base text (zh-TW)
@@ -277,6 +281,15 @@ export default function ReadBookPage() {
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
   const [currentNoteObj, setCurrentNoteObj] = useState<Note | null>(null);
+
+  // XP and Level System States
+  const [levelUpData, setLevelUpData] = useState<{
+    show: boolean;
+    fromLevel: number;
+    toLevel: number;
+  }>({ show: false, fromLevel: 0, toLevel: 0 });
+  const [readingStartTime, setReadingStartTime] = useState<number>(Date.now());
+  const [completedChapters, setCompletedChapters] = useState<Set<number>>(new Set());
 
   // AI Interface States
   const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
@@ -892,6 +905,37 @@ export default function ReadBookPage() {
           console.log('[QA Module] Adding user message:', userMessage);
           setActiveSessionMessages(prev => [...prev, userMessage]);
 
+          // Award XP for AI interaction
+          if (user?.uid) {
+            try {
+              // Determine if this is a deep analysis (longer questions = deeper)
+              const isDeepQuestion = questionText.length > 50;
+              const xpAmount = isDeepQuestion ? XP_REWARDS.DEEP_ANALYSIS_REQUEST : XP_REWARDS.AI_QA_INTERACTION;
+
+              const result = await userLevelService.awardXP(
+                user.uid,
+                xpAmount,
+                isDeepQuestion ? 'AI deep analysis request' : 'AI question',
+                'ai_interaction',
+                userMessage.id
+              );
+
+              await refreshUserProfile();
+
+              // Show level-up modal if leveled up
+              if (result.leveledUp) {
+                setLevelUpData({
+                  show: true,
+                  fromLevel: result.fromLevel!,
+                  toLevel: result.newLevel,
+                });
+              }
+            } catch (xpError) {
+              console.error('Error awarding AI interaction XP:', xpError);
+              // Continue with question processing even if XP fails
+            }
+          }
+
           // IMMEDIATELY create AI message placeholder (Fix Issue #2 - immediate avatar)
           const aiMessagePlaceholderId = `ai-${Date.now()}`;
           const aiMessagePlaceholder: ConversationMessage = {
@@ -1501,7 +1545,7 @@ export default function ReadBookPage() {
   const currentChapterTitle = getChapterTitle(currentChapter.titleKey);
   const currentChapterSubtitle = currentChapter.subtitleKey ? getChapterTitle(currentChapter.subtitleKey) : undefined;
 
-  const { user } = useAuth();
+  const { user, userProfile, refreshUserProfile } = useAuth();
   const [userNotes, setUserNotes] = useState<Note[]>([]);
 
   useEffect(() => {
@@ -1512,12 +1556,95 @@ export default function ReadBookPage() {
     }
   }, [user?.uid, currentChapter.id]);
 
+  // Reading time tracking - award XP every 15 minutes
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+    const awardReadingTimeXP = async () => {
+      try {
+        const result = await userLevelService.awardXP(
+          user.uid,
+          XP_REWARDS.READING_TIME_15MIN,
+          'Reading for 15 minutes',
+          'reading_time',
+          `reading-${Date.now()}`
+        );
+
+        await refreshUserProfile();
+
+        // Show level-up modal if leveled up
+        if (result.leveledUp) {
+          setLevelUpData({
+            show: true,
+            fromLevel: result.fromLevel!,
+            toLevel: result.newLevel,
+          });
+        }
+      } catch (error) {
+        console.error('Error awarding reading time XP:', error);
+      }
+    };
+
+    // Set interval for reading time XP
+    const intervalId = setInterval(awardReadingTimeXP, FIFTEEN_MINUTES);
+
+    // Cleanup on unmount
+    return () => clearInterval(intervalId);
+  }, [user?.uid, refreshUserProfile]);
+
+  // Chapter completion tracking - award XP when navigating to new chapter
+  useEffect(() => {
+    if (!user?.uid || !currentChapter) return;
+
+    // Award XP if this is a new chapter the user hasn't completed
+    if (!completedChapters.has(currentChapter.id)) {
+      const awardChapterXP = async () => {
+        try {
+          // Determine if this is the first chapter
+          const isFirstChapter = currentChapter.id === 1;
+          const xpAmount = isFirstChapter ? XP_REWARDS.FIRST_CHAPTER_COMPLETED : XP_REWARDS.CHAPTER_COMPLETED;
+
+          const result = await userLevelService.awardXP(
+            user.uid,
+            xpAmount,
+            `Completed chapter ${currentChapter.id}`,
+            'chapter',
+            `chapter-${currentChapter.id}`
+          );
+
+          await refreshUserProfile();
+
+          // Mark chapter as completed
+          setCompletedChapters(prev => new Set([...prev, currentChapter.id]));
+
+          // Show level-up modal if leveled up
+          if (result.leveledUp) {
+            setLevelUpData({
+              show: true,
+              fromLevel: result.fromLevel!,
+              toLevel: result.newLevel,
+            });
+          }
+        } catch (error) {
+          console.error('Error awarding chapter completion XP:', error);
+        }
+      };
+
+      // Award XP after user has been on chapter for 5 seconds (to prevent spam)
+      const timerId = setTimeout(awardChapterXP, 5000);
+
+      return () => clearTimeout(timerId);
+    }
+  }, [user?.uid, currentChapter, completedChapters, refreshUserProfile]);
+
   const handleSaveNote = async () => {
     if (!user?.uid || !toolbarInfo?.text) return;
 
     try {
       if (currentNoteObj?.id) {
-        // Update existing note
+        // Update existing note - no XP for updates
         await updateNote(currentNoteObj.id, currentNote);
         toast({ title: t('筆記更新'), description: t('buttons.noteUpdated') });
       } else {
@@ -1528,10 +1655,43 @@ export default function ReadBookPage() {
           selectedText: toolbarInfo.text,
           note: currentNote,
         };
-        await saveNote(noteToSave);
-        toast({ title: t('筆記儲存'), description: t('buttons.noteSaved') });
+        const noteId = await saveNote(noteToSave);
+
+        // Award XP for creating note
+        try {
+          const isQualityNote = currentNote.length > 100;
+          const xpAmount = isQualityNote ? XP_REWARDS.QUALITY_NOTE : XP_REWARDS.NOTE_CREATED;
+
+          const result = await userLevelService.awardXP(
+            user.uid,
+            xpAmount,
+            isQualityNote ? 'Created quality note' : 'Created note',
+            'notes',
+            noteId || `note-${Date.now()}`
+          );
+
+          await refreshUserProfile();
+
+          // Show level-up modal if leveled up
+          if (result.leveledUp) {
+            setLevelUpData({
+              show: true,
+              fromLevel: result.fromLevel!,
+              toLevel: result.newLevel,
+            });
+          }
+
+          toast({
+            title: t('筆記儲存'),
+            description: `${t('buttons.noteSaved')} +${xpAmount} XP${isQualityNote ? ' (Quality note!)' : ''}`
+          });
+        } catch (xpError) {
+          console.error('Error awarding note XP:', xpError);
+          // Still show success for note save even if XP fails
+          toast({ title: t('筆記儲存'), description: t('buttons.noteSaved') });
+        }
       }
-      
+
       // Refresh notes, close panel, and clear state
       await fetchNotesForChapter();
       setIsNoteSheetOpen(false);
@@ -2511,6 +2671,14 @@ export default function ReadBookPage() {
       >
         <i className="fa fa-play-circle-o text-[54px]" aria-hidden="true"></i>
       </Button>
+
+      {/* Level Up Modal */}
+      <LevelUpModal
+        open={levelUpData.show}
+        onOpenChange={(open) => setLevelUpData(prev => ({ ...prev, show: open }))}
+        fromLevel={levelUpData.fromLevel}
+        toLevel={levelUpData.toLevel}
+      />
     </div>
   );
 }
