@@ -67,7 +67,7 @@
             - [✅] 5.3 Content creation (notes feature) - **COMPLETED** (integrated in 5.1)
                 - ✅ Note creation (3 XP)
                 - ✅ Quality notes (5 XP for >100 chars)
-                - ⬜ Note sharing (2 XP) - deferred to future community features
+                - ⬜ Note sharing (2 XP) - deferred to future community features.延後至 GAME-005
             - [✅] 5.4 AI interactions (QA features) - **COMPLETED** (integrated in 5.1)
                 - ✅ Simple AI questions (2 XP)
                 - ✅ Deep analysis requests (5 XP for >50 chars)
@@ -91,6 +91,7 @@
                 - Cross-feature XP testing
                 - Graceful degradation without Firebase
                 - Performance impact assessment
+                - 延後至 GAME-005
         - **Implementation Pattern**: All integrations follow standard pattern from XP_Integration_Strategy.md
         - **Anti-Patterns Enforced**: No XP inflation, spam prevention, non-intrusive feedback, meaningful rewards only
         - **Completion Criteria**: All integration points implemented ✅, tested ⚠️, and XP economy balanced ⚠️
@@ -140,7 +141,9 @@
     - Core System實現完成度: 100% (Phases 1-4: 所有核心功能已實現) ✅
     - XP Integration完成度: 86% (Phase 5: 6/7 integration points完成) ✅
         - ✅ Completed: 5.1 (Reading), 5.2 (Community), 5.3 (Notes), 5.4 (AI), 5.5 (Visual), 5.6 (Balancing analysis)
-        - ⬜ Remaining: 5.7 (Integration testing & polish)
+        - ⬜ Remaining: 
+          - Note sharing (2 XP) - deferred to future community features 延後至 GAME-005
+          - 5.7 (Integration testing & polish)
     - Testing完成度: 67% (Unit tests 100% ✅, Integration/UI tests created ⚠️)
         - ✅ Unit tests: 20/20 passing
         - ⚠️ Integration tests: Created but timing out (debugging needed)
@@ -156,6 +159,54 @@
         - 🔧 Implement daily XP caps (Priority 1 from balancing analysis)
         - 🔧 Phase 5.7: Cross-feature testing & performance assessment
     - **GAME-001 完成度**: 90% (核心系統完成, 測試需優化)
+    - **本地伺服器測試檢查清單 (Local Server Testing Checklist)**:
+        - **環境啟動測試 (Environment Startup)**:
+            - [ ] 執行 `pnpm dev` 確認伺服器正常啟動於 http://localhost:3000
+            - [ ] 檢查 console 無錯誤訊息，Firebase 連線狀態正常（或優雅降級）
+        - **用戶認證與等級初始化測試 (Authentication & Level Initialization)**:
+            - [ ] 新用戶註冊後自動初始化為 Level 0（賈府訪客），總 XP = 0
+            - [ ] 用戶個人資料頁面正確顯示當前等級、XP 進度條、等級稱號
+            - [ ] 未登入用戶訪問受保護頁面時正確重導向至登入頁面
+        - **閱讀頁面 XP 獎勵測試 (Reading Page XP Awards)**:
+            - [ ] 完成第一章獲得 20 XP，Toast 通知顯示「+20 XP」
+            - [ ] 完成其他章節獲得 10 XP，Toast 通知正確顯示
+            - [ ] 閱讀 15 分鐘後自動獲得 3 XP，Toast 通知顯示「+3 XP」
+            - [ ] 創建筆記（<100 字）獲得 3 XP，創建優質筆記（>100 字）獲得 5 XP
+            - [ ] AI 簡單提問（≤50 字）獲得 2 XP，深度分析（>50 字）獲得 5 XP
+        - **社群頁面 XP 獎勵測試 (Community Page XP Awards)**:
+            - [ ] 發布新貼文獲得 5 XP，Toast 通知顯示「+5 XP 感謝分享！」
+            - [ ] 發表評論獲得 2 XP，Toast 通知顯示「+2 XP 謝謝參與討論！」
+            - [ ] 按讚貼文獲得 1 XP，取消按讚不會重複獲得 XP
+        - **等級晉升測試 (Level-Up Testing)**:
+            - [ ] 累積 100 XP 時自動晉升至 Level 1（陪讀書僮）
+            - [ ] 晉升時顯示 LevelUpModal 慶祝動畫（包含五彩紙屑效果）
+            - [ ] Modal 顯示正確的等級變化（Level 0 → Level 1）和新解鎖權限
+            - [ ] 導航列的 LevelBadge 元件即時更新顯示新等級
+        - **UI 組件顯示測試 (UI Component Display)**:
+            - [ ] Dashboard 頁面正確顯示 LevelDisplay 元件（等級、XP、進度條）
+            - [ ] 導航列顯示 LevelBadge 元件（等級數字、等級稱號）
+            - [ ] LevelProgressBar 正確顯示當前 XP 和下一等級所需 XP
+            - [ ] 所有等級相關文字支援繁中、簡中、英文三語切換
+        - **權限控制測試 (Permission Control Testing)**:
+            - [ ] Level 0 用戶只能閱讀前 5 章（chapters:1-5）
+            - [ ] Level 1 用戶可閱讀前 10 章（chapters:1-10）
+            - [ ] 使用 LevelGate 元件的功能正確根據等級顯示或隱藏
+        - **錯誤處理與優雅降級測試 (Error Handling & Graceful Degradation)**:
+            - [ ] Firebase 連線失敗時，用戶仍可正常瀏覽頁面（不會白屏）
+            - [ ] XP 獎勵失敗時，核心功能（筆記、貼文、評論）仍正常運作
+            - [ ] 等級資料載入失敗時，顯示預設狀態（Level 0）而非錯誤頁面
+        - **XP 防刷機制測試 (Anti-Farming Mechanism)**:
+            - [ ] 同一章節完成多次只獎勵一次 XP（Source ID 去重）
+            - [ ] 同一筆記儲存多次只獎勵一次 XP
+            - [ ] 同一貼文按讚/取消/再按讚不會重複獲得 XP
+        - **多語言支援測試 (Multi-language Support)**:
+            - [ ] 切換至繁體中文顯示「賈府訪客」、「陪讀書僮」等中文等級稱號
+            - [ ] 切換至簡體中文正確顯示簡體字形式
+            - [ ] 切換至英文顯示 "Mansion Visitor", "Reading Companion" 等英文稱號
+        - **效能測試 (Performance Testing)**:
+            - [ ] XP 獎勵操作不阻塞 UI，Toast 通知立即顯示（<50ms）
+            - [ ] 等級進度條動畫流暢，無明顯延遲或卡頓
+            - [ ] 頁面載入時間正常，XP 系統不影響整體效能（增加 <500ms）
 
 ### [GAME-002] **Task ID**: Daily Task System Development
 - **Task Name**: 即時反饋微任務系統「每日修身」實現
