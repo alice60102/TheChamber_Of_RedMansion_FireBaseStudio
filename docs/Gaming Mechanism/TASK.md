@@ -46,10 +46,14 @@
         - **Purpose**: 將XP獎勵系統整合到所有主要用戶互動點，驅動參與度並提供持續正向反饋
         - **Target Daily XP**: 20-30 XP for normal engagement
         - **Integration Points**:
-            - [⬜] 5.1 Reading activities (read-book page)
-                - Chapter completion XP (10 XP per chapter, 20 XP first chapter)
-                - Reading time tracking (3 XP per 15 minutes)
-                - LevelUpModal on level-up events
+            - [✅] 5.1 Reading activities (read-book page) - **COMPLETED**
+                - ✅ Chapter completion XP (10 XP per chapter, 20 XP first chapter)
+                - ✅ Reading time tracking (3 XP per 15 minutes)
+                - ✅ LevelUpModal on level-up events
+                - ✅ Note-taking XP (3 XP basic, 5 XP quality)
+                - ✅ AI interaction XP (2 XP simple, 5 XP deep)
+                - ✅ Toast notifications with XP amounts
+                - **Commit**: e732450
             - [⬜] 5.2 Community participation (community page)
                 - Post creation (5 XP)
                 - Comment creation (2 XP)
