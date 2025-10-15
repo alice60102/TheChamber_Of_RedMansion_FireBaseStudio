@@ -72,14 +72,20 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLanguage } from '@/hooks/useLanguage';
 
 // Firebase community service for database operations
-import { 
-  communityService, 
-  type CommunityPost, 
-  type PostComment, 
+import {
+  communityService,
+  type CommunityPost,
+  type PostComment,
   type CreatePostData,
-  type CreateCommentData 
+  type CreateCommentData
 } from '@/lib/community-service';
 import { Timestamp } from 'firebase/firestore';
+
+// User level service for XP awards
+import { userLevelService, XP_REWARDS } from '@/lib/user-level-service';
+
+// Toast notifications for XP feedback
+import { useToast } from '@/hooks/use-toast';
 
 // Type definitions for local component state
 type LocalPost = {
@@ -525,8 +531,9 @@ function PostCard({
 
 export default function CommunityPage() {
   const { t } = useLanguage();
-  const { user } = useAuth();
-  
+  const { user, refreshUserProfile } = useAuth();
+  const { toast } = useToast();
+
   // State management for posts and UI
   const [posts, setPosts] = useState<LocalPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -574,7 +581,31 @@ export default function CommunityPage() {
       };
 
       const newPostId = await communityService.createPost(postData);
-      
+
+      // Award XP for post creation
+      try {
+        const xpResult = await userLevelService.awardXP(
+          user.uid,
+          XP_REWARDS.POST_CREATED,
+          'Created community post',
+          'community',
+          newPostId
+        );
+
+        // Show toast notification with XP award
+        toast({
+          title: `+${XP_REWARDS.POST_CREATED} XP`,
+          description: '感謝分享！你的貢獻讓社群更精彩！',
+          duration: 3000,
+        });
+
+        // Refresh user profile to update level display
+        await refreshUserProfile();
+      } catch (error) {
+        console.error('Error awarding XP for post creation:', error);
+        // Don't fail the post creation if XP award fails
+      }
+
       // Add new post optimistically to local state
       const newPost: LocalPost = {
         id: newPostId,
@@ -592,7 +623,7 @@ export default function CommunityPage() {
       };
 
       setPosts(prevPosts => [newPost, ...prevPosts]);
-      
+
       // Refresh posts to get the real data
       setTimeout(() => loadPosts(), 1000);
     } catch (error) {
@@ -611,6 +642,32 @@ export default function CommunityPage() {
 
     try {
       await communityService.togglePostLike(postId, user.uid, isLiking);
+
+      // Award XP only when liking (not un-liking)
+      if (isLiking) {
+        try {
+          await userLevelService.awardXP(
+            user.uid,
+            XP_REWARDS.LIKE_RECEIVED, // Award to the person giving the like
+            'Liked community post',
+            'community',
+            postId
+          );
+
+          // Show toast notification with XP award
+          toast({
+            title: `+${XP_REWARDS.LIKE_RECEIVED} XP`,
+            description: '感謝支持！',
+            duration: 1500,
+          });
+
+          // Refresh user profile to update level display
+          await refreshUserProfile();
+        } catch (error) {
+          console.error('Error awarding XP for like:', error);
+          // Don't fail the like if XP award fails
+        }
+      }
     } catch (error) {
       console.error('Error toggling like:', error);
       throw error; // Re-throw to allow component to handle optimistic update reversion
@@ -631,7 +688,31 @@ export default function CommunityPage() {
         content: content
       };
 
-      await communityService.addComment(commentData);
+      const commentId = await communityService.addComment(commentData);
+
+      // Award XP for comment creation
+      try {
+        await userLevelService.awardXP(
+          user.uid,
+          XP_REWARDS.COMMENT_CREATED,
+          'Created community comment',
+          'community',
+          `${postId}-${commentId}`
+        );
+
+        // Show toast notification with XP award
+        toast({
+          title: `+${XP_REWARDS.COMMENT_CREATED} XP`,
+          description: '謝謝參與討論！',
+          duration: 2000,
+        });
+
+        // Refresh user profile to update level display
+        await refreshUserProfile();
+      } catch (error) {
+        console.error('Error awarding XP for comment:', error);
+        // Don't fail the comment if XP award fails
+      }
     } catch (error) {
       console.error('Error adding comment:', error);
       throw error;
