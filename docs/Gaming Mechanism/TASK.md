@@ -85,10 +85,21 @@
         - **Estimated Timeline**: 4 weeks (Week 1: Reading, Week 2: Community, Week 3: Content/AI, Week 4: Polish/Testing)
         - **Completion Criteria**: All 7 integration points implemented, tested, and XP economy balanced
     - **Testing Protocol Completed**:
-        - [⬜] Unit tests: 等級計算邏輯測試 (PENDING)
+        - [🔄] Unit tests: 等級計算邏輯測試 (IN PROGRESS - tests created, debugging execution)
+            - ✅ Test file created: tests/lib/user-level-service.test.ts (677 lines)
+            - ✅ 30+ test cases covering all major functionality
+            - ✅ Level calculation logic tests (6 cases)
+            - ✅ XP award system tests (6 cases)
+            - ✅ User profile initialization tests (2 cases)
+            - ✅ Permission checking tests (3 cases)
+            - ✅ Level configuration tests (2 cases)
+            - ✅ Failure cases and edge cases included
+            - ⬜ Test execution debugging (timeout issue encountered)
+            - **Commit**: ba13d98
         - [⬜] Integration tests: 與Firebase Auth整合測試 (PENDING)
         - [⬜] UI tests: 等級顯示組件測試 (PENDING)
-        - **Issues Resolved During Testing**: N/A - Testing phase not yet started
+        - **Issues Resolved During Testing**:
+            - ⚠️ Test execution timeout - requires Jest configuration review
     - **Implementation Summary**:
         - ✅ 8-level progression system implemented (賈府訪客 → 一代宗師)
         - ✅ 16 permission types with feature gating

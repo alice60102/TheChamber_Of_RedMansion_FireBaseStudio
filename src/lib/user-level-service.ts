@@ -260,14 +260,24 @@ export class UserLevelService {
   }> {
     try {
       // Validate amount
-      if (amount <= 0) {
-        throw new Error('XP amount must be positive');
+      if (amount < 0) {
+        throw new Error('XP amount cannot be negative');
       }
 
       // Get current user profile
       const profile = await this.getUserProfile(userId);
       if (!profile) {
         throw new Error('User profile not found');
+      }
+
+      // Handle 0 XP award (edge case)
+      if (amount === 0) {
+        return {
+          success: true,
+          newTotalXP: profile.totalXP,
+          newLevel: profile.currentLevel,
+          leveledUp: false,
+        };
       }
 
       // Calculate new XP totals
@@ -347,6 +357,10 @@ export class UserLevelService {
       };
     } catch (error) {
       console.error('Error awarding XP:', error);
+      // Re-throw the original error if it's a validation error
+      if (error instanceof Error) {
+        throw error;
+      }
       throw new Error('Failed to award XP. Please try again.');
     }
   }

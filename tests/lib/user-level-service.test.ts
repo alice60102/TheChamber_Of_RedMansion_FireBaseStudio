@@ -90,15 +90,15 @@ describe('UserLevelService', () => {
       testLogger.log('Testing level calculation for multiple XP values');
 
       const testCases = [
-        { xp: 0, expectedLevel: 0 },      // 賈府訪客
-        { xp: 50, expectedLevel: 1 },     // 陪讀書僮
-        { xp: 100, expectedLevel: 1 },    // Still level 1
-        { xp: 200, expectedLevel: 2 },    // 私塾學子
-        { xp: 500, expectedLevel: 3 },    // 舉人才子
-        { xp: 1000, expectedLevel: 4 },   // 翰林學士
-        { xp: 2000, expectedLevel: 5 },   // 紅學專家
-        { xp: 5000, expectedLevel: 6 },   // 文壇泰斗
-        { xp: 10000, expectedLevel: 7 },  // 一代宗師
+        { xp: 0, expectedLevel: 0 },       // 賈府訪客
+        { xp: 50, expectedLevel: 0 },      // Still visitor (need 100 for L1)
+        { xp: 100, expectedLevel: 1 },     // 陪讀書僮
+        { xp: 300, expectedLevel: 2 },     // 門第清客
+        { xp: 600, expectedLevel: 3 },     // 庶務管事
+        { xp: 1000, expectedLevel: 4 },    // 詩社雅士
+        { xp: 1500, expectedLevel: 5 },    // 府中幕賓
+        { xp: 2200, expectedLevel: 6 },    // 紅學通儒
+        { xp: 3000, expectedLevel: 7 },    // 一代宗師
       ];
 
       testCases.forEach(({ xp, expectedLevel }) => {
@@ -121,8 +121,8 @@ describe('UserLevelService', () => {
       const thresholdTests = [
         { xp: 99, expectedLevel: 0 },   // Just below level 1
         { xp: 100, expectedLevel: 1 },  // Exactly at level 1 threshold
-        { xp: 199, expectedLevel: 1 },  // Just below level 2
-        { xp: 200, expectedLevel: 2 },  // Exactly at level 2 threshold
+        { xp: 299, expectedLevel: 1 },  // Just below level 2
+        { xp: 300, expectedLevel: 2 },  // Exactly at level 2 threshold
       ];
 
       thresholdTests.forEach(({ xp, expectedLevel }) => {
@@ -198,7 +198,7 @@ describe('UserLevelService', () => {
       expect(profile.totalXP).toBe(0);
       expect(profile.nextLevelXP).toBe(100); // Level 1 threshold
       expect(profile.completedTasks).toEqual([]);
-      expect(profile.unlockedContent).toEqual([]);
+      expect(profile.unlockedContent).toEqual(['chapters:1-5', 'intro_guide', 'character_intro_basic']); // Level 0 exclusive content
 
       expect(setDoc).toHaveBeenCalled();
       testLogger.log('Profile initialization test completed', { userId, profile });
@@ -321,7 +321,7 @@ describe('UserLevelService', () => {
         currentLevel: 1,
         currentXP: 90,
         totalXP: 190,
-        nextLevelXP: 200,
+        nextLevelXP: 200,  // xpFromPrevious for level 2 (300-100=200)
       };
 
       (getDoc as jest.Mock).mockResolvedValue({
@@ -331,10 +331,10 @@ describe('UserLevelService', () => {
       (updateDoc as jest.Mock).mockResolvedValue(undefined);
       (addDoc as jest.Mock).mockResolvedValue({ id: 'transaction_456' });
 
-      // Act
+      // Act - Award 110 XP to reach 300 total (level 2 threshold)
       const result = await userLevelService.awardXP(
         userId,
-        20,
+        110,
         'Chapter completed',
         'chapter',
         'chapter-1'
@@ -342,7 +342,7 @@ describe('UserLevelService', () => {
 
       // Assert
       expect(result.success).toBe(true);
-      expect(result.newTotalXP).toBe(210); // 190 + 20
+      expect(result.newTotalXP).toBe(300); // 190 + 110 = 300
       expect(result.newLevel).toBe(2); // Should level up to 2
       expect(result.leveledUp).toBe(true);
       expect(result.fromLevel).toBe(1);
@@ -517,7 +517,7 @@ describe('UserLevelService', () => {
     /**
      * Failure Case 3: Handle negative XP awards
      *
-     * Verifies that negative XP values are handled appropriately
+     * Verifies that negative XP values are rejected with an error
      */
     it('should reject negative XP awards', async () => {
       testLogger.log('Testing negative XP award rejection');
@@ -536,16 +536,12 @@ describe('UserLevelService', () => {
         data: () => currentProfile
       });
 
-      // Act: Try to award negative XP
-      // Note: This should either throw an error or clamp to 0
-      // depending on implementation
-      const result = await userLevelService.awardXP(userId, -10, 'Negative test', 'notes', 'test');
+      // Act & Assert: Should throw error for negative XP
+      await expect(
+        userLevelService.awardXP(userId, -10, 'Negative test', 'notes', 'test')
+      ).rejects.toThrow('XP amount cannot be negative');
 
-      // Assert: Should handle gracefully (either error or clamp to 0)
-      // Implementation may vary - adjust based on actual behavior
-      expect(result).toBeDefined();
-
-      testLogger.log('Negative XP award test completed', { result });
+      testLogger.log('Negative XP award test completed');
     });
   });
 
