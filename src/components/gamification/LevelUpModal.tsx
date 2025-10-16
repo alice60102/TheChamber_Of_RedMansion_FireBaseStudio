@@ -76,6 +76,9 @@ import { LevelPermission } from '@/lib/types/user-level';
 // Utility for className merging
 import { cn } from '@/lib/utils';
 
+// Translation function
+import { Language } from '@/lib/translations';
+
 /**
  * Props interface for LevelUpModal component
  */
@@ -113,18 +116,50 @@ interface LevelUpModalProps {
 }
 
 /**
- * Format permission name for display
+ * Get translated permission name
  *
- * Converts snake_case permission names to readable format
+ * Returns the localized name for a permission based on current language
  *
  * @param permission - Permission type
- * @returns Formatted permission name
+ * @param t - Translation function from useLanguage
+ * @returns Translated permission name
  */
-function formatPermissionName(permission: LevelPermission): string {
-  return permission
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+function getPermissionName(permission: LevelPermission, t: (key: string) => string): string {
+  // Try to get translation for the permission
+  const translationKey = `level.permissionNames.${permission}`;
+  const translated = t(translationKey);
+
+  // If translation is the same as the key, fall back to formatted name
+  if (translated === translationKey) {
+    return permission
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  return translated;
+}
+
+/**
+ * Get translated exclusive content name
+ *
+ * Returns the localized name for exclusive content based on current language
+ *
+ * @param content - Content identifier
+ * @param t - Translation function from useLanguage
+ * @returns Translated content name
+ */
+function getExclusiveContentName(content: string, t: (key: string) => string): string {
+  // Try to get translation for the content
+  const translationKey = `level.exclusiveContentNames.${content}`;
+  const translated = t(translationKey);
+
+  // If translation is the same as the key, return the original content name
+  if (translated === translationKey) {
+    return content;
+  }
+
+  return translated;
 }
 
 /**
@@ -216,7 +251,7 @@ export function LevelUpModal({
   onExploreFeatures,
   className = '',
 }: LevelUpModalProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [showConfetti, setShowConfetti] = useState(false);
 
   // Get level configurations
@@ -225,6 +260,9 @@ export function LevelUpModal({
   // Get newly unlocked items
   const newlyUnlockedPermissions = getNewlyUnlockedPermissions(fromLevel, toLevel);
   const newlyUnlockedContent = newLevelConfig?.exclusiveContent || [];
+
+  // Check if current language is English
+  const isEnglish = language === 'en-US';
 
   // Trigger confetti animation when modal opens
   useEffect(() => {
@@ -249,7 +287,7 @@ export function LevelUpModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'sm:max-w-[500px] overflow-hidden',
+          'sm:max-w-[500px] max-h-[90vh] overflow-hidden flex flex-col',
           className
         )}
       >
@@ -279,8 +317,8 @@ export function LevelUpModal({
           </div>
         </DialogHeader>
 
-        {/* Main Content */}
-        <div className="space-y-6 py-4 relative z-10">
+        {/* Main Content - Scrollable */}
+        <div className="space-y-6 py-4 relative z-10 overflow-y-auto">
           {/* New Level Badge - Animated entrance */}
           <div className="flex justify-center animate-[bounce_1s_ease-in-out]">
             <div className="transform scale-125">
@@ -296,9 +334,11 @@ export function LevelUpModal({
           {/* Level Title and Description */}
           <div className="text-center space-y-2 px-4">
             <h3 className="text-2xl font-bold">{newLevelConfig.title}</h3>
-            <p className="text-sm text-muted-foreground italic">
-              {newLevelConfig.titleEn}
-            </p>
+            {isEnglish && (
+              <p className="text-sm text-muted-foreground italic">
+                {newLevelConfig.titleEn}
+              </p>
+            )}
             <p className="text-sm text-muted-foreground">
               {newLevelConfig.description}
             </p>
@@ -321,7 +361,7 @@ export function LevelUpModal({
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>{formatPermissionName(permission)}</span>
+                    <span>{getPermissionName(permission, t)}</span>
                   </div>
                 ))}
               </div>
@@ -343,7 +383,7 @@ export function LevelUpModal({
                     className="text-xs animate-[fadeIn_0.5s_ease-out]"
                     style={{ animationDelay: `${(newlyUnlockedPermissions.length + index) * 0.1}s` }}
                   >
-                    {content}
+                    {getExclusiveContentName(content, t)}
                   </Badge>
                 ))}
               </div>
