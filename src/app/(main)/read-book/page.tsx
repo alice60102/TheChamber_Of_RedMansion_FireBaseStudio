@@ -1715,6 +1715,14 @@ export default function ReadBookPage() {
     return () => clearInterval(intervalId);
   }, [user?.uid, refreshUserProfile]);
 
+  // Sync completedChapters from userProfile to local state
+  // This ensures we don't show achievement notifications for already-completed chapters
+  useEffect(() => {
+    if (userProfile?.completedChapters) {
+      setCompletedChapters(new Set(userProfile.completedChapters));
+    }
+  }, [userProfile]);
+
   // Chapter completion tracking - award XP when navigating to new chapter
   useEffect(() => {
     if (!user?.uid || !currentChapter) {
@@ -1732,8 +1740,12 @@ export default function ReadBookPage() {
       chapterTimerRef.current = null;
     }
 
-    // Check if chapter already completed
-    if (completedChapters.has(currentChapter.id)) {
+    // Check if chapter already completed (from persistent data or local state)
+    const isAlreadyCompleted =
+      userProfile?.completedChapters?.includes(currentChapter.id) ||
+      completedChapters.has(currentChapter.id);
+
+    if (isAlreadyCompleted) {
       return; // Already completed, no need to set timer
     }
 
@@ -1743,9 +1755,16 @@ export default function ReadBookPage() {
         // Double-check user and chapter still exist
         if (!user?.uid || !currentChapter) return;
 
-        // Check again if already completed (in case state changed during timer)
-        const alreadyCompleted = completedChapters.has(currentChapter.id);
-        if (alreadyCompleted) return;
+        // Check again if already completed (from persistent data or local state)
+        // This handles cases where state changed during the 5-second timer
+        const alreadyCompleted =
+          userProfile?.completedChapters?.includes(currentChapter.id) ||
+          completedChapters.has(currentChapter.id);
+
+        if (alreadyCompleted) {
+          console.log(`⚠️ Chapter ${currentChapter.id} already completed, skipping XP award`);
+          return;
+        }
 
         // Determine if this is the first chapter
         const isFirstChapter = currentChapter.id === 1;
