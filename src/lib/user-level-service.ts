@@ -320,6 +320,7 @@ export class UserLevelService {
     newTotalXP: number;
     newLevel: number;
     leveledUp: boolean;
+    isDuplicate?: boolean;
     fromLevel?: number;
     unlockedContent?: string[];
     unlockedPermissions?: LevelPermission[];
@@ -353,6 +354,7 @@ export class UserLevelService {
             newTotalXP: profile.totalXP,
             newLevel: profile.currentLevel,
             leveledUp: false,
+            isDuplicate: true,
           };
         }
       }
@@ -373,6 +375,7 @@ export class UserLevelService {
               newTotalXP: profile.totalXP,
               newLevel: profile.currentLevel,
               leveledUp: false,
+              isDuplicate: true,
             };
           }
         }

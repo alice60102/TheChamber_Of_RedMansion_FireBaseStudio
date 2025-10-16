@@ -1778,6 +1778,12 @@ export default function ReadBookPage() {
           `chapter-${currentChapter.id}`
         );
 
+        // Skip notifications if this is a duplicate reward
+        if (result.isDuplicate) {
+          console.log(`⚠️ Skipping duplicate achievement notification for chapter ${currentChapter.id}`);
+          return;
+        }
+
         await refreshUserProfile();
 
         // Show XP reward toast
