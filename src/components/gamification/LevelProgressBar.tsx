@@ -162,9 +162,13 @@ export function LevelProgressBar({
   const { userProfile, isLoading } = useAuth();
   const { t } = useLanguage();
 
-  // Determine actual XP values to display
-  const currentXP = currentXPOverride ?? userProfile?.currentXP ?? 0;
-  const nextLevelXP = nextLevelXPOverride ?? userProfile?.nextLevelXP ?? 100;
+  // Determine actual XP values to display (with NaN protection)
+  const rawCurrentXP = currentXPOverride ?? userProfile?.currentXP;
+  const rawNextLevelXP = nextLevelXPOverride ?? userProfile?.nextLevelXP;
+
+  // Sanitize NaN values (last line of defense)
+  const currentXP = (typeof rawCurrentXP === 'number' && !isNaN(rawCurrentXP) && isFinite(rawCurrentXP)) ? rawCurrentXP : 0;
+  const nextLevelXP = (typeof rawNextLevelXP === 'number' && !isNaN(rawNextLevelXP) && isFinite(rawNextLevelXP)) ? rawNextLevelXP : 100;
 
   // Calculate progress percentage
   const progressPercentage = calculateProgressPercentage(currentXP, nextLevelXP);

@@ -161,32 +161,32 @@
     - **GAME-001 完成度**: 90% (核心系統完成, 測試需優化)
     - **本地伺服器測試檢查清單 (Local Server Testing Checklist)**:
         - **環境啟動測試 (Environment Startup)**:
-            - [ ] 執行 `pnpm dev` 確認伺服器正常啟動於 http://localhost:3000
-            - [ ] 檢查 console 無錯誤訊息，Firebase 連線狀態正常（或優雅降級）
+            - [x] 執行 `pnpm dev` 確認伺服器正常啟動於 http://localhost:3000
+            - [x] 檢查 console 無錯誤訊息，Firebase 連線狀態正常（或優雅降級）
         - **用戶認證與等級初始化測試 (Authentication & Level Initialization)**:
-            - [ ] 新用戶註冊後自動初始化為 Level 0（賈府訪客），總 XP = 0
-            - [ ] 用戶個人資料頁面正確顯示當前等級、XP 進度條、等級稱號
-            - [ ] 未登入用戶訪問受保護頁面時正確重導向至登入頁面
+            - [x] 新用戶註冊後自動初始化為 Level 0（賈府訪客），總 XP = 0
+            - [x] 用戶個人資料頁面正確顯示當前等級、XP 進度條、等級稱號
+            - [x] 未登入用戶訪問受保護頁面時正確重導向至登入頁面
         - **閱讀頁面 XP 獎勵測試 (Reading Page XP Awards)**:
-            - [ ] 完成第一章獲得 20 XP，Toast 通知顯示「+20 XP」
-            - [ ] 完成其他章節獲得 10 XP，Toast 通知正確顯示
+            - [x] 完成第一章獲得 20 XP，Toast 通知顯示「+20 XP」
+            - [x] 完成其他章節獲得 10 XP，Toast 通知正確顯示
             - [ ] 閱讀 15 分鐘後自動獲得 3 XP，Toast 通知顯示「+3 XP」
             - [ ] 創建筆記（<100 字）獲得 3 XP，創建優質筆記（>100 字）獲得 5 XP
             - [ ] AI 簡單提問（≤50 字）獲得 2 XP，深度分析（>50 字）獲得 5 XP
         - **社群頁面 XP 獎勵測試 (Community Page XP Awards)**:
-            - [ ] 發布新貼文獲得 5 XP，Toast 通知顯示「+5 XP 感謝分享！」
-            - [ ] 發表評論獲得 2 XP，Toast 通知顯示「+2 XP 謝謝參與討論！」
-            - [ ] 按讚貼文獲得 1 XP，取消按讚不會重複獲得 XP
+            - [x] 發布新貼文獲得 5 XP，Toast 通知顯示「+5 XP 感謝分享！」
+            - [x] 發表評論獲得 2 XP，Toast 通知顯示「+2 XP 謝謝參與討論！」
+            - [x] 按讚貼文獲得 1 XP，取消按讚不會重複獲得 XP
         - **等級晉升測試 (Level-Up Testing)**:
             - [ ] 累積 100 XP 時自動晉升至 Level 1（陪讀書僮）
             - [ ] 晉升時顯示 LevelUpModal 慶祝動畫（包含五彩紙屑效果）
             - [ ] Modal 顯示正確的等級變化（Level 0 → Level 1）和新解鎖權限
             - [ ] 導航列的 LevelBadge 元件即時更新顯示新等級
         - **UI 組件顯示測試 (UI Component Display)**:
-            - [ ] Dashboard 頁面正確顯示 LevelDisplay 元件（等級、XP、進度條）
-            - [ ] 導航列顯示 LevelBadge 元件（等級數字、等級稱號）
-            - [ ] LevelProgressBar 正確顯示當前 XP 和下一等級所需 XP
-            - [ ] 所有等級相關文字支援繁中、簡中、英文三語切換
+            - [x] Dashboard 頁面正確顯示 LevelDisplay 元件（等級、XP、進度條）
+            - [x] 導航列顯示 LevelBadge 元件（等級數字、等級稱號）
+            - [x] LevelProgressBar 正確顯示當前 XP 和下一等級所需 XP
+            - [x] 所有等級相關文字支援繁中、簡中、英文三語切換
         - **權限控制測試 (Permission Control Testing)**:
             - [ ] Level 0 用戶只能閱讀前 5 章（chapters:1-5）
             - [ ] Level 1 用戶可閱讀前 10 章（chapters:1-10）

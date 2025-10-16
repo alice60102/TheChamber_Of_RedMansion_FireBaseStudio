@@ -69,6 +69,7 @@ import {
 export const XP_REWARDS = {
   // Reading actions
   CHAPTER_COMPLETED: 10,
+  FIRST_CHAPTER_COMPLETED: 20,
   READING_TIME_15MIN: 3,
   READING_TIME_30MIN: 5,
   READING_TIME_60MIN: 8,
@@ -219,9 +220,46 @@ export class UserLevelService {
       }
 
       const data = userDoc.data() as DocumentData;
+
+      // Sanitize corrupted NaN values (auto-repair corrupted profiles)
+      let needsRepair = false;
+      let sanitizedData = { ...data };
+
+      // Check for NaN corruption in XP fields
+      if (isNaN(data.totalXP) || data.totalXP === undefined || data.totalXP === null) {
+        console.warn(`⚠️ Corrupted totalXP detected for user ${userDoc.id}, repairing...`);
+        sanitizedData.totalXP = 0;
+        needsRepair = true;
+      }
+
+      if (isNaN(data.currentLevel) || data.currentLevel === undefined || data.currentLevel === null) {
+        console.warn(`⚠️ Corrupted currentLevel detected for user ${userDoc.id}, repairing...`);
+        sanitizedData.currentLevel = 0;
+        needsRepair = true;
+      }
+
+      // Recalculate XP progress if any corruption detected
+      if (needsRepair || isNaN(data.currentXP) || isNaN(data.nextLevelXP)) {
+        const xpProgress = calculateXPProgress(sanitizedData.totalXP);
+        sanitizedData.currentXP = xpProgress.currentXP;
+        sanitizedData.nextLevelXP = xpProgress.nextLevelXP;
+        sanitizedData.currentLevel = xpProgress.currentLevel;
+
+        // Persist the repair to Firebase
+        console.log(`🔧 Repairing user profile for ${userDoc.id}...`);
+        await updateDoc(doc(this.usersCollection, userDoc.id), {
+          totalXP: sanitizedData.totalXP,
+          currentXP: sanitizedData.currentXP,
+          nextLevelXP: sanitizedData.nextLevelXP,
+          currentLevel: sanitizedData.currentLevel,
+          updatedAt: serverTimestamp(),
+        });
+        console.log(`✅ User profile repaired successfully`);
+      }
+
       return {
         uid: userDoc.id,
-        ...data,
+        ...sanitizedData,
         createdAt: data.createdAt || Timestamp.now(),
         updatedAt: data.updatedAt || Timestamp.now(),
         lastActivityAt: data.lastActivityAt || Timestamp.now(),
@@ -259,7 +297,13 @@ export class UserLevelService {
     unlockedPermissions?: LevelPermission[];
   }> {
     try {
-      // Validate amount
+      // Validate amount (strict checks to prevent NaN corruption)
+      if (amount === undefined || amount === null) {
+        throw new Error('XP amount cannot be undefined or null');
+      }
+      if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
+        throw new Error(`Invalid XP amount: ${amount}. Must be a finite number.`);
+      }
       if (amount < 0) {
         throw new Error('XP amount cannot be negative');
       }

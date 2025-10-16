@@ -168,8 +168,9 @@ export function LevelDisplay({
   const { userProfile, isLoading } = useAuth();
   const { t } = useLanguage();
 
-  // Get current and next level configurations
-  const currentLevel = userProfile?.currentLevel ?? 0;
+  // Get current and next level configurations (with NaN protection)
+  const rawLevel = userProfile?.currentLevel;
+  const currentLevel = (typeof rawLevel === 'number' && !isNaN(rawLevel) && isFinite(rawLevel)) ? rawLevel : 0;
   const currentLevelConfig = getLevelConfig(currentLevel);
   const nextLevelConfig = getLevelConfig(currentLevel + 1);
 

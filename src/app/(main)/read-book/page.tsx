@@ -114,7 +114,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 // XP Integration for gamification
 import { userLevelService, XP_REWARDS } from '@/lib/user-level-service';
-import { LevelUpModal } from '@/components/gamification';
+import { LevelUpModal, LevelBadge } from '@/components/gamification';
 
 interface Annotation {
   text: string;
@@ -910,7 +910,7 @@ export default function ReadBookPage() {
             try {
               // Determine if this is a deep analysis (longer questions = deeper)
               const isDeepQuestion = questionText.length > 50;
-              const xpAmount = isDeepQuestion ? XP_REWARDS.DEEP_ANALYSIS_REQUEST : XP_REWARDS.AI_QA_INTERACTION;
+              const xpAmount = isDeepQuestion ? XP_REWARDS.AI_DEEP_ANALYSIS : XP_REWARDS.AI_QA_INTERACTION;
 
               const result = await userLevelService.awardXP(
                 user.uid,
@@ -1616,6 +1616,15 @@ export default function ReadBookPage() {
 
           await refreshUserProfile();
 
+          // Show XP reward toast
+          toast({
+            title: `+${xpAmount} XP`,
+            description: isFirstChapter
+              ? `完成第一章！獲得 ${xpAmount} XP`
+              : `完成第${currentChapter.id}章！獲得 ${xpAmount} XP`,
+            duration: 3000,
+          });
+
           // Mark chapter as completed
           setCompletedChapters(prev => new Set([...prev, currentChapter.id]));
 
@@ -1660,7 +1669,7 @@ export default function ReadBookPage() {
         // Award XP for creating note
         try {
           const isQualityNote = currentNote.length > 100;
-          const xpAmount = isQualityNote ? XP_REWARDS.QUALITY_NOTE : XP_REWARDS.NOTE_CREATED;
+          const xpAmount = isQualityNote ? XP_REWARDS.NOTE_QUALITY_BONUS : XP_REWARDS.NOTE_CREATED;
 
           const result = await userLevelService.awardXP(
             user.uid,
