@@ -10,8 +10,7 @@
  *   LevelBadge,
  *   LevelProgressBar,
  *   LevelDisplay,
- *   LevelUpModal,
- *   LevelGate
+ *   LevelUpModal
  * } from '@/components/gamification';
  * ```
  */
@@ -20,4 +19,3 @@ export { LevelBadge } from './LevelBadge';
 export { LevelProgressBar } from './LevelProgressBar';
 export { LevelDisplay } from './LevelDisplay';
 export { LevelUpModal } from './LevelUpModal';
-export { LevelGate } from './LevelGate';

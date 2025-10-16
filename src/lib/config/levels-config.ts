@@ -49,7 +49,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.SIMPLE_AI_QA,
     ],
     exclusiveContent: [
-      'chapters:1-5',           // First 5 chapters
       'intro_guide',            // Introduction guide
       'character_intro_basic',  // Basic character introductions
     ],
@@ -77,7 +76,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.BASIC_ACHIEVEMENTS,
     ],
     exclusiveContent: [
-      'chapters:1-20',          // Extended chapter access
       'daily_tasks_unlock',     // Daily task system
       'achievement_system',     // Achievement collection
       'character_profiles_basic', // Basic character profiles
@@ -124,7 +122,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.GARDEN_3D_VIEW,
     ],
     exclusiveContent: [
-      'chapters:1-40',          // Chapters 1-40 access
       'poetry_collection',      // Poetry anthology
       'expert_commentary_basic', // Basic expert readings
       'garden_3d_tour',         // 3D Grand View Garden
@@ -179,7 +176,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.CHARACTER_RELATIONSHIP_MAP,
     ],
     exclusiveContent: [
-      'chapters:1-60',          // Chapters 1-60 access
       'advanced_analysis_tools', // Advanced AI analysis
       'character_psychology',   // Character psychological analysis
       'historical_context',     // Historical and cultural context
@@ -231,7 +227,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.STUDY_GROUP_CREATE,
     ],
     exclusiveContent: [
-      'chapters:1-80',          // Chapters 1-80 access
       'poetry_competitions',    // Poetry competition system
       'study_groups',           // Create and join study groups
       'advanced_poetry_tools',  // Advanced poetry analysis
@@ -286,7 +281,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.SPECIAL_TOPICS,
     ],
     exclusiveContent: [
-      'chapters:1-100',         // Chapters 1-100 access
       'expert_commentary_full', // Full expert commentary
       'special_topics',         // Special topic discussions
       'mentor_system',          // Mentor new users
@@ -344,7 +338,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.ANNOTATION_PUBLISH,
     ],
     exclusiveContent: [
-      'chapters:1-120',         // Full novel access
       'research_tools',         // Advanced research tools
       'annotation_system',      // Publish scholarly annotations
       'exclusive_archives',     // Historical archives
@@ -390,7 +383,6 @@ export const LEVELS_CONFIG: UserLevel[] = [
       LevelPermission.EXCLUSIVE_EVENTS,
     ],
     exclusiveContent: [
-      'chapters:1-120',         // Full access
       'master_archives',        // Master-only archives
       'exclusive_events',       // VIP cultural events
       'platform_governance',    // Platform governance participation
