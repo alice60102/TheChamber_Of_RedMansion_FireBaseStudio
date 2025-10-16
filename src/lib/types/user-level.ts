@@ -258,6 +258,13 @@ export interface UserProfile {
   unlockedContent: string[];
 
   /**
+   * Array of completed chapter IDs (chapter numbers)
+   * Prevents duplicate XP rewards for the same chapter
+   * Persisted to Firestore for consistency across sessions
+   */
+  completedChapters: number[];
+
+  /**
    * User's skill attribute points
    * Updated through various learning activities
    */

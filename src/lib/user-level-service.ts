@@ -180,6 +180,7 @@ export class UserLevelService {
         nextLevelXP: LEVELS_CONFIG[1].requiredXP,
         completedTasks: [],
         unlockedContent: LEVELS_CONFIG[0].exclusiveContent,
+        completedChapters: [], // Initialize empty array for tracking completed chapters
         attributes: { ...INITIAL_ATTRIBUTES },
         stats: { ...INITIAL_STATS },
         createdAt: now as Timestamp,
@@ -260,6 +261,7 @@ export class UserLevelService {
       return {
         uid: userDoc.id,
         ...sanitizedData,
+        completedChapters: data.completedChapters || [], // Backward compatibility: default to empty array
         createdAt: data.createdAt || Timestamp.now(),
         updatedAt: data.updatedAt || Timestamp.now(),
         lastActivityAt: data.lastActivityAt || Timestamp.now(),
@@ -314,6 +316,27 @@ export class UserLevelService {
         throw new Error('User profile not found');
       }
 
+      // Duplicate reward prevention for chapter completion
+      // Reason: Prevents users from getting the same chapter reward multiple times
+      if (source === 'chapter' && sourceId) {
+        // Extract chapter number from sourceId (format: 'chapter-{id}')
+        const chapterMatch = sourceId.match(/^chapter-(\d+)$/);
+        if (chapterMatch) {
+          const chapterId = parseInt(chapterMatch[1], 10);
+
+          // Check if chapter already completed
+          if (profile.completedChapters && profile.completedChapters.includes(chapterId)) {
+            console.log(`⚠️ Chapter ${chapterId} already completed by user ${userId}. Skipping duplicate reward.`);
+            return {
+              success: true,
+              newTotalXP: profile.totalXP,
+              newLevel: profile.currentLevel,
+              leveledUp: false,
+            };
+          }
+        }
+      }
+
       // Handle 0 XP award (edge case)
       if (amount === 0) {
         return {
@@ -336,14 +359,27 @@ export class UserLevelService {
 
       // Update user profile
       const userRef = doc(this.usersCollection, userId);
-      await updateDoc(userRef, {
+      const updateData: any = {
         totalXP: newTotalXP,
         currentLevel: newLevel,
         currentXP: xpProgress.currentXP,
         nextLevelXP: xpProgress.nextLevelXP,
         updatedAt: serverTimestamp(),
         lastActivityAt: serverTimestamp(),
-      });
+      };
+
+      // Add chapter to completed chapters if this is a chapter reward
+      if (source === 'chapter' && sourceId) {
+        const chapterMatch = sourceId.match(/^chapter-(\d+)$/);
+        if (chapterMatch) {
+          const chapterId = parseInt(chapterMatch[1], 10);
+          const currentCompletedChapters = profile.completedChapters || [];
+          updateData.completedChapters = [...currentCompletedChapters, chapterId];
+          console.log(`📚 Chapter ${chapterId} marked as completed for user ${userId}`);
+        }
+      }
+
+      await updateDoc(userRef, updateData);
 
       // Log XP transaction
       await this.logXPTransaction({
