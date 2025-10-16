@@ -226,7 +226,11 @@ DATA: {
   "hasIterator": false,
   "constructorName": ""
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:03.543Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+=======
+[2025-10-13T08:08:29.494Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "functionName": "perplexityRedChamberQAStreaming",
   "inputType": "object",
@@ -246,7 +250,11 @@ DATA: {
   ],
   "hasAsyncIterator": false
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:03.550Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+=======
+[2025-10-13T08:08:29.499Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "inputType": "object",
   "inputKeys": [
@@ -263,17 +271,29 @@ DATA: {
     "chapterContext",
     "currentChapter"
   ],
+<<<<<<< HEAD
   "userQuestionLength": 103,
   "enableStreaming": true
 }
 [2025-10-13T08:25:03.552Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
 [2025-10-13T08:25:03.555Z] [DEBUG] [PERPLEXITY_STREAMING] Client obtained
+=======
+  "userQuestionLength": 2,
+  "enableStreaming": true
+}
+[2025-10-13T08:08:29.502Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-13T08:08:29.505Z] [DEBUG] [PERPLEXITY_STREAMING] Client obtained
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "clientType": "object",
   "clientConstructor": "PerplexityClient",
   "hasStreamingMethod": true
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:03.557Z] [DEBUG] [PERPLEXITY_STREAMING] Calling client.streamingCompletionRequest
+=======
+[2025-10-13T08:08:29.506Z] [DEBUG] [PERPLEXITY_STREAMING] Calling client.streamingCompletionRequest
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "processedInputType": "object",
   "processedInputKeys": [
@@ -291,13 +311,21 @@ DATA: {
     "currentChapter"
   ]
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:03.558Z] [DEBUG] [PERPLEXITY_STREAMING] Stream generator created
+=======
+[2025-10-13T08:08:29.508Z] [DEBUG] [PERPLEXITY_STREAMING] Stream generator created
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "generatorType": "object",
   "generatorConstructor": "",
   "hasAsyncIterator": true
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:03.560Z] [DEBUG] [PERPLEXITY_STREAMING] Starting for-await loop on: client.streamingCompletionRequest
+=======
+[2025-10-13T08:08:29.509Z] [DEBUG] [PERPLEXITY_STREAMING] Starting for-await loop on: client.streamingCompletionRequest
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "iterableSource": "client.streamingCompletionRequest",
   "iterableType": "object",
@@ -305,6 +333,7 @@ DATA: {
   "hasIterator": false,
   "constructorName": ""
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:03.560Z] [DEBUG] [PERPLEXITY_CLIENT] PerplexityClient.streamingCompletionRequest called
 DATA: {
   "inputType": "object",
@@ -312,6 +341,15 @@ DATA: {
   "enableStreaming": true
 }
 [2025-10-13T08:25:03.562Z] [DEBUG] [PERPLEXITY_CLIENT] Making HTTP request to Perplexity API
+=======
+[2025-10-13T08:08:29.511Z] [DEBUG] [PERPLEXITY_CLIENT] PerplexityClient.streamingCompletionRequest called
+DATA: {
+  "inputType": "object",
+  "userQuestionLength": 2,
+  "enableStreaming": true
+}
+[2025-10-13T08:08:29.512Z] [DEBUG] [PERPLEXITY_CLIENT] Making HTTP request to Perplexity API
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "endpoint": "/chat/completions",
   "requestDataKeys": [
@@ -325,13 +363,18 @@ DATA: {
   "model": "sonar-reasoning",
   "stream": true
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:05.585Z] [DEBUG] [PERPLEXITY_CLIENT] Received HTTP response
+=======
+[2025-10-13T08:08:43.199Z] [DEBUG] [PERPLEXITY_CLIENT] Received HTTP response
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "statusCode": 200,
   "statusText": "OK",
   "dataType": "object",
   "dataConstructor": "IncomingMessage"
 }
+<<<<<<< HEAD
 [2025-10-13T08:25:05.588Z] [DEBUG] [PERPLEXITY_CLIENT] Starting for-await loop on: this.parseStreamingResponse(stream)
 DATA: {
   "iterableSource": "this.parseStreamingResponse(stream)",
@@ -2157,6 +2200,9 @@ DATA: {
   "dataConstructor": "IncomingMessage"
 }
 [2025-10-13T10:06:40.957Z] [DEBUG] [PERPLEXITY_CLIENT] Starting for-await loop on: this.parseStreamingResponse(stream)
+=======
+[2025-10-13T08:08:43.201Z] [DEBUG] [PERPLEXITY_CLIENT] Starting for-await loop on: this.parseStreamingResponse(stream)
+>>>>>>> feature/GAME-001-user-level-system
 DATA: {
   "iterableSource": "this.parseStreamingResponse(stream)",
   "iterableType": "object",

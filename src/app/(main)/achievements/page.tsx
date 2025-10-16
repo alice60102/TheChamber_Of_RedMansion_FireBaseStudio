@@ -81,6 +81,9 @@ import { useState } from "react";
 // Custom hooks for application functionality
 import { useLanguage } from '@/hooks/useLanguage';
 
+// Gamification components
+import { LevelDisplay } from '@/components/gamification';
+
 // Placeholder Data - In a real app, these would come from a backend or state management
 const getAchievedAchievementsData = (t: (key: string) => string) => [
   { id: "ach1", icon: Award, name: "初窺門徑", description: "完成《紅樓夢》第一回閱讀", date: "2024-05-10", points: 50, category: "閱讀進度" },
@@ -140,6 +143,9 @@ export default function AchievementsPage() {
           </div>
         </CardHeader>
       </Card>
+
+      {/* User Level System - Detailed Display */}
+      <LevelDisplay variant="detailed" showNextLevel />
 
       <Card>
         <CardHeader>

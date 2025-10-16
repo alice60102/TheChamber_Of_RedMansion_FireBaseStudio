@@ -48,6 +48,11 @@ next-env.d.ts
 firebase-debug.log
 firestore-debug.log
 
+<<<<<<< HEAD
 .gemini
 GEMINI.md
+=======
+GEMINI.md
+.gemini/commands
+>>>>>>> feature/GAME-001-user-level-system
 

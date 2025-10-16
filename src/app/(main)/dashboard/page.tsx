@@ -71,6 +71,9 @@ import { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { useLanguage } from '@/hooks/useLanguage';
 
+// Gamification components
+import { LevelDisplay } from '@/components/gamification';
+
 /**
  * Sample learning goals data generator
  * Creates localized example goals for dashboard display
@@ -217,7 +220,14 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-8 py-6">
-      {/* 
+      {/*
+        User Level Display Card
+        Shows current level, XP progress, permissions, and virtual residence
+        Gamification feature to motivate continued learning
+      */}
+      <LevelDisplay variant="summary" />
+
+      {/*
         Main Progress Overview Card
         Features animated circular progress indicator and statistics grid
         Uses split layout: progress circle on left, stats grid on right

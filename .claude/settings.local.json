@@ -63,7 +63,11 @@
       "Bash(netstat:*)",
       "Bash(lsof:*)",
       "Bash(ss:*)",
-      "Bash(PORT=3001 npm run dev)"
+      "Bash(PORT=3001 npm run dev)",
+      "Bash(kill:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "outputStyle": "default"
