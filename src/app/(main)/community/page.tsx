@@ -650,7 +650,7 @@ export default function CommunityPage() {
           // This prevents duplicate XP for like/unlike/re-like on the same post
           const sourceId = `like-${user.uid}-${postId}`;
 
-          await userLevelService.awardXP(
+          const result = await userLevelService.awardXP(
             user.uid,
             XP_REWARDS.LIKE_RECEIVED, // Award to the person giving the like
             'Liked community post',
@@ -658,15 +658,20 @@ export default function CommunityPage() {
             sourceId
           );
 
-          // Show toast notification with XP award
-          toast({
-            title: `+${XP_REWARDS.LIKE_RECEIVED} XP`,
-            description: '感謝支持！',
-            duration: 1500,
-          });
+          // Only show toast if not a duplicate reward
+          if (!result.isDuplicate) {
+            // Show toast notification with XP award
+            toast({
+              title: `+${XP_REWARDS.LIKE_RECEIVED} XP`,
+              description: '感謝支持！',
+              duration: 1500,
+            });
 
-          // Refresh user profile to update level display
-          await refreshUserProfile();
+            // Refresh user profile to update level display
+            await refreshUserProfile();
+          } else {
+            console.log(`⚠️ Duplicate like reward prevented for post ${postId}`);
+          }
         } catch (error) {
           console.error('Error awarding XP for like:', error);
           // Don't fail the like if XP award fails

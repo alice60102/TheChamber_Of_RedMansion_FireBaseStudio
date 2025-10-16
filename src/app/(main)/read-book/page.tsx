@@ -1871,21 +1871,31 @@ export default function ReadBookPage() {
             sourceId
           );
 
-          await refreshUserProfile();
+          // Check if this is a duplicate reward
+          if (result.isDuplicate) {
+            console.log(`⚠️ Duplicate note reward prevented, showing note saved without XP`);
+            toast({
+              title: t('筆記儲存'),
+              description: t('buttons.noteUpdated')
+            });
+          } else {
+            // New note with XP reward
+            await refreshUserProfile();
 
-          // Show level-up modal if leveled up
-          if (result.leveledUp) {
-            setLevelUpData({
-              show: true,
-              fromLevel: result.fromLevel!,
-              toLevel: result.newLevel,
+            // Show level-up modal if leveled up
+            if (result.leveledUp) {
+              setLevelUpData({
+                show: true,
+                fromLevel: result.fromLevel!,
+                toLevel: result.newLevel,
+              });
+            }
+
+            toast({
+              title: t('筆記儲存'),
+              description: `${t('buttons.noteSaved')} +${xpAmount} XP${isQualityNote ? ' (Quality note!)' : ''}`
             });
           }
-
-          toast({
-            title: t('筆記儲存'),
-            description: `${t('buttons.noteSaved')} +${xpAmount} XP${isQualityNote ? ' (Quality note!)' : ''}`
-          });
         } catch (xpError) {
           console.error('Error awarding note XP:', xpError);
           // Still show success for note save even if XP fails
