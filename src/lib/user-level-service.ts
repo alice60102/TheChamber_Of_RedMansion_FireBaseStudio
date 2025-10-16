@@ -273,6 +273,32 @@ export class UserLevelService {
   }
 
   /**
+   * Check if a reward with the same sourceId has already been granted
+   * Prevents duplicate XP rewards for the same action
+   *
+   * @param userId - User ID to check
+   * @param sourceId - Source ID to check for duplicates
+   * @returns Promise with boolean indicating if duplicate exists
+   */
+  private async checkDuplicateReward(userId: string, sourceId: string): Promise<boolean> {
+    try {
+      const xpQuery = query(
+        this.xpTransactionsCollection,
+        where('userId', '==', userId),
+        where('sourceId', '==', sourceId),
+        limit(1)
+      );
+
+      const snapshot = await getDocs(xpQuery);
+      return !snapshot.empty;
+    } catch (error) {
+      console.error('Error checking duplicate reward:', error);
+      // On error, assume not duplicate to avoid blocking legitimate rewards
+      return false;
+    }
+  }
+
+  /**
    * Award XP to a user and handle level-ups
    * This is the core function for the gamification system
    *
@@ -316,17 +342,32 @@ export class UserLevelService {
         throw new Error('User profile not found');
       }
 
-      // Duplicate reward prevention for chapter completion
-      // Reason: Prevents users from getting the same chapter reward multiple times
+      // Universal duplicate reward prevention
+      // Reason: Prevents users from getting XP multiple times for the same action
+      if (sourceId) {
+        const isDuplicate = await this.checkDuplicateReward(userId, sourceId);
+        if (isDuplicate) {
+          console.log(`⚠️ Duplicate reward prevented for ${source} (sourceId: ${sourceId}). User ${userId} has already received XP for this action.`);
+          return {
+            success: true,
+            newTotalXP: profile.totalXP,
+            newLevel: profile.currentLevel,
+            leveledUp: false,
+          };
+        }
+      }
+
+      // Additional check for chapter completion (maintain completedChapters array for backward compatibility)
+      // Reason: Keeps chapter completion data in user profile for easy access
       if (source === 'chapter' && sourceId) {
         // Extract chapter number from sourceId (format: 'chapter-{id}')
         const chapterMatch = sourceId.match(/^chapter-(\d+)$/);
         if (chapterMatch) {
           const chapterId = parseInt(chapterMatch[1], 10);
 
-          // Check if chapter already completed
+          // Check if chapter already completed in profile (secondary check)
           if (profile.completedChapters && profile.completedChapters.includes(chapterId)) {
-            console.log(`⚠️ Chapter ${chapterId} already completed by user ${userId}. Skipping duplicate reward.`);
+            console.log(`⚠️ Chapter ${chapterId} already in completedChapters for user ${userId}. Skipping duplicate reward.`);
             return {
               success: true,
               newTotalXP: profile.totalXP,

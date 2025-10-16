@@ -290,6 +290,7 @@ export default function ReadBookPage() {
   }>({ show: false, fromLevel: 0, toLevel: 0 });
   const [readingStartTime, setReadingStartTime] = useState<number>(Date.now());
   const [completedChapters, setCompletedChapters] = useState<Set<number>>(new Set());
+  const chapterTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // AI Interface States
   const [isAiSheetOpen, setIsAiSheetOpen] = useState(false);
@@ -845,7 +846,9 @@ export default function ReadBookPage() {
     isSubmittingRef.current = true;
     lastSubmitAtRef.current = now;
 
-    const effectiveInput = (overrideQuestion ?? userQuestionInput).trim();
+    // Defensive type check to prevent .trim() error
+    const rawInput = overrideQuestion ?? userQuestionInput;
+    const effectiveInput = (typeof rawInput === 'string' ? rawInput : '').trim();
     if (!effectiveInput || !currentChapter) {
       console.log('[QA Module] Submission blocked - invalid input or no chapter:', {
         hasInput: !!effectiveInput,
@@ -932,6 +935,15 @@ export default function ReadBookPage() {
               );
 
               await refreshUserProfile();
+
+              // Show XP reward toast
+              toast({
+                title: `+${xpAmount} XP`,
+                description: isDeepQuestion
+                  ? `深度分析提問！獲得 ${xpAmount} XP`
+                  : `AI 提問！獲得 ${xpAmount} XP`,
+                duration: 2000,
+              });
 
               // Show level-up modal if leveled up
               if (result.leveledUp) {
@@ -1705,57 +1717,89 @@ export default function ReadBookPage() {
 
   // Chapter completion tracking - award XP when navigating to new chapter
   useEffect(() => {
-    if (!user?.uid || !currentChapter) return;
-
-    // Award XP if this is a new chapter the user hasn't completed
-    if (!completedChapters.has(currentChapter.id)) {
-      const awardChapterXP = async () => {
-        try {
-          // Determine if this is the first chapter
-          const isFirstChapter = currentChapter.id === 1;
-          const xpAmount = isFirstChapter ? XP_REWARDS.FIRST_CHAPTER_COMPLETED : XP_REWARDS.CHAPTER_COMPLETED;
-
-          const result = await userLevelService.awardXP(
-            user.uid,
-            xpAmount,
-            `Completed chapter ${currentChapter.id}`,
-            'chapter',
-            `chapter-${currentChapter.id}`
-          );
-
-          await refreshUserProfile();
-
-          // Show XP reward toast
-          toast({
-            title: `+${xpAmount} XP`,
-            description: isFirstChapter
-              ? `完成第一章！獲得 ${xpAmount} XP`
-              : `完成第${currentChapter.id}章！獲得 ${xpAmount} XP`,
-            duration: 3000,
-          });
-
-          // Mark chapter as completed
-          setCompletedChapters(prev => new Set([...prev, currentChapter.id]));
-
-          // Show level-up modal if leveled up
-          if (result.leveledUp) {
-            setLevelUpData({
-              show: true,
-              fromLevel: result.fromLevel!,
-              toLevel: result.newLevel,
-            });
-          }
-        } catch (error) {
-          console.error('Error awarding chapter completion XP:', error);
-        }
-      };
-
-      // Award XP after user has been on chapter for 5 seconds (to prevent spam)
-      const timerId = setTimeout(awardChapterXP, 5000);
-
-      return () => clearTimeout(timerId);
+    if (!user?.uid || !currentChapter) {
+      // Clear timer if user logs out or chapter disappears
+      if (chapterTimerRef.current) {
+        clearTimeout(chapterTimerRef.current);
+        chapterTimerRef.current = null;
+      }
+      return;
     }
-  }, [user?.uid, currentChapter, completedChapters, refreshUserProfile]);
+
+    // Clear any existing timer first
+    if (chapterTimerRef.current) {
+      clearTimeout(chapterTimerRef.current);
+      chapterTimerRef.current = null;
+    }
+
+    // Check if chapter already completed
+    if (completedChapters.has(currentChapter.id)) {
+      return; // Already completed, no need to set timer
+    }
+
+    // Award XP function
+    const awardChapterXP = async () => {
+      try {
+        // Double-check user and chapter still exist
+        if (!user?.uid || !currentChapter) return;
+
+        // Check again if already completed (in case state changed during timer)
+        const alreadyCompleted = completedChapters.has(currentChapter.id);
+        if (alreadyCompleted) return;
+
+        // Determine if this is the first chapter
+        const isFirstChapter = currentChapter.id === 1;
+        const xpAmount = isFirstChapter ? XP_REWARDS.FIRST_CHAPTER_COMPLETED : XP_REWARDS.CHAPTER_COMPLETED;
+
+        const result = await userLevelService.awardXP(
+          user.uid,
+          xpAmount,
+          `Completed chapter ${currentChapter.id}`,
+          'chapter',
+          `chapter-${currentChapter.id}`
+        );
+
+        await refreshUserProfile();
+
+        // Show XP reward toast
+        toast({
+          title: `+${xpAmount} XP`,
+          description: isFirstChapter
+            ? `完成第一章！獲得 ${xpAmount} XP`
+            : `完成第${currentChapter.id}章！獲得 ${xpAmount} XP`,
+          duration: 3000,
+        });
+
+        // Mark chapter as completed
+        setCompletedChapters(prev => new Set([...prev, currentChapter.id]));
+
+        // Show level-up modal if leveled up
+        if (result.leveledUp) {
+          setLevelUpData({
+            show: true,
+            fromLevel: result.fromLevel!,
+            toLevel: result.newLevel,
+          });
+        }
+      } catch (error) {
+        console.error('Error awarding chapter completion XP:', error);
+      } finally {
+        // Clear ref after award completes
+        chapterTimerRef.current = null;
+      }
+    };
+
+    // Set timer: Award XP after user has been on chapter for 5 seconds
+    chapterTimerRef.current = setTimeout(awardChapterXP, 5000);
+
+    // Cleanup function
+    return () => {
+      if (chapterTimerRef.current) {
+        clearTimeout(chapterTimerRef.current);
+        chapterTimerRef.current = null;
+      }
+    };
+  }, [user?.uid, currentChapter?.id, completedChapters]);
 
   const handleSaveNote = async () => {
     if (!user?.uid || !toolbarInfo?.text) return;
@@ -1780,12 +1824,26 @@ export default function ReadBookPage() {
           const isQualityNote = currentNote.length > 100;
           const xpAmount = isQualityNote ? XP_REWARDS.NOTE_QUALITY_BONUS : XP_REWARDS.NOTE_CREATED;
 
+          // Generate unique sourceId based on content (selected text + chapter)
+          // This prevents duplicate XP for saving the same content multiple times
+          const simpleHash = (str: string) => {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+              const char = str.charCodeAt(i);
+              hash = ((hash << 5) - hash) + char;
+              hash = hash & hash; // Convert to 32bit integer
+            }
+            return Math.abs(hash).toString(36);
+          };
+          const contentHash = simpleHash(toolbarInfo.text);
+          const sourceId = `note-ch${currentChapter.id}-${contentHash}`;
+
           const result = await userLevelService.awardXP(
             user.uid,
             xpAmount,
             isQualityNote ? 'Created quality note' : 'Created note',
             'notes',
-            noteId || `note-${Date.now()}`
+            sourceId
           );
 
           await refreshUserProfile();

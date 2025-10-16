@@ -646,12 +646,16 @@ export default function CommunityPage() {
       // Award XP only when liking (not un-liking)
       if (isLiking) {
         try {
+          // Generate unique sourceId based on user-post combination
+          // This prevents duplicate XP for like/unlike/re-like on the same post
+          const sourceId = `like-${user.uid}-${postId}`;
+
           await userLevelService.awardXP(
             user.uid,
             XP_REWARDS.LIKE_RECEIVED, // Award to the person giving the like
             'Liked community post',
             'community',
-            postId
+            sourceId
           );
 
           // Show toast notification with XP award
