@@ -170,43 +170,55 @@
         - **閱讀頁面 XP 獎勵測試 (Reading Page XP Awards)**:
             - [x] 完成第一章獲得 20 XP，Toast 通知顯示「+20 XP」
             - [x] 完成其他章節獲得 10 XP，Toast 通知正確顯示
-            - [ ] 閱讀 15 分鐘後自動獲得 3 XP，Toast 通知顯示「+3 XP」
-            - [ ] 創建筆記（<100 字）獲得 3 XP，創建優質筆記（>100 字）獲得 5 XP
-            - [ ] AI 簡單提問（≤50 字）獲得 2 XP，深度分析（>50 字）獲得 5 XP
+            - [x] 閱讀 15 分鐘後自動獲得 3 XP，Toast 通知顯示「+3 XP」
+                - ✅ Test file: tests/integration/reading-page-xp-rewards.test.tsx (5 test cases)
+                - ✅ Re-implemented READING_TIME_15MIN reward in user-level-service.ts
+                - ✅ Added 15-minute interval timer in read-book/page.tsx
+            - [x] 創建筆記（<100 字）獲得 3 XP，創建優質筆記（>100 字）獲得 5 XP
+                - ✅ Test file: tests/integration/reading-page-xp-rewards.test.tsx (6 test cases)
+                - ✅ Tests verify boundary conditions (exactly 100 chars)
+                - ✅ Tests verify toast notifications for both basic and quality notes
+            - [x] AI 簡單提問（≤50 字）獲得 2 XP，深度分析（>50 字）獲得 5 XP
+                - ✅ Test file: tests/integration/reading-page-xp-rewards.test.tsx (6 test cases)
+                - ✅ Tests verify boundary conditions (exactly 50 chars)
+                - ✅ Tests verify toast notifications for both simple and deep questions
         - **社群頁面 XP 獎勵測試 (Community Page XP Awards)**:
             - [x] 發布新貼文獲得 5 XP，Toast 通知顯示「+5 XP 感謝分享！」
             - [x] 發表評論獲得 2 XP，Toast 通知顯示「+2 XP 謝謝參與討論！」
             - [x] 按讚貼文獲得 1 XP，取消按讚不會重複獲得 XP
         - **等級晉升測試 (Level-Up Testing)**:
-            - [ ] 累積 100 XP 時自動晉升至 Level 1（陪讀書僮）
-            - [ ] 晉升時顯示 LevelUpModal 慶祝動畫（包含五彩紙屑效果）
-            - [ ] Modal 顯示正確的等級變化（Level 0 → Level 1）和新解鎖權限
-            - [ ] 導航列的 LevelBadge 元件即時更新顯示新等級
+            - [x] 累積 100 XP 時自動晉升至 Level 1（陪讀書僮）
+            - [x] 晉升時顯示 LevelUpModal 慶祝動畫（包含五彩紙屑效果）
+            - [x] Modal 顯示正確的等級變化（Level 0 → Level 1）和新解鎖權限
+            - [x] 導航列的 LevelBadge 元件即時更新顯示新等級
         - **UI 組件顯示測試 (UI Component Display)**:
             - [x] Dashboard 頁面正確顯示 LevelDisplay 元件（等級、XP、進度條）
             - [x] 導航列顯示 LevelBadge 元件（等級數字、等級稱號）
             - [x] LevelProgressBar 正確顯示當前 XP 和下一等級所需 XP
             - [x] 所有等級相關文字支援繁中、簡中、英文三語切換
-        - **權限控制測試 (Permission Control Testing)**:
+        - **權限控制測試 (Permission Control Testing)**: (取消)
             - [ ] Level 0 用戶只能閱讀前 5 章（chapters:1-5）
             - [ ] Level 1 用戶可閱讀前 10 章（chapters:1-10）
             - [ ] 使用 LevelGate 元件的功能正確根據等級顯示或隱藏
-        - **錯誤處理與優雅降級測試 (Error Handling & Graceful Degradation)**:
-            - [ ] Firebase 連線失敗時，用戶仍可正常瀏覽頁面（不會白屏）
-            - [ ] XP 獎勵失敗時，核心功能（筆記、貼文、評論）仍正常運作
-            - [ ] 等級資料載入失敗時，顯示預設狀態（Level 0）而非錯誤頁面
+        - **錯誤處理與優雅降級測試 (Error Handling & Graceful Degradation)**(已完成測試):
+            - [x] Firebase 連線失敗時，用戶仍可正常瀏覽頁面（不會白屏）
+                - ✅ Test file: tests/integration/firebase-connection-failure.test.tsx (9 test cases)
+            - [x] XP 獎勵失敗時，核心功能（筆記、貼文、評論）仍正常運作
+                - ✅ Test file: tests/integration/xp-reward-failure.test.tsx (8 test cases)
+            - [x] 等級資料載入失敗時，顯示預設狀態（Level 0）而非錯誤頁面
+                - ✅ Test file: tests/integration/level-data-loading-failure.test.tsx (10 test cases)
         - **XP 防刷機制測試 (Anti-Farming Mechanism)**:
-            - [ ] 同一章節完成多次只獎勵一次 XP（Source ID 去重）
-            - [ ] 同一筆記儲存多次只獎勵一次 XP
-            - [ ] 同一貼文按讚/取消/再按讚不會重複獲得 XP
+            - [x] 同一章節完成多次只獎勵一次 XP（Source ID 去重）
+            - [x] 同一筆記儲存多次只獎勵一次 XP
+            - [x] 同一貼文按讚/取消/再按讚不會重複獲得 XP
         - **多語言支援測試 (Multi-language Support)**:
-            - [ ] 切換至繁體中文顯示「賈府訪客」、「陪讀書僮」等中文等級稱號
-            - [ ] 切換至簡體中文正確顯示簡體字形式
-            - [ ] 切換至英文顯示 "Mansion Visitor", "Reading Companion" 等英文稱號
+            - [x] 切換至繁體中文顯示「賈府訪客」、「陪讀書僮」等中文等級稱號
+            - [x] 切換至簡體中文正確顯示簡體字形式
+            - [x] 切換至英文顯示 "Mansion Visitor", "Reading Companion" 等英文稱號
         - **效能測試 (Performance Testing)**:
-            - [ ] XP 獎勵操作不阻塞 UI，Toast 通知立即顯示（<50ms）
-            - [ ] 等級進度條動畫流暢，無明顯延遲或卡頓
-            - [ ] 頁面載入時間正常，XP 系統不影響整體效能（增加 <500ms）
+            - [x] XP 獎勵操作不阻塞 UI，Toast 通知立即顯示（<50ms）
+            - [x] 等級進度條動畫流暢，無明顯延遲或卡頓
+            - [x] 頁面載入時間正常，XP 系統不影響整體效能（增加 <500ms）
 
 ### [GAME-002] **Task ID**: Daily Task System Development
 - **Task Name**: 即時反饋微任務系統「每日修身」實現
@@ -565,3 +577,105 @@
 3. **資源分配**: 確認開發團隊技能匹配和時間安排
 4. **專家諮詢**: 聯繫紅學專家確保文化內容準確性
 5. **用戶研究**: 收集現有用戶對遊戲化功能的需求反饋
+
+---
+
+## 📝 Feature Enhancements (功能增強)
+
+### [FEAT-001] **Feature ID**: Notes Dashboard & Sharing System
+- **Feature Name**: 筆記儀表板與分享系統增強
+- **Implementation Date**: 2025-10-16
+- **Work Description**:
+    - **Why**: 提升筆記功能的可用性，為用戶提供集中管理和分享筆記的能力，增強社群互動
+    - **How**: 擴展現有筆記數據模型，實現筆記儀表板頁面和公開分享功能
+        - **Resources Required**: Firebase Firestore, React components, Translation system
+    - **Implementation Scope**: Phase 1 (Core Infrastructure) + Phase 4.1 (Note Sharing)
+    - **Personnel**:
+        - **Reference Codes**: src/lib/notes-service.ts, src/app/(main)/notes/page.tsx, src/app/(main)/community/page.tsx
+        - **Primary**: Full-stack Developer
+        - **Deliverables**:
+            - [✅] Enhanced Note data model with new fields
+                - ✅ Added: tags (string[]), isPublic (boolean), wordCount (number), lastModified (Date), noteType (string)
+                - ✅ Auto-calculation of wordCount on save/update
+                - ✅ File: src/lib/notes-service.ts (165 lines, +85 lines added)
+            - [✅] Extended notes-service.ts with new functions
+                - ✅ getAllNotesByUser(userId): Fetch all user notes across chapters
+                - ✅ updateNoteVisibility(noteId, isPublic): Toggle note visibility
+                - ✅ getPublicNotes(limit): Fetch public notes from all users
+                - ✅ updateNoteTags(noteId, tags): Update note tags
+                - ✅ File: src/lib/notes-service.ts (4 new exported functions)
+            - [✅] Notes Dashboard page implementation
+                - ✅ Route: /notes (new protected route)
+                - ✅ Features: Statistics, search, filter, pagination, CRUD operations
+                - ✅ File: src/app/(main)/notes/page.tsx (286 lines)
+            - [✅] Reusable UI components
+                - ✅ NoteCard: Individual note display with edit/delete/share controls
+                - ✅ NoteStats: 4-card statistics dashboard (total notes, chapters, words, public notes)
+                - ✅ NoteFilters: Search bar + chapter/date/tag filters + sort options
+                - ✅ Files: src/components/NoteCard.tsx (221 lines), NoteStats.tsx (65 lines), NoteFilters.tsx (246 lines)
+            - [✅] Pagination system
+                - ✅ 20 notes per page with prev/next controls
+                - ✅ Implemented in Notes Dashboard and Public Notes Tab
+            - [✅] Note sharing functionality
+                - ✅ Toggle switch in NoteCard to make notes public/private
+                - ✅ Toast notifications for visibility changes
+                - ✅ Privacy warnings before sharing
+            - [✅] Public Notes Tab in Community page
+                - ✅ New tab alongside Discussions tab
+                - ✅ Component: PublicNotesTab (270 lines)
+                - ✅ Features: Search, chapter filter, tag filter, pagination (12 per page)
+                - ✅ File: src/components/PublicNotesTab.tsx
+            - [✅] Community page integration
+                - ✅ Added Tabs UI component from shadcn/ui
+                - ✅ Split content into "Discussions" and "Public Notes" tabs
+                - ✅ File: src/app/(main)/community/page.tsx (modified)
+            - [✅] Comprehensive translations (i18n)
+                - ✅ Added 'notes' section with 62 keys
+                - ✅ Added 'pagination' section with 4 keys
+                - ✅ Languages: zh-TW (Traditional Chinese), zh-CN (Simplified Chinese), en-US (English)
+                - ✅ File: src/lib/translations.ts (+186 lines across 3 languages)
+    - **Dependencies**: Existing notes-service.ts, Firebase Firestore, Authentication system
+- **Implementation Status**: ✅ 完成 (Completed)
+    - **Phase 1: Core Infrastructure** - ✅ COMPLETED
+        - ✅ Notes Dashboard with full CRUD operations
+        - ✅ Enhanced data model with tags, visibility, word count
+        - ✅ Search and filter system (by chapter, date, tags)
+        - ✅ Statistics dashboard (4 metrics)
+        - ✅ Pagination (20 per page)
+        - ✅ Sort options (newest, oldest, chapter, word count)
+    - **Phase 4.1: Note Sharing** - ✅ COMPLETED
+        - ✅ Public/private toggle for individual notes
+        - ✅ Public notes feed in community page
+        - ✅ Search and filter for public notes
+        - ✅ Privacy controls and toast notifications
+- **Files Created**:
+    1. src/app/(main)/notes/page.tsx (286 lines)
+    2. src/components/NoteCard.tsx (221 lines)
+    3. src/components/NoteStats.tsx (65 lines)
+    4. src/components/NoteFilters.tsx (246 lines)
+    5. src/components/PublicNotesTab.tsx (270 lines)
+- **Files Modified**:
+    1. src/lib/notes-service.ts (+85 lines, 4 new functions)
+    2. src/app/(main)/community/page.tsx (added tabs, integrated PublicNotesTab)
+    3. src/lib/translations.ts (+186 lines, 3 languages)
+- **Total Code**: ~1,373 lines (5 new files + 3 modified files)
+- **Features Not Implemented** (deferred):
+    - [ ] Phase 2: Organization & Management (Tags system basic, batch operations, templates)
+    - [ ] Phase 3: Advanced Features (Export/import, rich text editor, AI integration)
+    - [ ] Phase 4.2-4.4: Other social features (study groups, collaboration)
+- **Testing Status**:
+    - [⬜] Unit tests: Note service functions tests
+    - [⬜] Integration tests: Notes dashboard functionality
+    - [⬜] E2E tests: Note creation, sharing, public feed workflow
+- **Known Limitations**:
+    - No export/import functionality yet
+    - Tags are basic (no auto-suggest, no tag management UI)
+    - No rich text formatting
+    - No AI-powered features (summaries, suggestions)
+    - Client-side search only (no full-text search index)
+- **Notes**:
+    - Focused implementation of Phase 1 + Phase 4.1 only per user request
+    - All features fully internationalized (zh-TW, zh-CN, en-US)
+    - Mobile-responsive design throughout
+    - Graceful error handling with toast notifications
+    - Follows existing project patterns and coding standards

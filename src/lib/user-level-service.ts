@@ -70,9 +70,8 @@ export const XP_REWARDS = {
   // Reading actions
   CHAPTER_COMPLETED: 10,
   FIRST_CHAPTER_COMPLETED: 20,
-  READING_TIME_15MIN: 3,
-  READING_TIME_30MIN: 5,
-  READING_TIME_60MIN: 8,
+  NEW_USER_WELCOME_BONUS: 15,      // One-time bonus for new users entering reading page
+  READING_TIME_15MIN: 3,           // Re-enabled: Award XP for sustained reading
 
   // Daily tasks
   DAILY_TASK_SIMPLE: 5,
@@ -86,9 +85,8 @@ export const XP_REWARDS = {
   COMMENT_HELPFUL: 3,          // When marked as helpful
   LIKE_RECEIVED: 1,
 
-  // AI interactions
-  AI_QA_INTERACTION: 2,
-  AI_DEEP_ANALYSIS: 5,
+  // AI interactions - Achievement (one-time rewards)
+  AI_FIRST_QUESTION_ACHIEVEMENT: 20,  // 心有疑，隨札記 - First AI question asked
 
   // Notes and annotations
   NOTE_CREATED: 3,
@@ -181,6 +179,7 @@ export class UserLevelService {
         completedTasks: [],
         unlockedContent: LEVELS_CONFIG[0].exclusiveContent,
         completedChapters: [], // Initialize empty array for tracking completed chapters
+        hasReceivedWelcomeBonus: false, // User has not received welcome bonus yet
         attributes: { ...INITIAL_ATTRIBUTES },
         stats: { ...INITIAL_STATS },
         createdAt: now as Timestamp,
@@ -262,6 +261,7 @@ export class UserLevelService {
         uid: userDoc.id,
         ...sanitizedData,
         completedChapters: data.completedChapters || [], // Backward compatibility: default to empty array
+        hasReceivedWelcomeBonus: data.hasReceivedWelcomeBonus !== undefined ? data.hasReceivedWelcomeBonus : false, // Backward compatibility: default to false
         createdAt: data.createdAt || Timestamp.now(),
         updatedAt: data.updatedAt || Timestamp.now(),
         lastActivityAt: data.lastActivityAt || Timestamp.now(),

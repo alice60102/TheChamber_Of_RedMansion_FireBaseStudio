@@ -265,6 +265,13 @@ export interface UserProfile {
   completedChapters: number[];
 
   /**
+   * Flag indicating whether user has received the one-time welcome bonus
+   * Set to true after awarding NEW_USER_WELCOME_BONUS on first reading page visit
+   * Prevents duplicate welcome bonuses
+   */
+  hasReceivedWelcomeBonus: boolean;
+
+  /**
    * User's skill attribute points
    * Updated through various learning activities
    */

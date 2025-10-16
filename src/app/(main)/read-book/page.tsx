@@ -116,6 +116,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { userLevelService, XP_REWARDS } from '@/lib/user-level-service';
 import { LevelUpModal, LevelBadge } from '@/components/gamification';
 
+// Firebase imports for welcome bonus flag update
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
 interface Annotation {
   text: string;
   note: string; // Base text (zh-TW)
@@ -338,6 +342,7 @@ export default function ReadBookPage() {
 
   const [selectedTextInfo, setSelectedTextInfo] = useState<{ text: string; position: { top: number; left: number; } | null; range: Range | null; } | null>(null);
   const [activeHighlightInfo, setActiveHighlightInfo] = useState<{ text: string; position: { top: number; left: number; } } | null>(null);
+  const [noteSelectedText, setNoteSelectedText] = useState<string>(''); // Preserve selected text for note sheet
 
   const chapterContentRef = useRef<HTMLDivElement>(null);
   const toolbarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -644,6 +649,8 @@ export default function ReadBookPage() {
 
   const handleOpenNoteSheet = () => {
     if (toolbarInfo?.text) {
+      // Save selected text before clearing selection info
+      setNoteSelectedText(toolbarInfo.text);
       const existingNote = userNotes.find(note => note.selectedText === toolbarInfo.text);
       setCurrentNote(existingNote?.note || '');
       setCurrentNoteObj(existingNote || null);
@@ -919,39 +926,42 @@ export default function ReadBookPage() {
           console.log('[QA Module] Adding user message:', userMessage);
           setActiveSessionMessages(prev => [...prev, userMessage]);
 
-          // Award XP for AI interaction
+          // Award XP for first AI question (one-time achievement)
           if (user?.uid) {
             try {
-              // Determine if this is a deep analysis (longer questions = deeper)
-              const isDeepQuestion = questionText.length > 50;
-              const xpAmount = isDeepQuestion ? XP_REWARDS.AI_DEEP_ANALYSIS : XP_REWARDS.AI_QA_INTERACTION;
+              console.log(`🎯 Attempting to award first AI question achievement...`);
 
               const result = await userLevelService.awardXP(
                 user.uid,
-                xpAmount,
-                isDeepQuestion ? 'AI deep analysis request' : 'AI question',
+                XP_REWARDS.AI_FIRST_QUESTION_ACHIEVEMENT,
+                '心有疑，隨札記 - First AI question asked',
                 'ai_interaction',
-                userMessage.id
+                'achievement-first-ai-question' // Fixed sourceId for one-time achievement
               );
 
-              await refreshUserProfile();
+              // Only show achievement toast if this is the first time
+              if (!result.isDuplicate) {
+                console.log(`🏆 Achievement unlocked: 心有疑，隨札記 (+20 XP)`);
+                await refreshUserProfile();
 
-              // Show XP reward toast
-              toast({
-                title: `+${xpAmount} XP`,
-                description: isDeepQuestion
-                  ? `深度分析提問！獲得 ${xpAmount} XP`
-                  : `AI 提問！獲得 ${xpAmount} XP`,
-                duration: 2000,
-              });
-
-              // Show level-up modal if leveled up
-              if (result.leveledUp) {
-                setLevelUpData({
-                  show: true,
-                  fromLevel: result.fromLevel!,
-                  toLevel: result.newLevel,
+                // Show achievement unlocked toast
+                toast({
+                  title: `🏆 ${t('achievements.achievementUnlocked')}`,
+                  description: `${t('achievements.firstAIQuestion.name')} | +20 XP`,
+                  variant: 'default',
+                  duration: 5000,
                 });
+
+                // Show level-up modal if leveled up
+                if (result.leveledUp) {
+                  setLevelUpData({
+                    show: true,
+                    fromLevel: result.fromLevel!,
+                    toLevel: result.newLevel,
+                  });
+                }
+              } else {
+                console.log(`ℹ️ User has already unlocked this achievement, no XP awarded`);
               }
             } catch (xpError) {
               console.error('Error awarding AI interaction XP:', xpError);
@@ -1677,21 +1687,32 @@ export default function ReadBookPage() {
     }
   }, [user?.uid, currentChapter.id]);
 
-  // Reading time tracking - award XP every 15 minutes
+  // One-time welcome bonus for new users entering reading page
   useEffect(() => {
-    if (!user?.uid) return;
+    if (!user?.uid || !userProfile) return;
 
-    const FIFTEEN_MINUTES = 15 * 60 * 1000; // 15 minutes in milliseconds
+    // Check if user has already received welcome bonus
+    if (userProfile.hasReceivedWelcomeBonus) {
+      return; // User already received bonus, skip
+    }
 
-    const awardReadingTimeXP = async () => {
+    const awardWelcomeBonus = async () => {
       try {
         const result = await userLevelService.awardXP(
           user.uid,
-          XP_REWARDS.READING_TIME_15MIN,
-          'Reading for 15 minutes',
-          'reading_time',
-          `reading-${Date.now()}`
+          XP_REWARDS.NEW_USER_WELCOME_BONUS,
+          'Welcome to reading! First-time reader bonus',
+          'reading',
+          `welcome-bonus-${user.uid}` // Unique ID per user to prevent duplicates
         );
+
+        // Update hasReceivedWelcomeBonus flag in user profile
+        if (result.success && !result.isDuplicate) {
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            hasReceivedWelcomeBonus: true,
+          });
+        }
 
         await refreshUserProfile();
 
@@ -1704,16 +1725,66 @@ export default function ReadBookPage() {
           });
         }
       } catch (error) {
+        console.error('Error awarding welcome bonus:', error);
+      }
+    };
+
+    // Award welcome bonus immediately
+    awardWelcomeBonus();
+  }, [user?.uid, userProfile, refreshUserProfile]);
+
+  // Reading time tracking - award 3 XP every 15 minutes
+  useEffect(() => {
+    if (!user?.uid || !userProfile) return;
+
+    // Award reading time XP function
+    const awardReadingTimeXP = async () => {
+      try {
+        // Generate timestamp-based sourceId to prevent duplicate awards
+        const timestamp = Date.now();
+        const sourceId = `reading-time-${user.uid}-${timestamp}`;
+
+        const result = await userLevelService.awardXP(
+          user.uid,
+          XP_REWARDS.READING_TIME_15MIN,
+          'Reading for 15 minutes',
+          'reading',
+          sourceId
+        );
+
+        // Show toast notification if XP was awarded
+        if (result.success && !result.isDuplicate) {
+          toast({
+            title: t('xpAwarded'),
+            description: `+${XP_REWARDS.READING_TIME_15MIN} XP`,
+            variant: 'default',
+          });
+
+          // Refresh user profile to update XP display
+          await refreshUserProfile();
+
+          // Show level-up modal if leveled up
+          if (result.leveledUp) {
+            setLevelUpData({
+              show: true,
+              fromLevel: result.fromLevel!,
+              toLevel: result.newLevel,
+            });
+          }
+        }
+      } catch (error) {
         console.error('Error awarding reading time XP:', error);
       }
     };
 
-    // Set interval for reading time XP
-    const intervalId = setInterval(awardReadingTimeXP, FIFTEEN_MINUTES);
+    // Set interval to award XP every 15 minutes (900000ms)
+    const intervalId = setInterval(awardReadingTimeXP, 15 * 60 * 1000);
 
-    // Cleanup on unmount
-    return () => clearInterval(intervalId);
-  }, [user?.uid, refreshUserProfile]);
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [user?.uid, userProfile, refreshUserProfile, t, toast]);
 
   // Sync completedChapters from userProfile to local state
   // This ensures we don't show achievement notifications for already-completed chapters
@@ -1827,7 +1898,7 @@ export default function ReadBookPage() {
   }, [user?.uid, currentChapter?.id, completedChapters]);
 
   const handleSaveNote = async () => {
-    if (!user?.uid || !toolbarInfo?.text) return;
+    if (!user?.uid || (!noteSelectedText && !toolbarInfo?.text && !selectedTextInfo?.text)) return;
 
     try {
       if (currentNoteObj?.id) {
@@ -1839,15 +1910,17 @@ export default function ReadBookPage() {
         const noteToSave: Omit<Note, 'id' | 'createdAt'> = {
           userId: user.uid,
           chapterId: currentChapter.id, // Use number, not string
-          selectedText: toolbarInfo.text,
+          selectedText: noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text || '',
           note: currentNote,
         };
         const noteId = await saveNote(noteToSave);
+        console.log(`📝 Note saved to Firestore with ID: ${noteId}, content length: ${currentNote.length} chars`);
 
         // Award XP for creating note
         try {
           const isQualityNote = currentNote.length > 100;
           const xpAmount = isQualityNote ? XP_REWARDS.NOTE_QUALITY_BONUS : XP_REWARDS.NOTE_CREATED;
+          console.log(`💎 Attempting to award XP: ${xpAmount} (isQualityNote: ${isQualityNote})`);
 
           // Generate unique sourceId based on content (selected text + chapter)
           // This prevents duplicate XP for saving the same content multiple times
@@ -1860,7 +1933,7 @@ export default function ReadBookPage() {
             }
             return Math.abs(hash).toString(36);
           };
-          const contentHash = simpleHash(toolbarInfo.text);
+          const contentHash = simpleHash(noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text || '');
           const sourceId = `note-ch${currentChapter.id}-${contentHash}`;
 
           const result = await userLevelService.awardXP(
@@ -1876,9 +1949,11 @@ export default function ReadBookPage() {
             console.log(`⚠️ Duplicate note reward prevented, showing note saved without XP`);
             toast({
               title: t('筆記儲存'),
-              description: t('buttons.noteUpdated')
+              description: t('buttons.noteSaved') + ' (相同內容已獲得過 XP 獎勵)',
+              variant: 'default',
             });
           } else {
+            console.log(`✅ New note created with XP reward: +${xpAmount} XP${isQualityNote ? ' (quality)' : ''}`);
             // New note with XP reward
             await refreshUserProfile();
 
@@ -1893,7 +1968,8 @@ export default function ReadBookPage() {
 
             toast({
               title: t('筆記儲存'),
-              description: `${t('buttons.noteSaved')} +${xpAmount} XP${isQualityNote ? ' (Quality note!)' : ''}`
+              description: `+${xpAmount} XP${isQualityNote ? ' (優質筆記)' : ''}`,
+              variant: 'default',
             });
           }
         } catch (xpError) {
@@ -1908,6 +1984,7 @@ export default function ReadBookPage() {
       setIsNoteSheetOpen(false);
       setSelectedTextInfo(null);
       setActiveHighlightInfo(null);
+      setNoteSelectedText('');
       setCurrentNote('');
       setCurrentNoteObj(null);
     } catch (error) {
@@ -1931,6 +2008,7 @@ export default function ReadBookPage() {
       setIsNoteSheetOpen(false);
       setSelectedTextInfo(null);
       setActiveHighlightInfo(null);
+      setNoteSelectedText('');
       setCurrentNote('');
       setCurrentNoteObj(null);
       toast({ title: t('筆記刪除'), description: t('buttons.noteDeleted') });
@@ -1973,11 +2051,25 @@ export default function ReadBookPage() {
         // Add preceding text
         parts.push(text.substring(lastIndex, startIndex));
         
-        // Add underlined text
+        // Add underlined text with click handler to view/edit note
         parts.push(
-          <u 
+          <u
             key={`${index}-${startIndex}`}
-            className="decoration-red-500 decoration-2 cursor-pointer"
+            className="decoration-red-500 decoration-2 cursor-pointer hover:bg-red-100 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              // Load the existing note into the editor
+              setNoteSelectedText(note.selectedText);
+              setCurrentNote(note.note);
+              setCurrentNoteObj(note);
+              setIsNoteSheetOpen(true);
+              // Clear any active selections
+              setSelectedTextInfo(null);
+              setActiveHighlightInfo(null);
+              handleInteraction();
+            }}
+            title="Click to view/edit note"
+            data-no-selection="true"
           >
             {noteText}
           </u>
@@ -2524,10 +2616,10 @@ export default function ReadBookPage() {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={isNoteSheetOpen} onOpenChange={(open) => {setIsNoteSheetOpen(open); if (!open) setSelectedTextInfo(null); handleInteraction(); }}>
+      <Sheet open={isNoteSheetOpen} onOpenChange={(open) => {setIsNoteSheetOpen(open); if (!open) {setSelectedTextInfo(null); setNoteSelectedText('');} handleInteraction(); }}>
         <SheetContent
             side="right"
-            className="w-[400px] sm:w-[540px] bg-card text-card-foreground p-0 flex flex-col"
+            className="w-[600px] sm:w-[810px] bg-card text-card-foreground p-0 flex flex-col"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
@@ -2541,7 +2633,7 @@ export default function ReadBookPage() {
             <div>
               <Label className="text-sm text-muted-foreground">{t('labels.selectedContent')}</Label>
               <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
-                {selectedTextInfo?.text || t('readBook.noContentSelected')}
+                {noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text || t('readBook.noContentSelected')}
               </blockquote>
             </div>
             <div>
@@ -2558,7 +2650,7 @@ export default function ReadBookPage() {
           </ScrollArea>
           <SheetFooter className="p-4 border-t border-border flex justify-between">
             <SheetClose asChild>
-              <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null); handleInteraction();}}>{t('buttons.cancel')}</Button>
+              <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null); setNoteSelectedText(''); handleInteraction();}}>{t('buttons.cancel')}</Button>
             </SheetClose>
             {currentNoteObj ? (
               <Button

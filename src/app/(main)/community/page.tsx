@@ -53,9 +53,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Icon imports for community interactions
-import { 
+import {
   Users,          // Community/group indicator
   MessageSquare,  // Discussion/posts indicator
   Search,         // Search functionality
@@ -64,8 +65,12 @@ import {
   Send,           // Submit/send actions
   Pencil,         // Edit/compose actions
   Loader2,        // Loading spinner
-  AlertCircle     // Error indicator
+  AlertCircle,    // Error indicator
+  BookOpen        // Public notes indicator
 } from "lucide-react";
+
+// PublicNotesTab component for Phase 4.1 (Note Sharing)
+import { PublicNotesTab } from '@/components/PublicNotesTab';
 
 // Custom hooks for application functionality
 import { useAuth } from '@/hooks/useAuth';
@@ -766,7 +771,7 @@ export default function CommunityPage() {
               </CardDescription>
             </div>
             {user && (
-              <Button 
+              <Button
                 onClick={() => document.getElementById('new-post-form')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-accent text-accent-foreground hover:bg-accent/90"
                 disabled={isLoading}
@@ -777,6 +782,19 @@ export default function CommunityPage() {
           </div>
         </CardHeader>
         <CardContent>
+          <Tabs defaultValue="discussions" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="discussions" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                {t('community.discussions')}
+              </TabsTrigger>
+              <TabsTrigger value="public-notes" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                {t('notes.publicNotes')}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="discussions" className="space-y-6">
           <div className="mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -860,6 +878,12 @@ export default function CommunityPage() {
               )}
             </>
           )}
+            </TabsContent>
+
+            <TabsContent value="public-notes">
+              <PublicNotesTab />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
