@@ -41,6 +41,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 // Progress bar removed per new design for double-column pagination controls
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter, SheetClose } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
@@ -2685,7 +2686,7 @@ ${selectedTextContent}
         </SheetContent>
       </Sheet>
 
-      <Sheet open={isNoteSheetOpen} onOpenChange={(open) => {
+      <Dialog open={isNoteSheetOpen} onOpenChange={(open) => {
         setIsNoteSheetOpen(open);
         if (!open) {
           setSelectedTextInfo(null);
@@ -2695,14 +2696,13 @@ ${selectedTextContent}
         }
         handleInteraction();
       }}>
-        <SheetContent
-            side="right"
-            className="w-[600px] sm:w-[810px] bg-card text-card-foreground p-0 flex flex-col"
+        <DialogContent
+            className="max-w-3xl max-h-[80vh] bg-yellow-50 dark:bg-yellow-900/20 p-0 flex flex-col"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
-          <SheetHeader className="p-4 border-b border-border flex flex-row items-center justify-between">
-            <SheetTitle className="text-primary text-xl font-artistic">寫筆記</SheetTitle>
+          <DialogHeader className="p-4 border-b border-border flex flex-row items-center justify-between">
+            <DialogTitle className="text-primary text-xl font-artistic">寫筆記</DialogTitle>
             {isViewingNote && (
               <div className="flex gap-2">
                 <Button
@@ -2722,20 +2722,14 @@ ${selectedTextContent}
                 </Button>
               </div>
             )}
-          </SheetHeader>
+          </DialogHeader>
 
-          <ScrollArea className="flex-grow p-4">
+          <ScrollArea className="flex-grow p-6">
             {isViewingNote ? (
-              // Viewing mode - show note content in cream/yellow card
+              // Viewing mode - show note content in cream/yellow card centered
               <div className="space-y-4">
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
-                  <p className="text-foreground whitespace-pre-wrap">{currentNote}</p>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  <p className="font-semibold mb-1">選取文字:</p>
-                  <blockquote className="p-2 border-l-4 border-primary bg-primary/10 rounded-sm">
-                    {noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text}
-                  </blockquote>
+                <div className="bg-white/50 dark:bg-yellow-800/30 rounded-lg p-6 border border-yellow-300 dark:border-yellow-700">
+                  <p className="text-foreground whitespace-pre-wrap text-lg leading-relaxed">{currentNote}</p>
                 </div>
               </div>
             ) : (
@@ -2759,7 +2753,7 @@ ${selectedTextContent}
           </ScrollArea>
 
           {!isViewingNote && (
-            <div className="p-4 border-t border-border">
+            <div className="p-4 border-t border-border bg-card">
               <div className="flex items-center justify-between">
                 {/* Left: Public toggle */}
                 <div className="flex items-center gap-2">
@@ -2784,7 +2778,7 @@ ${selectedTextContent}
 
                 {/* Right: Publish/Cancel buttons */}
                 <div className="flex gap-2">
-                  <SheetClose asChild>
+                  <DialogClose asChild>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -2799,7 +2793,7 @@ ${selectedTextContent}
                     >
                       取消
                     </Button>
-                  </SheetClose>
+                  </DialogClose>
                   <Button
                     onClick={handleSaveNote}
                     size="sm"
@@ -2812,8 +2806,8 @@ ${selectedTextContent}
               </div>
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       
       <Sheet open={isAiSheetOpen} onOpenChange={(open) => {setIsAiSheetOpen(open); if (!open) {setSelectedTextInfo(null); setAiMode('new-conversation'); setTextExplanation(null); setAiAnalysisContent(null); setPerplexityResponse(null); setPerplexityStreamingChunks([]);} handleInteraction(); }}>

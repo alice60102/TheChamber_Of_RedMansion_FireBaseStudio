@@ -65,12 +65,8 @@ import {
   Send,           // Submit/send actions
   Pencil,         // Edit/compose actions
   Loader2,        // Loading spinner
-  AlertCircle,    // Error indicator
-  BookOpen        // Public notes indicator
+  AlertCircle     // Error indicator
 } from "lucide-react";
-
-// PublicNotesTab component for Phase 4.1 (Note Sharing)
-import { PublicNotesTab } from '@/components/PublicNotesTab';
 
 // Custom hooks for application functionality
 import { useAuth } from '@/hooks/useAuth';
@@ -382,12 +378,36 @@ function PostCard({
     }
   };
 
+  // Detect if this is a note post
+  const isNotePost = initialPost.content.includes('我的閱讀筆記') && initialPost.content.includes('選取文字：');
+
+  // Parse note content for styled display
+  let noteContent = '';
+  let selectedText = '';
+  let source = '';
+
+  if (isNotePost) {
+    const parts = initialPost.content.split('---');
+    if (parts.length >= 2) {
+      // Extract note content (before ---)
+      noteContent = parts[0].replace('我的閱讀筆記', '').trim();
+
+      // Extract selected text and source (after ---)
+      const bottomPart = parts[1];
+      const selectedTextMatch = bottomPart.match(/選取文字：\n(.+?)\n\n來源：/s);
+      const sourceMatch = bottomPart.match(/來源：(.+)$/s);
+
+      if (selectedTextMatch) selectedText = selectedTextMatch[1].trim();
+      if (sourceMatch) source = sourceMatch[1].trim();
+    }
+  }
+
   return (
     <Card className="shadow-lg overflow-hidden bg-card/70 hover:shadow-primary/10 transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-3 mb-2">
-          <i 
-            className="fa fa-user-circle text-primary" 
+          <i
+            className="fa fa-user-circle text-primary"
             aria-hidden="true"
             style={{ fontSize: '32px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
           ></i>
@@ -410,18 +430,42 @@ function PostCard({
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        <p className={`text-foreground/80 leading-relaxed whitespace-pre-line ${!isExpanded && initialPost.content.length > CONTENT_TRUNCATE_LENGTH ? 'line-clamp-3' : ''}`}>
-          {initialPost.content}
-        </p>
-        {showMoreButton && (
-          <Button 
-            variant="link" 
-            size="sm" 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-primary hover:text-primary/80 p-0 h-auto mt-1 text-sm"
-          >
-            {isExpanded ? t('community.showLess') : t('community.showMore')}
-          </Button>
+        {isNotePost ? (
+          // Special styling for note posts
+          <div className="space-y-3">
+            {/* Blue section - User's note content */}
+            <div className="border-2 border-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <p className="text-foreground leading-relaxed whitespace-pre-line">{noteContent}</p>
+            </div>
+
+            {/* Pink section - Selected text and source */}
+            <div className="border-2 border-pink-400 bg-pink-50 dark:bg-pink-900/20 rounded-lg p-4 space-y-2">
+              <div>
+                <p className="text-sm font-semibold text-pink-700 dark:text-pink-300 mb-1">選取文字：</p>
+                <p className="text-foreground leading-relaxed whitespace-pre-line">{selectedText}</p>
+              </div>
+              <div className="pt-2 border-t border-pink-200 dark:border-pink-700">
+                <p className="text-sm text-muted-foreground">{source}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Regular post styling
+          <>
+            <p className={`text-foreground/80 leading-relaxed whitespace-pre-line ${!isExpanded && initialPost.content.length > CONTENT_TRUNCATE_LENGTH ? 'line-clamp-3' : ''}`}>
+              {initialPost.content}
+            </p>
+            {showMoreButton && (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-primary hover:text-primary/80 p-0 h-auto mt-1 text-sm"
+              >
+                {isExpanded ? t('community.showLess') : t('community.showMore')}
+              </Button>
+            )}
+          </>
         )}
         <div className="flex flex-wrap gap-2 mt-3">
           {initialPost.tags.map(tag => (
@@ -782,19 +826,7 @@ export default function CommunityPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="discussions" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="discussions" className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                {t('community.discussions')}
-              </TabsTrigger>
-              <TabsTrigger value="public-notes" className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                {t('notes.publicNotes')}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="discussions" className="space-y-6">
+          <div className="space-y-6">
           <div className="mb-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -878,12 +910,7 @@ export default function CommunityPage() {
               )}
             </>
           )}
-            </TabsContent>
-
-            <TabsContent value="public-notes">
-              <PublicNotesTab />
-            </TabsContent>
-          </Tabs>
+          </div>
         </CardContent>
       </Card>
     </div>
