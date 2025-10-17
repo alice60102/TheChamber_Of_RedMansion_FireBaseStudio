@@ -278,7 +278,7 @@ export default function ReadBookPage() {
   const { t, language } = useLanguage();
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [isToolbarVisible, setIsToolbarVisible] = useState(true);
-  const [showVernacular, setShowVernacular] = useState(false);
+  // Removed vernacular toggle per product decision
   const [columnLayout, setColumnLayout] = useState<ColumnLayout>('single');
 
   const [isKnowledgeGraphSheetOpen, setIsKnowledgeGraphSheetOpen] = useState(false);
@@ -538,7 +538,7 @@ export default function ReadBookPage() {
     setCurrentPage(1);
     // Recompute pages after next paint
     setTimeout(() => computePagination(), 0);
-  }, [columnLayout, currentChapterIndex, currentNumericFontSize, activeFontFamilyKey, activeThemeKey, showVernacular]);
+  }, [columnLayout, currentChapterIndex, currentNumericFontSize, activeFontFamilyKey, activeThemeKey]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
     const targetElement = event.target as HTMLElement;
@@ -2243,28 +2243,30 @@ ${selectedTextContent}
 
   const processContent = (chapter: Chapter) => {
     let contentNodes: React.ReactNode[] = chapter.paragraphs.flatMap((p, i) => {
-      const paragraphContent = p.content.map(item => 
-        typeof item === 'string' ? item : item.text
-      ).join('');
-      
-      const underlinedNodes = underlineText(paragraphContent);
-      return [<div key={`p-${i}`} className="mb-4">{underlinedNodes}</div>];
+      const paragraphContent = p.content
+        .map(item => (typeof item === 'string' ? item : item.text))
+        .join('');
+
+      // 1) Preserve underline markers (user note selections)
+      let nodes = underlineText(paragraphContent);
+
+      // 2) Apply search highlight within each paragraph without flattening the structure
+      if (currentSearchTerm && currentSearchTerm.trim()) {
+        const highlightNodes = (arr: React.ReactNode[]): React.ReactNode[] =>
+          arr.flatMap(n => (typeof n === 'string' ? highlightText(n, currentSearchTerm) : [n]));
+        nodes = highlightNodes(nodes);
+      }
+
+      return [
+        <div key={`p-${i}`} className="mb-4">
+          {nodes}
+        </div>,
+      ];
     });
 
+    // 3) Apply user-defined highlights for remaining plain-text nodes.
+    //    Underlines and search highlights are already handled per paragraph above.
     contentNodes = applyHighlights(contentNodes);
-
-    if (currentSearchTerm) {
-      let flatText = '';
-      React.Children.forEach(contentNodes, child => {
-        if (typeof child === 'string') {
-          flatText += child;
-        } else if (React.isValidElement(child) && typeof child.props.children === 'string') {
-          flatText += child.props.children;
-        }
-      });
-
-      contentNodes = highlightText(flatText, currentSearchTerm)
-    }
 
     return contentNodes;
   };
@@ -2280,8 +2282,8 @@ ${selectedTextContent}
         data-no-selection="true"
         onClick={(e) => { e.stopPropagation(); handleInteraction(); }}
       >
-        <div className={cn("container mx-auto flex items-center justify-between max-w-screen-xl")}>
-          <div className="flex items-center gap-2 md:gap-3">
+        <div className={cn("container mx-auto grid grid-cols-3 items-center max-w-screen-xl")}>
+          <div className="flex items-center gap-2 md:gap-3 justify-self-start">
             <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => router.push('/dashboard')} title={t('buttons.return')}>
               <CornerUpLeft className={toolbarIconClass} />
               <span className={toolbarLabelClass}>{t('buttons.return')}</span>
@@ -2386,16 +2388,12 @@ ${selectedTextContent}
             </Button>
           </div>
 
-          <div className="text-center overflow-hidden flex-grow px-2 mx-2 md:mx-4">
+          <div className="text-center overflow-hidden px-2 mx-2 md:mx-4 justify-self-center">
             <h1 className={cn("text-base md:text-lg font-semibold truncate", selectedTheme.toolbarAccentTextClass)} title={currentChapterTitle}>{currentChapterTitle}</h1>
             {currentChapterSubtitle && <p className={cn("text-sm truncate", selectedTheme.toolbarTextClass)} title={currentChapterSubtitle}>{currentChapterSubtitle}</p>}
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3">
-            <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => setShowVernacular(!showVernacular)} title={showVernacular ? t('buttons.hideVernacular') : t('buttons.showVernacular')}>
-              {showVernacular ? <EyeOff className={toolbarIconClass}/> : <Eye className={toolbarIconClass}/>}
-              <span className={toolbarLabelClass}>{showVernacular ? t('buttons.hideVernacular') : t('buttons.showVernacular')}</span>
-            </Button>
+          <div className="flex items-center gap-2 md:gap-3 justify-self-end">
             <Button variant="ghost" className={cn(toolbarButtonBaseClass, selectedTheme.toolbarTextClass)} onClick={() => { setIsKnowledgeGraphSheetOpen(true); handleInteraction(); }} title={t('buttons.knowledgeGraph')}>
               <Map className={toolbarIconClass}/>
               <span className={toolbarLabelClass}>{t('buttons.knowledgeGraph')}</span>
