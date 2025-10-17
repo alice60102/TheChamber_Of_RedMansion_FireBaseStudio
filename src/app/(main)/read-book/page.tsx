@@ -2134,7 +2134,14 @@ ${selectedTextContent}
         parts.push(
           <u
             key={`${index}-${startIndex}`}
-            className="decoration-red-500 decoration-2 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 dark:hover:text-white transition-colors"
+            className={cn(
+              // Keep consistent underline styling and interaction affordance
+              "decoration-red-500 decoration-2 underline-offset-2 cursor-pointer transition-colors relative z-10",
+              // Ensure sufficient contrast on hover for both light and night themes
+              activeThemeKey === 'night'
+                ? "hover:bg-red-900/30 hover:text-neutral-100"
+                : "hover:bg-red-100 hover:text-neutral-900"
+            )}
             onClick={(e) => {
               e.stopPropagation();
               // Load the existing note into the editor
