@@ -523,12 +523,39 @@ export default function ReadBookPage() {
     setIsToolbarVisible(true);
     // Scroll to top of chapter content when chapter changes
     if (chapterContentRef.current) {
-      const scrollArea = document.getElementById('chapter-content-scroll-area');
-      if (scrollArea) {
-        scrollArea.scrollTop = 0;
+      const viewportEl =
+        (document.getElementById('chapter-content-viewport') as HTMLElement | null) ||
+        (document.getElementById('chapter-content-scroll-area') as HTMLElement | null);
+      if (viewportEl) {
+        viewportEl.scrollTop = 0;
+        viewportEl.scrollLeft = 0;
       }
     }
   }, [currentChapterIndex]);
+
+  const computePagination = useCallback(() => {
+    if (!isPaginationMode) return;
+    const viewportEl =
+      (document.getElementById('chapter-content-viewport') as HTMLElement | null) ||
+      (document.getElementById('chapter-content-scroll-area') as HTMLElement | null);
+    if (!viewportEl) return;
+
+    const contentEl = chapterContentRef.current as HTMLElement | null;
+    // Use maximum of several dimensions to avoid underestimation during multi-column layout
+    const viewportH = Math.max(1, viewportEl.clientHeight || viewportEl.offsetHeight || 0);
+    const totalContentH = Math.max(
+      contentEl?.scrollHeight || 0,
+      contentEl?.offsetHeight || 0,
+      viewportEl.scrollHeight || 0,
+      viewportEl.offsetHeight || 0,
+    );
+
+    const total = Math.max(viewportH, totalContentH);
+    const pages = Math.max(1, Math.ceil(total / viewportH));
+    setTotalPages(pages);
+    const clamped = Math.min(pages, Math.max(1, currentPage));
+    setCurrentPage(clamped);
+  }, [isPaginationMode, currentPage]);
 
   // Enable pagination automatically for double-column layout
   useEffect(() => {
@@ -536,8 +563,10 @@ export default function ReadBookPage() {
     setIsPaginationMode(enable);
     // Reset to first page when toggling mode
     setCurrentPage(1);
-    // Recompute pages after next paint
-    setTimeout(() => computePagination(), 0);
+    // Recompute pages after multi-column layout finishes
+    if (enable) {
+      requestAnimationFrame(() => requestAnimationFrame(() => computePagination()))
+    }
   }, [columnLayout, currentChapterIndex, currentNumericFontSize, activeFontFamilyKey, activeThemeKey]);
 
   const handleMouseUp = useCallback((event: globalThis.MouseEvent) => {
@@ -569,7 +598,9 @@ export default function ReadBookPage() {
       // 有選取內容，設置 selectedTextInfo
       const range = selection.getRangeAt(0);
       const rect = range.getBoundingClientRect();
-      const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
+      const scrollAreaElement =
+        (document.getElementById('chapter-content-viewport') as HTMLElement | null) ||
+        (document.getElementById('chapter-content-scroll-area') as HTMLElement | null);
       const scrollTop = scrollAreaElement?.scrollTop || 0;
       const scrollLeft = scrollAreaElement?.scrollLeft || 0;
       const top = rect.top + scrollTop;
@@ -597,7 +628,9 @@ export default function ReadBookPage() {
 
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
-    const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
+    const scrollAreaElement =
+      (document.getElementById('chapter-content-viewport') as HTMLElement | null) ||
+      (document.getElementById('chapter-content-scroll-area') as HTMLElement | null);
     scrollAreaElement?.addEventListener('scroll', handleScroll, { passive: true, capture: true });
     document.addEventListener('mousemove', handleInteraction, { passive: true, capture: true });
 
@@ -609,28 +642,20 @@ export default function ReadBookPage() {
     };
   }, [handleInteraction, handleMouseUp, handleScroll]);
 
-  // Recompute pagination on resize
+  // Recompute pagination on resize (after layout has flushed)
   useEffect(() => {
-    const onResize = () => computePagination();
+    const onResize = () => {
+      // double-rAF to ensure multi-column layout settles before measuring
+      requestAnimationFrame(() => requestAnimationFrame(() => computePagination()));
+    };
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  const computePagination = useCallback(() => {
-    if (!isPaginationMode) return;
-    const viewportEl = document.getElementById('chapter-content-scroll-area');
-    if (!viewportEl) return;
-    const viewport = viewportEl.clientHeight || 1;
-    const contentEl = chapterContentRef.current as HTMLElement | null;
-    const total = (contentEl?.scrollHeight || contentEl?.offsetHeight || viewportEl.scrollHeight || viewport);
-    const pages = Math.max(1, Math.ceil(total / Math.max(1, viewport)));
-    setTotalPages(pages);
-    const clamped = Math.min(pages, Math.max(1, currentPage));
-    setCurrentPage(clamped);
-  }, [isPaginationMode, currentPage]);
+  }, [computePagination]);
 
   const goToPage = useCallback((page: number) => {
-    const el = document.getElementById('chapter-content-scroll-area');
+    const el =
+      (document.getElementById('chapter-content-viewport') as HTMLElement | null) ||
+      (document.getElementById('chapter-content-scroll-area') as HTMLElement | null);
     if (!el) return;
     const viewport = el.clientHeight;
     const target = Math.max(0, (page - 1) * viewport);
@@ -649,6 +674,119 @@ export default function ReadBookPage() {
     const prev = Math.max(1, currentPage - 1);
     if (prev !== currentPage) goToPage(prev);
   }, [currentPage, isPaginationMode, goToPage]);
+
+  // Keyboard navigation for pagination:
+  // - Left/Right = prev/next page
+  // - Up/Down/PageUp/PageDown/Space: prevent vertical scroll; map Up/PageUp to prev, Down/PageDown/Space to next
+  useEffect(() => {
+    if (!isPaginationMode) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Do not intercept when typing in inputs or editable areas
+      const target = e.target as HTMLElement | null;
+      const tag = (target?.tagName || '').toUpperCase();
+      const isEditable = !!target && (target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
+      if (isEditable) return;
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goNextPage();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goPrevPage();
+      } else if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        goNextPage();
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        goPrevPage();
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', onKeyDown, { capture: true } as any);
+  }, [isPaginationMode, goNextPage, goPrevPage]);
+
+  /**
+   * Global scroll lock and wheel interception for dual-column pagination
+   *
+   * When pagination mode is enabled (i.e., dual-column reading), we must prevent
+   * default vertical scrolling at the page level and map mouse wheel motions to
+   * page navigation. We still allow scrolling inside overlays such as dialogs,
+   * popovers, and the QA sheet viewport.
+   */
+  useEffect(() => {
+    if (!isPaginationMode) return;
+
+    // Lock page-level vertical scrolling to avoid accidental free scroll
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtmlOverflowY = html.style.overflowY;
+    const prevBodyOverflowY = body.style.overflowY;
+    const prevHtmlOverscroll = (html.style as any).overscrollBehaviorY;
+    const prevBodyOverscroll = (body.style as any).overscrollBehaviorY;
+
+    html.style.overflowY = 'hidden';
+    body.style.overflowY = 'hidden';
+    (html.style as any).overscrollBehaviorY = 'none';
+    (body.style as any).overscrollBehaviorY = 'none';
+
+    const shouldBypass = (target: EventTarget | null): boolean => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      // Allow wheel/scroll in overlays and explicit no-selection regions
+      if (
+        el.closest('#qa-viewport') ||
+        el.closest('[data-radix-dialog-content]') ||
+        el.closest('[data-radix-popover-content]') ||
+        el.closest('[data-no-selection="true"]')
+      ) {
+        return true;
+      }
+      // Do not intercept when interacting with editable controls
+      const tag = (el.tagName || '').toUpperCase();
+      if (el.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        return true;
+      }
+      return false;
+    };
+
+    const onGlobalWheel = (e: WheelEvent) => {
+      if (!isPaginationMode) return;
+      if (shouldBypass(e.target)) return; // let overlays handle their own scroll
+
+      // Prevent default page scrolling and convert to page navigation
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (e.deltaY > 0) {
+        goNextPage();
+      } else if (e.deltaY < 0) {
+        goPrevPage();
+      }
+    };
+
+    window.addEventListener('wheel', onGlobalWheel, { capture: true, passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', onGlobalWheel, { capture: true } as any);
+      html.style.overflowY = prevHtmlOverflowY;
+      body.style.overflowY = prevBodyOverflowY;
+      (html.style as any).overscrollBehaviorY = prevHtmlOverscroll;
+      (body.style as any).overscrollBehaviorY = prevBodyOverscroll;
+    };
+  }, [isPaginationMode, goNextPage, goPrevPage]);
+
+  // Observe content size changes (font size/theme/layout) to recompute pagination
+  useEffect(() => {
+    if (!isPaginationMode) return;
+    const contentEl = chapterContentRef.current;
+    if (!contentEl || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(() => requestAnimationFrame(() => computePagination()));
+    });
+    ro.observe(contentEl);
+    return () => ro.disconnect();
+  }, [isPaginationMode, computePagination]);
 
 
   const handleOpenNoteSheet = () => {
@@ -1629,7 +1767,7 @@ export default function ReadBookPage() {
   const getColumnClass = () => {
     switch (columnLayout) {
       case 'single': return 'columns-1';
-      case 'double': return 'md:columns-2';
+      case 'double': return 'md:columns-2'; // Two-column layout for horizontal reading (left to right)
       default: return 'columns-1';
     }
   };
@@ -2195,7 +2333,9 @@ ${selectedTextContent}
               const handleHighlightClick = (event: React.MouseEvent<HTMLElement>) => {
                 event.stopPropagation();
                 const rect = event.currentTarget.getBoundingClientRect();
-                const scrollAreaElement = document.getElementById('chapter-content-scroll-area');
+      const scrollAreaElement =
+        (document.getElementById('chapter-content-viewport') as HTMLElement | null) ||
+        (document.getElementById('chapter-content-scroll-area') as HTMLElement | null);
                 const scrollTop = scrollAreaElement?.scrollTop || 0;
                 const scrollLeft = scrollAreaElement?.scrollLeft || 0;
                 const top = rect.top + scrollTop;
@@ -2265,7 +2405,7 @@ ${selectedTextContent}
       }
 
       return [
-        <div key={`p-${i}`} className="mb-4">
+        <div key={`p-${i}`} className="mb-4 break-inside-avoid">
           {nodes}
         </div>,
       ];
@@ -2472,15 +2612,23 @@ ${selectedTextContent}
         )}
         id="chapter-content-scroll-area"
         ref={scrollAreaRef as any}
-        onWheel={(e) => {
-          if (isPaginationMode) {
+        viewportProps={{
+          id: 'chapter-content-viewport',
+          style: isPaginationMode ? ({ overscrollBehavior: 'contain' } as React.CSSProperties) : undefined,
+          onWheel: (e) => {
+            if (!isPaginationMode) return;
+            if (e.defaultPrevented) return; // global handler already took over
             e.preventDefault();
             if (e.deltaY > 0) {
               goNextPage();
             } else if (e.deltaY < 0) {
               goPrevPage();
             }
-          }
+          },
+          onWheelCapture: (e) => {
+            if (!isPaginationMode) return;
+            e.preventDefault();
+          },
         }}
       >
         <div
@@ -2494,7 +2642,14 @@ ${selectedTextContent}
           )}
           style={{
             fontSize: `${currentNumericFontSize}px`,
-            fontFamily: (selectedFontFamily as any).family || undefined
+            fontFamily: (selectedFontFamily as any).family || undefined,
+            // Enhanced column settings for better horizontal reading experience
+            ...(columnLayout === 'double' && isPaginationMode ? {
+              columnGap: '3rem', // Wider gap between columns for better readability
+              columnFill: 'balance', // Balance columns to avoid blank second column
+              minHeight: '100%', // Ensure each page is at least viewport height
+              height: '100%',
+            } : {})
           }}
         >
           {processContent(currentChapter)}
