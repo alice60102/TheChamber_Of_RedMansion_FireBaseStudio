@@ -379,7 +379,8 @@ function PostCard({
   };
 
   // Detect if this is a note post
-  const isNotePost = initialPost.content.includes('我的閱讀筆記') && initialPost.content.includes('選取文字：');
+  // New format no longer contains the literal label "選取文字："; detect via header and source
+  const isNotePost = initialPost.content.includes('我的閱讀筆記') && initialPost.content.includes('來源：');
 
   // Parse note content for styled display
   let noteContent = '';
@@ -396,18 +397,18 @@ function PostCard({
       // Extract selected text and source (after ---)
       const bottomPart = parts[1];
 
-      // Try to match selected text - more flexible regex
-      const selectedTextMatch = bottomPart.match(/選取文字：\s*\n(.+?)\n\n來源：/s);
+      // Try to match selected text - accept old/new formats (with or without the label)
+      const selectedTextMatch = bottomPart.match(/(?:選取文字：)?\s*\n?([\s\S]+?)\n\n來源：/);
       if (selectedTextMatch) {
         selectedText = selectedTextMatch[1].trim();
       } else {
-        // Fallback: extract everything between "選取文字：" and "來源："
-        const fallbackMatch = bottomPart.match(/選取文字：\s*(.+?)\s*來源：/s);
+        // Fallback: extract everything before "來源：" (label optional)
+        const fallbackMatch = bottomPart.match(/(?:選取文字：)?\s*([\s\S]+?)\s*來源：/);
         if (fallbackMatch) selectedText = fallbackMatch[1].trim();
       }
 
       // Extract source
-      const sourceMatch = bottomPart.match(/來源：(.+)$/s);
+      const sourceMatch = bottomPart.match(/來源：([\s\S]+)$/);
       if (sourceMatch) source = sourceMatch[1].trim();
 
       // Debug logging (remove in production)
@@ -449,23 +450,23 @@ function PostCard({
       </CardHeader>
       <CardContent className="pt-0">
         {isNotePost ? (
-          // Special styling for note posts with wavy borders
+          // Styling aligned to example: neutral white cards and subtle separators
           <div className="space-y-3">
-            {/* Blue section - User's note content */}
-            <div className="relative bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
+            {/* User's note content */}
+            <div className="relative bg-card p-5 rounded-lg border border-border">
               <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-base">
                 {noteContent}
               </p>
             </div>
 
-            {/* Pink section - Selected text and source */}
-            <div className="relative bg-pink-50 dark:bg-pink-900/20 p-5 space-y-3 rounded-lg">
+            {/* Selected text and source */}
+            <div className="relative bg-card p-5 space-y-3 rounded-lg border border-border">
               <div>
                 <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-base">
                   {selectedText || '（無選取文字）'}
                 </p>
               </div>
-              <div className="pt-3 border-t border-pink-200 dark:border-pink-700">
+              <div className="pt-3 border-t border-border">
                 <p className="text-sm text-muted-foreground font-medium">{source}</p>
               </div>
             </div>
@@ -490,7 +491,7 @@ function PostCard({
         )}
         <div className="flex flex-wrap gap-2 mt-3">
           {initialPost.tags.map(tag => (
-            <span key={tag} className="text-xs bg-blue-500/20 text-blue-400 py-0.5 px-2 rounded-full cursor-pointer hover:bg-blue-500/30">#{tag}</span>
+            <span key={tag} className="text-xs bg-muted/50 text-muted-foreground py-0.5 px-2 rounded-full cursor-pointer hover:bg-muted">#{tag}</span>
           ))}
         </div>
       </CardContent>

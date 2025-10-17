@@ -1005,6 +1005,8 @@ export default function ReadBookPage() {
           questionSubmittedAtRef.current = Date.now();
           responseStartedAtRef.current = null;
           firstChunkSeenRef.current = false;
+          // Declare watchdog timer outside try/catch so it is visible in catch blocks
+          let watchdogInterval: ReturnType<typeof setInterval> | null = null;
 
           try {
             // Create new AbortController for this request (Fix Issue #3)
@@ -1045,7 +1047,6 @@ export default function ReadBookPage() {
             const STREAM_TIMEOUT_MS = 30000; // 30 seconds without data = timeout
             let isStreamActive = true;
             let timeoutError: Error | null = null;
-            let watchdogInterval: NodeJS.Timeout | null = null;
             // Capture latest thinking text from server-extracted <think> content
             let latestThinkingText: string = '';
             const sanitizeThinking = (text: string) => {
@@ -1847,13 +1848,13 @@ export default function ReadBookPage() {
         const isFirstChapter = currentChapter.id === 1;
         const xpAmount = isFirstChapter ? XP_REWARDS.FIRST_CHAPTER_COMPLETED : XP_REWARDS.CHAPTER_COMPLETED;
 
-        const result = await userLevelService.awardXP(
-          user.uid,
-          xpAmount,
-          `Completed chapter ${currentChapter.id}`,
-          'chapter',
-          `chapter-${currentChapter.id}`
-        );
+          const result = await userLevelService.awardXP(
+            user.uid,
+            xpAmount,
+            `Completed chapter ${currentChapter.id}`,
+          'reading',
+            `chapter-${currentChapter.id}`
+          );
 
         // Skip notifications if this is a duplicate reward
         if (result.isDuplicate) {
@@ -1927,7 +1928,6 @@ export default function ReadBookPage() {
 ${currentNote}
 
 ---
-選取文字：
 ${selectedTextContent}
 
 來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
@@ -1971,7 +1971,6 @@ ${selectedTextContent}
 ${currentNote}
 
 ---
-選取文字：
 ${selectedTextContent}
 
 來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
@@ -2016,7 +2015,7 @@ ${selectedTextContent}
             user.uid,
             xpAmount,
             isQualityNote ? 'Created quality note' : 'Created note',
-            'notes',
+            'reading',
             sourceId
           );
 
@@ -2698,16 +2697,18 @@ ${selectedTextContent}
       }}>
         <DialogContent
             className={cn(
-              "max-w-3xl max-h-[80vh] p-0 flex flex-col",
-              isViewingNote ? "bg-amber-50/40 dark:bg-stone-900" : "bg-card"
+              "max-w-3xl max-h-[80vh] p-0 flex flex-col bg-card"
             )}
-            closeButtonPosition="left"
+            closeButtonPosition={isViewingNote ? 'left' : 'right'}
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
+          {isViewingNote && (
+            <DialogTitle className="sr-only">寫筆記</DialogTitle>
+          )}
           {isViewingNote ? (
             // Viewing mode - minimal header with buttons only
-            <div className="p-4 flex flex-row items-center justify-end gap-2">
+            <div className="px-3 py-2 flex flex-row items-center justify-end gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -2726,12 +2727,13 @@ ${selectedTextContent}
             </div>
           ) : (
             // Editing mode - show title
-            <DialogHeader className="p-4 border-b border-border">
+            <DialogHeader className="p-4 pr-12 border-b border-border">
               <DialogTitle className="text-primary text-xl font-artistic">寫筆記</DialogTitle>
             </DialogHeader>
           )}
 
-          <ScrollArea className="flex-grow p-6">
+          {/* Use slightly smaller top padding in view mode to remove extra blank area */}
+          <ScrollArea className={cn("flex-grow", isViewingNote ? "px-6 pb-6 pt-1" : "p-6") }>
             {isViewingNote ? (
               // Viewing mode - show note content directly without extra card
               <div className="space-y-4">
@@ -2759,9 +2761,10 @@ ${selectedTextContent}
 
           {!isViewingNote && (
             <div className="p-4 border-t border-border bg-card">
-              <div className="flex items-center justify-between">
+              {/* Three-column layout keeps the counter perfectly centered */}
+              <div className="grid grid-cols-3 items-center">
                 {/* Left: Public toggle */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 justify-self-start">
                   <Button
                     variant={isNotePublic ? "default" : "outline"}
                     size="sm"
@@ -2777,12 +2780,12 @@ ${selectedTextContent}
                 </div>
 
                 {/* Center: Character count */}
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground justify-self-center text-center">
                   {currentNote.length} / 5000
                 </span>
 
                 {/* Right: Publish/Cancel buttons */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-self-end">
                   <DialogClose asChild>
                     <Button
                       variant="ghost"
@@ -3107,7 +3110,7 @@ ${selectedTextContent}
                   }}
                 />
                 <Button
-                  onClick={isLoadingExplanation ? handleStopStreaming : handleUserSubmitQuestion}
+                  onClick={() => (isLoadingExplanation ? handleStopStreaming() : handleUserSubmitQuestion())}
                   disabled={!isLoadingExplanation && !userQuestionInput.trim()}
                   size="icon"
                   className={cn(
