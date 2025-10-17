@@ -109,7 +109,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from '@/hooks/useLanguage';
 
 // Utility for text transformation based on language
-import { saveNote, getNotesByUserAndChapter, Note, deleteNoteById, updateNote } from '@/lib/notes-service';
+import { saveNote, getNotesByUserAndChapter, Note, deleteNoteById, updateNote, updateNoteVisibility } from '@/lib/notes-service';
+import { communityService, type CreatePostData } from '@/lib/community-service';
 import { useAuth } from '@/hooks/useAuth';
 
 // XP Integration for gamification
@@ -285,6 +286,8 @@ export default function ReadBookPage() {
   const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState("");
   const [currentNoteObj, setCurrentNoteObj] = useState<Note | null>(null);
+  const [isNotePublic, setIsNotePublic] = useState(false);
+  const [isViewingNote, setIsViewingNote] = useState(false);
 
   // XP and Level System States
   const [levelUpData, setLevelUpData] = useState<{
@@ -654,6 +657,8 @@ export default function ReadBookPage() {
       const existingNote = userNotes.find(note => note.selectedText === toolbarInfo.text);
       setCurrentNote(existingNote?.note || '');
       setCurrentNoteObj(existingNote || null);
+      setIsNotePublic(existingNote?.isPublic || false);
+      setIsViewingNote(!!existingNote); // View mode if note exists, edit mode if new
       setIsNoteSheetOpen(true);
       // It's important to hide the selection toolbar when the note sheet opens
       // to avoid UI overlap and confusion.
@@ -1901,20 +1906,90 @@ export default function ReadBookPage() {
     if (!user?.uid || (!noteSelectedText && !toolbarInfo?.text && !selectedTextInfo?.text)) return;
 
     try {
+      const selectedTextContent = noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text || '';
+
       if (currentNoteObj?.id) {
         // Update existing note - no XP for updates
         await updateNote(currentNoteObj.id, currentNote);
+
+        // Update visibility if changed
+        const previousPublicStatus = currentNoteObj.isPublic || false;
+        if (isNotePublic !== previousPublicStatus) {
+          await updateNoteVisibility(currentNoteObj.id, isNotePublic);
+
+          // If changed from private to public, share to community
+          if (isNotePublic && !previousPublicStatus) {
+            try {
+              const chapterTitle = getChapterTitle(currentChapter.titleKey);
+              const postContent = `📘 我的閱讀筆記
+
+${currentNote}
+
+━━━━━━━━━━━━━━━━━━━
+📖 選取文字：
+${selectedTextContent}
+
+📚 來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
+
+              const postData: CreatePostData = {
+                authorId: user.uid,
+                authorName: user.displayName || '匿名讀者',
+                content: postContent,
+                tags: [`第${currentChapter.id}回`, '筆記分享', chapterTitle],
+                category: 'discussion'
+              };
+
+              await communityService.createPost(postData);
+              console.log(`✅ Updated note shared to community`);
+            } catch (communityError) {
+              console.error('Error sharing updated note to community:', communityError);
+            }
+          }
+        }
+
         toast({ title: t('筆記更新'), description: t('buttons.noteUpdated') });
       } else {
         // Create new note
         const noteToSave: Omit<Note, 'id' | 'createdAt'> = {
           userId: user.uid,
           chapterId: currentChapter.id, // Use number, not string
-          selectedText: noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text || '',
+          selectedText: selectedTextContent,
           note: currentNote,
+          isPublic: isNotePublic,
         };
         const noteId = await saveNote(noteToSave);
-        console.log(`📝 Note saved to Firestore with ID: ${noteId}, content length: ${currentNote.length} chars`);
+        console.log(`📝 Note saved to Firestore with ID: ${noteId}, content length: ${currentNote.length} chars, isPublic: ${isNotePublic}`);
+
+        // If note is public, share it to community
+        if (isNotePublic) {
+          try {
+            const chapterTitle = getChapterTitle(currentChapter.titleKey);
+            // Format community post with blue and pink sections
+            const postContent = `📘 我的閱讀筆記
+
+${currentNote}
+
+━━━━━━━━━━━━━━━━━━━
+📖 選取文字：
+${selectedTextContent}
+
+📚 來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
+
+            const postData: CreatePostData = {
+              authorId: user.uid,
+              authorName: user.displayName || '匿名讀者',
+              content: postContent,
+              tags: [`第${currentChapter.id}回`, '筆記分享', chapterTitle],
+              category: 'discussion'
+            };
+
+            await communityService.createPost(postData);
+            console.log(`✅ Public note shared to community`);
+          } catch (communityError) {
+            console.error('Error sharing note to community:', communityError);
+            // Don't fail note save if community post fails
+          }
+        }
 
         // Award XP for creating note
         try {
@@ -1987,6 +2062,8 @@ export default function ReadBookPage() {
       setNoteSelectedText('');
       setCurrentNote('');
       setCurrentNoteObj(null);
+      setIsNotePublic(false);
+      setIsViewingNote(false);
     } catch (error) {
       console.error("Failed to save note:", error);
       toast({
@@ -2003,7 +2080,7 @@ export default function ReadBookPage() {
     try {
       await deleteNoteById(currentNoteObj.id);
       await fetchNotesForChapter(); // Refresh notes from the database
-      
+
       // Close sheet and reset states
       setIsNoteSheetOpen(false);
       setSelectedTextInfo(null);
@@ -2011,6 +2088,8 @@ export default function ReadBookPage() {
       setNoteSelectedText('');
       setCurrentNote('');
       setCurrentNoteObj(null);
+      setIsNotePublic(false);
+      setIsViewingNote(false);
       toast({ title: t('筆記刪除'), description: t('buttons.noteDeleted') });
     } catch (error) {
       console.error("Failed to delete note:", error);
@@ -2055,13 +2134,15 @@ export default function ReadBookPage() {
         parts.push(
           <u
             key={`${index}-${startIndex}`}
-            className="decoration-red-500 decoration-2 cursor-pointer hover:bg-red-100 transition-colors"
+            className="decoration-red-500 decoration-2 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/20 dark:hover:text-white transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               // Load the existing note into the editor
               setNoteSelectedText(note.selectedText);
               setCurrentNote(note.note);
               setCurrentNoteObj(note);
+              setIsNotePublic(note.isPublic || false);
+              setIsViewingNote(true); // Open in viewing mode for existing notes
               setIsNoteSheetOpen(true);
               // Clear any active selections
               setSelectedTextInfo(null);
@@ -2413,18 +2494,6 @@ export default function ReadBookPage() {
         >
           {processContent(currentChapter)}
         </div>
-        {/* 顯示用戶筆記區塊 */}
-        {userNotes.length > 0 && (
-          <div className="my-4 p-3 bg-muted rounded">
-            <h3 className="font-bold mb-2">{t('readBook.yourNotes')}</h3>
-            {userNotes.map(note => (
-              <div key={note.id} className="mb-2">
-                <blockquote className="border-l-4 border-primary pl-2 text-sm">{note.selectedText}</blockquote>
-                <div className="text-xs text-muted-foreground mt-1">{note.note}</div>
-              </div>
-            ))}
-          </div>
-        )}
       </ScrollArea>
 
       {/* Pagination controls: left and right edge buttons only (no bottom bar) */}
@@ -2616,58 +2685,134 @@ export default function ReadBookPage() {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={isNoteSheetOpen} onOpenChange={(open) => {setIsNoteSheetOpen(open); if (!open) {setSelectedTextInfo(null); setNoteSelectedText('');} handleInteraction(); }}>
+      <Sheet open={isNoteSheetOpen} onOpenChange={(open) => {
+        setIsNoteSheetOpen(open);
+        if (!open) {
+          setSelectedTextInfo(null);
+          setNoteSelectedText('');
+          setIsViewingNote(false);
+          setIsNotePublic(false);
+        }
+        handleInteraction();
+      }}>
         <SheetContent
             side="right"
             className="w-[600px] sm:w-[810px] bg-card text-card-foreground p-0 flex flex-col"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
-          <SheetHeader className="p-4 border-b border-border">
-            <SheetTitle className="text-primary text-xl font-artistic">{t('readBook.noteSheetTitle')}</SheetTitle>
-            <SheetDescription>
-              {t('readBook.noteSheetDesc')}
-            </SheetDescription>
-          </SheetHeader>
-          <ScrollArea className="flex-grow p-4 space-y-4">
-            <div>
-              <Label className="text-sm text-muted-foreground">{t('labels.selectedContent')}</Label>
-              <blockquote className="mt-1 p-2 border-l-4 border-primary bg-primary/10 text-sm text-white rounded-sm max-h-32 overflow-y-auto">
-                {noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text || t('readBook.noContentSelected')}
-              </blockquote>
-            </div>
-            <div>
-              <Label htmlFor="noteTextarea" className="text-sm text-muted-foreground">{t('labels.yourNote')}</Label>
-              <Textarea
-                id="noteTextarea"
-                value={currentNote}
-                onChange={(e) => setCurrentNote(e.target.value)}
-                placeholder={t('placeholders.yourNote')}
-                className="min-h-[200px] bg-background/70 mt-1"
-                rows={8}
-              />
-            </div>
-          </ScrollArea>
-          <SheetFooter className="p-4 border-t border-border flex justify-between">
-            <SheetClose asChild>
-              <Button variant="outline" onClick={() => {setIsNoteSheetOpen(false); setSelectedTextInfo(null); setNoteSelectedText(''); handleInteraction();}}>{t('buttons.cancel')}</Button>
-            </SheetClose>
-            {currentNoteObj ? (
-              <Button
-                onClick={handleDeleteNote}
-                className="bg-destructive hover:bg-destructive/90 text-white"
-              >
-                {t('buttons.deleteNote')}
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSaveNote}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {t('buttons.saveNote')}
-              </Button>
+          <SheetHeader className="p-4 border-b border-border flex flex-row items-center justify-between">
+            <SheetTitle className="text-primary text-xl font-artistic">寫筆記</SheetTitle>
+            {isViewingNote && (
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsViewingNote(false)}
+                  className="text-sm"
+                >
+                  編輯
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleDeleteNote}
+                  className="text-sm"
+                >
+                  刪除
+                </Button>
+              </div>
             )}
-          </SheetFooter>
+          </SheetHeader>
+
+          <ScrollArea className="flex-grow p-4">
+            {isViewingNote ? (
+              // Viewing mode - show note content in cream/yellow card
+              <div className="space-y-4">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 border border-yellow-200 dark:border-yellow-800">
+                  <p className="text-foreground whitespace-pre-wrap">{currentNote}</p>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-semibold mb-1">選取文字:</p>
+                  <blockquote className="p-2 border-l-4 border-primary bg-primary/10 rounded-sm">
+                    {noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text}
+                  </blockquote>
+                </div>
+              </div>
+            ) : (
+              // Editing mode - show textarea and selected text
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  <blockquote className="p-2 bg-muted/30 rounded-sm max-h-20 overflow-y-auto">
+                    {noteSelectedText || toolbarInfo?.text || selectedTextInfo?.text || t('readBook.noContentSelected')}
+                  </blockquote>
+                </div>
+                <Textarea
+                  id="noteTextarea"
+                  value={currentNote}
+                  onChange={(e) => setCurrentNote(e.target.value)}
+                  placeholder="研究表明，哪怕每次只輸入一個符號，也能大幅提高學習效果"
+                  className="min-h-[300px] bg-background/70 border-none focus:ring-0 text-base"
+                  rows={12}
+                />
+              </div>
+            )}
+          </ScrollArea>
+
+          {!isViewingNote && (
+            <div className="p-4 border-t border-border">
+              <div className="flex items-center justify-between">
+                {/* Left: Public toggle */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={isNotePublic ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsNotePublic(!isNotePublic)}
+                    className={cn(
+                      "text-sm gap-1",
+                      isNotePublic ? "bg-orange-500 hover:bg-orange-600" : ""
+                    )}
+                  >
+                    <Eye className="w-4 h-4" />
+                    公開
+                  </Button>
+                </div>
+
+                {/* Center: Character count */}
+                <span className="text-sm text-muted-foreground">
+                  {currentNote.length} / 5000
+                </span>
+
+                {/* Right: Publish/Cancel buttons */}
+                <div className="flex gap-2">
+                  <SheetClose asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsNoteSheetOpen(false);
+                        setSelectedTextInfo(null);
+                        setNoteSelectedText('');
+                        setIsViewingNote(false);
+                        handleInteraction();
+                      }}
+                      className="text-sm"
+                    >
+                      取消
+                    </Button>
+                  </SheetClose>
+                  <Button
+                    onClick={handleSaveNote}
+                    size="sm"
+                    className="bg-orange-500 hover:bg-orange-600 text-white text-sm"
+                    disabled={!currentNote.trim() || currentNote.length > 5000}
+                  >
+                    發布
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </SheetContent>
       </Sheet>
 
