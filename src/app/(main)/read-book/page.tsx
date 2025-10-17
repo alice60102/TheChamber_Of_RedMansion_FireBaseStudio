@@ -1921,15 +1921,15 @@ export default function ReadBookPage() {
           if (isNotePublic && !previousPublicStatus) {
             try {
               const chapterTitle = getChapterTitle(currentChapter.titleKey);
-              const postContent = `📘 我的閱讀筆記
+              const postContent = `我的閱讀筆記
 
 ${currentNote}
 
-━━━━━━━━━━━━━━━━━━━
-📖 選取文字：
+---
+選取文字：
 ${selectedTextContent}
 
-📚 來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
+來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
 
               const postData: CreatePostData = {
                 authorId: user.uid,
@@ -1964,16 +1964,16 @@ ${selectedTextContent}
         if (isNotePublic) {
           try {
             const chapterTitle = getChapterTitle(currentChapter.titleKey);
-            // Format community post with blue and pink sections
-            const postContent = `📘 我的閱讀筆記
+            // Format community post with simplified format to avoid content filter
+            const postContent = `我的閱讀筆記
 
 ${currentNote}
 
-━━━━━━━━━━━━━━━━━━━
-📖 選取文字：
+---
+選取文字：
 ${selectedTextContent}
 
-📚 來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
+來源：《紅樓夢》第${currentChapter.id}回《${chapterTitle}》`;
 
             const postData: CreatePostData = {
               authorId: user.uid,
@@ -2714,10 +2714,9 @@ ${selectedTextContent}
                   編輯
                 </Button>
                 <Button
-                  variant="destructive"
                   size="sm"
                   onClick={handleDeleteNote}
-                  className="text-sm"
+                  className="text-sm bg-orange-500 hover:bg-orange-600 text-white"
                 >
                   刪除
                 </Button>
@@ -2773,8 +2772,8 @@ ${selectedTextContent}
                       isNotePublic ? "bg-orange-500 hover:bg-orange-600" : ""
                     )}
                   >
-                    <Eye className="w-4 h-4" />
-                    公開
+                    {isNotePublic ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    {isNotePublic ? '公開' : '私人'}
                   </Button>
                 </div>
 
