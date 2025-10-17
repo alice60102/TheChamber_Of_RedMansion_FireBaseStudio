@@ -2697,40 +2697,44 @@ ${selectedTextContent}
         handleInteraction();
       }}>
         <DialogContent
-            className="max-w-3xl max-h-[80vh] bg-yellow-50 dark:bg-yellow-900/20 p-0 flex flex-col"
+            className={cn(
+              "max-w-3xl max-h-[80vh] p-0 flex flex-col",
+              isViewingNote ? "bg-amber-50/40 dark:bg-stone-900" : "bg-card"
+            )}
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >
-          <DialogHeader className="p-4 border-b border-border flex flex-row items-center justify-between">
-            <DialogTitle className="text-primary text-xl font-artistic">寫筆記</DialogTitle>
-            {isViewingNote && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsViewingNote(false)}
-                  className="text-sm"
-                >
-                  編輯
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleDeleteNote}
-                  className="text-sm bg-orange-500 hover:bg-orange-600 text-white"
-                >
-                  刪除
-                </Button>
-              </div>
-            )}
-          </DialogHeader>
+          {isViewingNote ? (
+            // Viewing mode - minimal header with buttons only
+            <div className="p-4 flex flex-row items-center justify-end gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsViewingNote(false)}
+                className="text-sm"
+              >
+                編輯
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleDeleteNote}
+                className="text-sm bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                刪除
+              </Button>
+            </div>
+          ) : (
+            // Editing mode - show title
+            <DialogHeader className="p-4 border-b border-border">
+              <DialogTitle className="text-primary text-xl font-artistic">寫筆記</DialogTitle>
+            </DialogHeader>
+          )}
 
           <ScrollArea className="flex-grow p-6">
             {isViewingNote ? (
-              // Viewing mode - show note content in cream/yellow card centered
+              // Viewing mode - show note content directly without extra card
               <div className="space-y-4">
-                <div className="bg-white/50 dark:bg-yellow-800/30 rounded-lg p-6 border border-yellow-300 dark:border-yellow-700">
-                  <p className="text-foreground whitespace-pre-wrap text-lg leading-relaxed">{currentNote}</p>
-                </div>
+                <p className="text-foreground whitespace-pre-wrap text-xl leading-relaxed">{currentNote}</p>
               </div>
             ) : (
               // Editing mode - show textarea and selected text

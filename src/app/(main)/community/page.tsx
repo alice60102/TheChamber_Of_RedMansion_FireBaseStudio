@@ -389,16 +389,34 @@ function PostCard({
   if (isNotePost) {
     const parts = initialPost.content.split('---');
     if (parts.length >= 2) {
-      // Extract note content (before ---)
-      noteContent = parts[0].replace('我的閱讀筆記', '').trim();
+      // Extract note content (before ---), remove "我的閱讀筆記" and extra newlines
+      const rawNoteContent = parts[0].replace('我的閱讀筆記', '').trim();
+      noteContent = rawNoteContent || '（無筆記內容）'; // Fallback if empty
 
       // Extract selected text and source (after ---)
       const bottomPart = parts[1];
-      const selectedTextMatch = bottomPart.match(/選取文字：\n(.+?)\n\n來源：/s);
-      const sourceMatch = bottomPart.match(/來源：(.+)$/s);
 
-      if (selectedTextMatch) selectedText = selectedTextMatch[1].trim();
+      // Try to match selected text - more flexible regex
+      const selectedTextMatch = bottomPart.match(/選取文字：\s*\n(.+?)\n\n來源：/s);
+      if (selectedTextMatch) {
+        selectedText = selectedTextMatch[1].trim();
+      } else {
+        // Fallback: extract everything between "選取文字：" and "來源："
+        const fallbackMatch = bottomPart.match(/選取文字：\s*(.+?)\s*來源：/s);
+        if (fallbackMatch) selectedText = fallbackMatch[1].trim();
+      }
+
+      // Extract source
+      const sourceMatch = bottomPart.match(/來源：(.+)$/s);
       if (sourceMatch) source = sourceMatch[1].trim();
+
+      // Debug logging (remove in production)
+      console.log('📝 Note Post Parsing:', {
+        noteContent,
+        selectedText,
+        source,
+        rawContent: initialPost.content.substring(0, 100)
+      });
     }
   }
 
@@ -431,21 +449,41 @@ function PostCard({
       </CardHeader>
       <CardContent className="pt-0">
         {isNotePost ? (
-          // Special styling for note posts
+          // Special styling for note posts with wavy borders
           <div className="space-y-3">
-            {/* Blue section - User's note content */}
-            <div className="border-2 border-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-              <p className="text-foreground leading-relaxed whitespace-pre-line">{noteContent}</p>
+            {/* Blue section - User's note content with wavy border effect */}
+            <div
+              className="relative border-3 border-blue-400 bg-blue-50 dark:bg-blue-900/20 p-5"
+              style={{
+                borderRadius: '20px 5px 20px 5px',
+                borderStyle: 'solid',
+                borderWidth: '3px',
+                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.1)'
+              }}
+            >
+              <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-base">
+                {noteContent}
+              </p>
             </div>
 
-            {/* Pink section - Selected text and source */}
-            <div className="border-2 border-pink-400 bg-pink-50 dark:bg-pink-900/20 rounded-lg p-4 space-y-2">
+            {/* Pink section - Selected text and source with wavy border */}
+            <div
+              className="relative border-3 border-pink-400 bg-pink-50 dark:bg-pink-900/20 p-5 space-y-3"
+              style={{
+                borderRadius: '5px 20px 5px 20px',
+                borderStyle: 'solid',
+                borderWidth: '3px',
+                boxShadow: '0 2px 4px rgba(236, 72, 153, 0.1)'
+              }}
+            >
               <div>
-                <p className="text-sm font-semibold text-pink-700 dark:text-pink-300 mb-1">選取文字：</p>
-                <p className="text-foreground leading-relaxed whitespace-pre-line">{selectedText}</p>
+                <p className="text-sm font-semibold text-pink-700 dark:text-pink-300 mb-2">選取文字：</p>
+                <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-base">
+                  {selectedText || '（無選取文字）'}
+                </p>
               </div>
-              <div className="pt-2 border-t border-pink-200 dark:border-pink-700">
-                <p className="text-sm text-muted-foreground">{source}</p>
+              <div className="pt-3 border-t border-pink-200 dark:border-pink-700">
+                <p className="text-sm text-muted-foreground font-medium">{source}</p>
               </div>
             </div>
           </div>
