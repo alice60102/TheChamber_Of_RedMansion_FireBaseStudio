@@ -2701,6 +2701,7 @@ ${selectedTextContent}
               "max-w-3xl max-h-[80vh] p-0 flex flex-col",
               isViewingNote ? "bg-amber-50/40 dark:bg-stone-900" : "bg-card"
             )}
+            closeButtonPosition="left"
             data-no-selection="true"
             onClick={(e) => {e.stopPropagation(); handleInteraction();}}
         >

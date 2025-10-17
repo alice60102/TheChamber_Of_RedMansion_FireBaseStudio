@@ -451,33 +451,16 @@ function PostCard({
         {isNotePost ? (
           // Special styling for note posts with wavy borders
           <div className="space-y-3">
-            {/* Blue section - User's note content with wavy border effect */}
-            <div
-              className="relative border-3 border-blue-400 bg-blue-50 dark:bg-blue-900/20 p-5"
-              style={{
-                borderRadius: '20px 5px 20px 5px',
-                borderStyle: 'solid',
-                borderWidth: '3px',
-                boxShadow: '0 2px 4px rgba(59, 130, 246, 0.1)'
-              }}
-            >
+            {/* Blue section - User's note content */}
+            <div className="relative bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
               <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-base">
                 {noteContent}
               </p>
             </div>
 
-            {/* Pink section - Selected text and source with wavy border */}
-            <div
-              className="relative border-3 border-pink-400 bg-pink-50 dark:bg-pink-900/20 p-5 space-y-3"
-              style={{
-                borderRadius: '5px 20px 5px 20px',
-                borderStyle: 'solid',
-                borderWidth: '3px',
-                boxShadow: '0 2px 4px rgba(236, 72, 153, 0.1)'
-              }}
-            >
+            {/* Pink section - Selected text and source */}
+            <div className="relative bg-pink-50 dark:bg-pink-900/20 p-5 space-y-3 rounded-lg">
               <div>
-                <p className="text-sm font-semibold text-pink-700 dark:text-pink-300 mb-2">選取文字：</p>
                 <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-base">
                   {selectedText || '（無選取文字）'}
                 </p>
