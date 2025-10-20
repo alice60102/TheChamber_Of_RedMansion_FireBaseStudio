@@ -18,7 +18,7 @@
  */
 
 import React, { useEffect, useState, useId } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { PerplexityCitation } from '@/types/perplexity-qa';
 import { StructuredQAResponse } from './StructuredQAResponse';
@@ -102,8 +102,8 @@ export function AIMessageBubble({
             <ChevronDown className={cn('w-4 h-4 flex-shrink-0 transition-transform', isThinkingExpanded ? 'rotate-0' : '-rotate-90')} />
             <span className="font-medium">
               {isThinkingComplete
-                ? (typeof thinkingDuration === 'number' ? `Thought for ${Math.max(0, thinkingDuration)} seconds` : 'Thought complete')
-                : 'Thinking…'}
+                ? (typeof thinkingDuration === 'number' ? `思考了 ${Math.max(0, thinkingDuration)} 秒` : '思考完成')
+                : '思考中…'}
             </span>
           </button>
 
@@ -119,9 +119,9 @@ export function AIMessageBubble({
             {hasThinkingContent && (
             <div
               className={cn(
-                'text-[12px] italic text-muted-foreground/90',
-                'leading-6 whitespace-pre-wrap',
-                'border-l-[2px] border-border pl-4 ml-2'
+                'text-sm italic text-muted-foreground',
+                'leading-relaxed whitespace-pre-wrap',
+                'border-l-2 border-blue-500/30 pl-4 ml-2'
               )}
             >
               {thinkingProcess}

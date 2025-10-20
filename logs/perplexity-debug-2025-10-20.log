@@ -1,0 +1,544 @@
+[2025-10-20T15:45:06.962Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:45:06.969Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 11,
+  "enableStreaming": true
+}
+[2025-10-20T15:45:06.970Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:45:07.019Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:45:07.020Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:45:10.761Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:45:10.767Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 103,
+  "enableStreaming": true
+}
+[2025-10-20T15:45:10.769Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:45:10.800Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:45:10.808Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:49:22.515Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:49:22.522Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 11,
+  "enableStreaming": true
+}
+[2025-10-20T15:49:22.523Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:49:22.546Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:49:22.550Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:49:25.116Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:49:25.118Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 114,
+  "enableStreaming": true
+}
+[2025-10-20T15:49:25.119Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:49:25.137Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:49:25.138Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:55:29.652Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:55:29.656Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 11,
+  "enableStreaming": true
+}
+[2025-10-20T15:55:29.658Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:55:29.708Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:55:29.709Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:55:31.907Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:55:31.909Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 103,
+  "enableStreaming": true
+}
+[2025-10-20T15:55:31.910Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:55:31.930Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:55:31.931Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:55:58.325Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:55:58.327Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 103,
+  "enableStreaming": true
+}
+[2025-10-20T15:55:58.328Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:55:58.366Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:55:58.368Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:56:58.353Z] [DEBUG] [PERPLEXITY_STREAMING] Starting async generator: perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "hasAsyncIterator": false
+}
+[2025-10-20T15:56:58.355Z] [DEBUG] [PERPLEXITY_STREAMING] Function entry point reached
+DATA: {
+  "inputType": "object",
+  "inputKeys": [
+    "userQuestion",
+    "modelKey",
+    "reasoningEffort",
+    "questionContext",
+    "enableStreaming",
+    "includeDetailedCitations",
+    "showThinkingProcess",
+    "temperature",
+    "maxTokens",
+    "selectedText",
+    "chapterContext",
+    "currentChapter"
+  ],
+  "userQuestionLength": 101,
+  "enableStreaming": true
+}
+[2025-10-20T15:56:58.357Z] [DEBUG] [PERPLEXITY_STREAMING] Getting Perplexity client
+[2025-10-20T15:56:58.382Z] [ERROR] [PERPLEXITY_STREAMING] Async generator error in perplexityRedChamberQAStreaming
+DATA: {
+  "functionName": "perplexityRedChamberQAStreaming",
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at TerminalLogger.logAsyncGeneratorError (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:106:20)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:272:80)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)
+[2025-10-20T15:56:58.384Z] [ERROR] [PERPLEXITY_STREAMING] Caught error in streaming function
+DATA: {
+  "errorType": "PerplexityQAError",
+  "errorMessage": "Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.",
+  "isTypeError": false,
+  "isReferenceError": false,
+  "stack": "PerplexityQAError: Perplexity API key is required. Please set PERPLEXITYAI_API_KEY environment variable.\n    at new PerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:28:19)\n    at getDefaultPerplexityClient (webpack-internal:///(rsc)/./src/lib/perplexity-client.ts:547:25)\n    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:226:106)\n    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)"
+}
+STACK: Error: 
+    at TerminalLogger.createLogEntry (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:68:35)
+    at TerminalLogger.error (webpack-internal:///(rsc)/./src/lib/terminal-logger.ts:87:28)
+    at perplexityRedChamberQAStreaming (webpack-internal:///(rsc)/./src/ai/flows/perplexity-red-chamber-qa.ts:273:77)
+    at async Object.start (webpack-internal:///(rsc)/./src/app/api/perplexity-qa-stream/route.ts:81:42)

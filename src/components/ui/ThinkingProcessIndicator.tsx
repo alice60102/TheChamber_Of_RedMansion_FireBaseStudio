@@ -204,9 +204,9 @@ export function ThinkingProcessIndicator({
           <div
             className={cn(
               'thinking-content px-4 pb-4',
-              'text-xs',
+              'text-sm',
               'text-muted-foreground italic',
-              'pt-2 ml-2 border-l-2 pl-4 border-blue-500/20'
+              'pt-2 ml-2 border-l-2 pl-4 border-blue-500/30'
             )}
           >
             <div className="whitespace-pre-wrap leading-relaxed">
